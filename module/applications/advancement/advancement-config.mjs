@@ -35,8 +35,8 @@ export default class AdvancementConfig extends FormApplication {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["jujutsu-system", "advancement", "dialog"],
-      template: "systems/jujutsu-system/templates/advancement/advancement-config.hbs",
+      classes: ["hunter-system", "advancement", "dialog"],
+      template: "systems/hunter-system/templates/advancement/advancement-config.hbs",
       width: 400,
       height: "auto",
       submitOnChange: true,

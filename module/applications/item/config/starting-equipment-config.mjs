@@ -22,7 +22,7 @@ export default class StartingEquipmentConfig extends DocumentSheet5e {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/apps/starting-equipment-config.hbs"
+      template: "systems/hunter-system/templates/apps/starting-equipment-config.hbs"
     }
   };
 

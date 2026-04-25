@@ -258,7 +258,7 @@ export default class Advancement extends PseudoDocumentMixin(BaseAdvancementData
   /** @inheritDoc */
   async delete(options={}) {
     if ( this.item.actor?.system.metadata?.supportsAdvancement
-        && !game.settings.get("jujutsu-system", "disableAdvancements") ) {
+        && !game.settings.get("hunter-system", "disableAdvancements") ) {
       const manager = dnd5e.applications.advancement.AdvancementManager
         .forDeletedAdvancement(this.item.actor, this.item.id, this.id);
       if ( manager.steps.length ) return manager.render(true);
@@ -330,9 +330,9 @@ export default class Advancement extends PseudoDocumentMixin(BaseAdvancementData
     return source.clone({
       _stats,
       _id: id ?? foundry.utils.randomID(),
-      "flags.JujutsuLegacy.sourceId": uuid,
-      "flags.JujutsuLegacy.advancementOrigin": advancementOrigin,
-      "flags.JujutsuLegacy.advancementRoot": this.item.getFlag("jujutsu-system", "advancementRoot") ?? advancementOrigin
+      "flags.HunterLegacy.sourceId": uuid,
+      "flags.HunterLegacy.advancementOrigin": advancementOrigin,
+      "flags.HunterLegacy.advancementRoot": this.item.getFlag("hunter-system", "advancementRoot") ?? advancementOrigin
     }, { keepId: true }).toObject();
   }
 

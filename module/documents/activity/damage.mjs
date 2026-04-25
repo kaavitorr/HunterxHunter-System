@@ -19,7 +19,7 @@ export default class DamageActivity extends ActivityMixin(BaseDamageActivityData
   static metadata = Object.freeze(
     foundry.utils.mergeObject(super.metadata, {
       type: "damage",
-      img: "systems/jujutsu-system/icons/svg/activity/damage.svg",
+      img: "systems/hunter-system/icons/svg/activity/damage.svg",
       title: "DND5E.DAMAGE.Title",
       hint: "DND5E.DAMAGE.Hint",
       sheetClass: DamageSheet,
@@ -51,7 +51,7 @@ export default class DamageActivity extends ActivityMixin(BaseDamageActivityData
 
   /** @override */
   async _triggerSubsequentActions(config, results) {
-    this.rollDamage({ event: config.event }, {}, { data: { "flags.JujutsuLegacy.originatingMessage": results.message?.id } });
+    this.rollDamage({ event: config.event }, {}, { data: { "flags.HunterLegacy.originatingMessage": results.message?.id } });
   }
 
   /* -------------------------------------------- */

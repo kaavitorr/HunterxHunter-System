@@ -45,82 +45,82 @@ export default class CharacterActorSheet extends BaseActorSheet {
   /** @override */
   static PARTS = {
     header: {
-      template: "systems/jujutsu-system/templates/actors/character-header.hbs"
+      template: "systems/hunter-system/templates/actors/character-header.hbs"
     },
     sidebar: {
       container: { classes: ["main-content"], id: "main" },
-      template: "systems/jujutsu-system/templates/actors/character-sidebar.hbs"
+      template: "systems/hunter-system/templates/actors/character-sidebar.hbs"
     },
     details: {
       classes: ["col-2"],
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/character-details.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/character-details.hbs",
       scrollable: [""]
     },
     inventory: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/character-inventory.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/character-inventory.hbs",
       templates: [
-        "systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs",
-        "systems/jujutsu-system/templates/inventory/encumbrance.hbs", "systems/jujutsu-system/templates/inventory/containers.hbs"
+        "systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs",
+        "systems/hunter-system/templates/inventory/encumbrance.hbs", "systems/hunter-system/templates/inventory/containers.hbs"
       ],
       scrollable: [""]
     },
     features: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/character-features.hbs",
-      templates: ["systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs"],
+      template: "systems/hunter-system/templates/actors/tabs/character-features.hbs",
+      templates: ["systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs"],
       scrollable: [""]
     },
     spells: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/creature-spells.hbs",
-      templates: ["systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs"],
+      template: "systems/hunter-system/templates/actors/tabs/creature-spells.hbs",
+      templates: ["systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs"],
       scrollable: [""]
     },
     effects: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-effects.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/actor-effects.hbs",
       scrollable: [""]
     },
     biography: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/character-biography.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/character-biography.hbs",
       scrollable: [""]
     },
     bastion: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/character-bastion.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/character-bastion.hbs",
       scrollable: [""]
     },
     // specialTraits: {
     //   classes: ["flexcol"],
     //   container: { classes: ["tab-body"], id: "tabs" },
-    //   template: "systems/jujutsu-system/templates/actors/tabs/creature-special-traits.hbs",
+    //   template: "systems/hunter-system/templates/actors/tabs/creature-special-traits.hbs",
     //   scrollable: [""]
     // },
     manipulation: {
       classes: ["flexcol"],
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/character-manipulation.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/character-manipulation.hbs",
       scrollable: [""]
     },
     trainings: {
       classes: ["flexcol"],
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/character-trainings.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/character-trainings.hbs",
       scrollable: [""]
     },
     abilityScores: {
-      template: "systems/jujutsu-system/templates/actors/character-ability-scores.hbs"
+      template: "systems/hunter-system/templates/actors/character-ability-scores.hbs"
     },
     warnings: {
-      template: "systems/jujutsu-system/templates/actors/parts/actor-warnings-dialog.hbs"
+      template: "systems/hunter-system/templates/actors/parts/actor-warnings-dialog.hbs"
     },
     tabs: {
       id: "tabs",
       classes: ["tabs-right"],
-      template: "systems/jujutsu-system/templates/shared/sidebar-tabs.hbs"
+      template: "systems/hunter-system/templates/shared/sidebar-tabs.hbs"
     }
   };
 
@@ -142,7 +142,7 @@ export default class CharacterActorSheet extends BaseActorSheet {
   /** @override */
   static TABS = [
     { tab: "details", label: "DND5E.Details", icon: "fas fa-cog" },
-    { tab: "inventory", label: "DND5E.Inventory", svg: "systems/jujutsu-system/icons/svg/backpack.svg" },
+    { tab: "inventory", label: "DND5E.Inventory", svg: "systems/hunter-system/icons/svg/backpack.svg" },
     { tab: "features", label: "DND5E.Features", icon: "fas fa-list" },
     { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
     { tab: "effects", label: "DND5E.Effects", icon: "fas fa-bolt" },
@@ -395,7 +395,7 @@ export default class CharacterActorSheet extends BaseActorSheet {
 const abilityOrder = ["str", "dex", "con", "int", "wis", "cha"];
 const abilityLabels = {
   str: "Força", dex: "Agilidade", con: "Constituição",
-  int: "Intelecto", wis: "Sabedoria", cha: "Presença"
+  int: "Espírito", wis: "Sabedoria", cha: "Presença"
 };
 const skillsSorted = [];
 for ( const ab of abilityOrder ) {
@@ -473,8 +473,8 @@ context.skills = skillsSorted;
         columns, id: "background", label: "DND5E.FeaturesBackground", order: 2000, groups: { origin: "background" }
       } : null,
       { columns, id: "other", label: "DND5E.FeaturesOther",      order: 3000, groups: { origin: "other" } },
-      { columns, id: "jj-origin",  label: "Origem de Poder",     order: 4000, groups: { origin: "jj-origin"  }, items: [] },
-      { columns, id: "jj-combat",  label: "Estilo de Combate",   order: 5000, groups: { origin: "jj-combat"  }, items: [] },
+      { columns, id: "jj-origin",  label: "",     order: 4000, groups: { origin: "jj-origin"  }, items: [] },
+      { columns, id: "jj-combat",  label: "Categoria",   order: 5000, groups: { origin: "jj-combat"  }, items: [] },
       { columns, id: "jj-path",    label: "Caminho",             order: 6000, groups: { origin: "jj-path"    }, items: [] },
       { columns, id: "jj-basic",   label: "Habilidades Básicas", order: 7000, groups: { origin: "jj-basic"   }, items: [] },
       { columns, id: "jj-talents", label: "Talentos",            order: 8000, groups: { origin: "jj-talents" }, items: [] },
@@ -548,8 +548,8 @@ context.skills = skillsSorted;
     }
 
     // Visibility
-    context.showExperience = game.settings.get("jujutsu-system", "levelingMode") !== "noxp";
-    context.showRests = game.user.isGM || (this.actor.isOwner && game.settings.get("jujutsu-system", "allowRests"));
+    context.showExperience = game.settings.get("hunter-system", "levelingMode") !== "noxp";
+    context.showRests = game.user.isGM || (this.actor.isOwner && game.settings.get("hunter-system", "allowRests"));
 
     return context;
   }
@@ -644,7 +644,7 @@ context.energyPct = energy?.max > 0 ? ((energy.total / energy.max) * 100).toFixe
     // Seis Olhos
     const seisOlhosItem = this.actor.items.find(i => i.name === "Seis Olhos" && i.type === "feat");
     context.seisOlhos = !!seisOlhosItem;
-    context.seisOlhosMode = this.actor.getFlag("jujutsu-system", "seisOlhosMode") ?? "sealed";
+    context.seisOlhosMode = this.actor.getFlag("hunter-system", "seisOlhosMode") ?? "sealed";
 
     return context;
   }
@@ -915,11 +915,11 @@ context.energyPct = energy?.max > 0 ? ((energy.total / energy.max) * 100).toFixe
 
     await super._prepareItemFeature(item, ctx);
 
-    const [originId] = (item.getFlag("jujutsu-system", "advancementRoot") ?? item.getFlag("jujutsu-system", "advancementOrigin"))
+    const [originId] = (item.getFlag("hunter-system", "advancementRoot") ?? item.getFlag("hunter-system", "advancementOrigin"))
       ?.split(".") ?? [];
     const group = item.parent.items.get(originId);
     // Verificar se o item tem seção customizada Jujutsu
-    const jjSection = item.getFlag("jujutsu-system", "featureSection");
+    const jjSection = item.getFlag("hunter-system", "featureSection");
     if ( jjSection && ["jj-origin", "jj-combat", "jj-path", "jj-basic", "jj-talents", "jj-flaws"].includes(jjSection) ) {
       ctx.groups.origin = jjSection;
     } else {
@@ -1059,10 +1059,10 @@ new foundry.applications.ux.ContextMenu.implementation(
       ?.addEventListener("click", () => _onExplosaoDefensiva(this.actor));
 
     // Seis Olhos — listener nos radio buttons
-    this.element.querySelectorAll("input[name='flags.jujutsu-system.seisOlhosMode']")
+    this.element.querySelectorAll("input[name='flags.hunter-system.seisOlhosMode']")
       .forEach(radio => radio.addEventListener("change", async (event) => {
         const mode = event.target.value;
-        await this.actor.setFlag("jujutsu-system", "seisOlhosMode", mode);
+        await this.actor.setFlag("hunter-system", "seisOlhosMode", mode);
         await _applySeiOlhosEffects(this.actor, mode);
       }));
 
@@ -1431,7 +1431,7 @@ new foundry.applications.ux.ContextMenu.implementation(
       const cls = this.actor.itemTypes.class.find(c => c.identifier === itemData.system.identifier);
       if ( cls ) {
         const priorLevel = cls.system.levels;
-        if ( !game.settings.get("jujutsu-system", "disableAdvancements") ) {
+        if ( !game.settings.get("hunter-system", "disableAdvancements") ) {
           const manager = AdvancementManager.forLevelChange(this.actor, cls.id, itemData.system.levels);
           if ( manager.steps.length ) {
             manager.render({ force: true });
@@ -1522,7 +1522,7 @@ new foundry.applications.ux.ContextMenu.implementation(
   static hasBastion(actor) {
     const { basic, special } = CONFIG.DND5E.facilities.advancement;
     const threshold = Math.min(...Object.keys(basic), ...Object.keys(special));
-    return game.settings.get("jujutsu-system", "bastionConfiguration")?.enabled && (actor.system.details.level >= threshold);
+    return game.settings.get("hunter-system", "bastionConfiguration")?.enabled && (actor.system.details.level >= threshold);
   }
 
   /* -------------------------------------------- */
@@ -1537,10 +1537,10 @@ new foundry.applications.ux.ContextMenu.implementation(
   async _prepareManipulationContext(context, options) {
     try {
       const result = prepareManipulationAbilities(this.actor);
-      console.log("JujutsuLegacy | abilities prepared:", JSON.stringify(Object.keys(result)));
+      console.log("HunterLegacy | abilities prepared:", JSON.stringify(Object.keys(result)));
       context.abilities = result;
     } catch(err) {
-      console.error("JujutsuLegacy | Erro Manipulacao:", err);
+      console.error("HunterLegacy | Erro Manipulacao:", err);
       context.abilities = { basic: {}, advanced: {}, extreme: {}, barrier: {} };
     }
     return context;
@@ -1551,10 +1551,10 @@ new foundry.applications.ux.ContextMenu.implementation(
   async _prepareTrainingsContext(context, options) {
     try {
       const result = prepareTrainings(this.actor);
-      console.log("JujutsuLegacy | trainings prepared:", JSON.stringify(Object.keys(result)));
+      console.log("HunterLegacy | trainings prepared:", JSON.stringify(Object.keys(result)));
       context.trainings = result;
     } catch(err) {
-      console.error("JujutsuLegacy | Erro Treinamentos:", err);
+      console.error("HunterLegacy | Erro Treinamentos:", err);
       context.trainings = { general: {}, domain: {}, immaculate: {} };
     }
     return context;
@@ -1594,7 +1594,7 @@ new foundry.applications.ux.ContextMenu.implementation(
    * Colapsa ou expande uma seção da aba Features, persistindo o estado no localStorage.
    */
   _onToggleSection(sectionId) {
-    const storageKey = `jujutsu-system.features.collapsed.${this.actor.id}`;
+    const storageKey = `hunter-system.features.collapsed.${this.actor.id}`;
     let collapsed;
     try { collapsed = JSON.parse(localStorage.getItem(storageKey) ?? "[]"); }
     catch { collapsed = []; }
@@ -1628,7 +1628,7 @@ new foundry.applications.ux.ContextMenu.implementation(
    * Restaura o estado colapsado das seções da aba Features ao renderizar a ficha.
    */
   _restoreCollapsedSections() {
-    const storageKey = `jujutsu-system.features.collapsed.${this.actor.id}`;
+    const storageKey = `hunter-system.features.collapsed.${this.actor.id}`;
     let collapsed;
     try { collapsed = JSON.parse(localStorage.getItem(storageKey) ?? "[]"); }
     catch { collapsed = []; }
@@ -2064,7 +2064,7 @@ async _syncTrainingEffect(trainingId, rank) {
   if ( !def ) return; // Treinamento sem automação, ignora
 
   // Procura effect existente pela flag
-  const existing = this.actor.effects.find(e => e.getFlag("jujutsu-system", "trainingId") === trainingId);
+  const existing = this.actor.effects.find(e => e.getFlag("hunter-system", "trainingId") === trainingId);
 
   // Se rank 0, remove o effect se existir
   if ( rank === 0 ) {
@@ -2077,7 +2077,7 @@ async _syncTrainingEffect(trainingId, rank) {
     icon: def.icon,
     origin: this.actor.uuid,
     disabled: false,
-    flags: { "jujutsu-system": { trainingId } },
+    flags: { "hunter-system": { trainingId } },
     changes: def.changes(rank)
   };
 
@@ -2147,7 +2147,7 @@ async _syncTrainingEffect(trainingId, rank) {
       "system.energy.total": energyTotal - nextPaCost
     });
 
-    // Rolar Teste de Constituição (Controle de Energia) — skill "Cont"
+    // Rolar Teste de Espírito (Nen) — skill "Cont"
     // Usa o total da skill que já considera proficiência, maestria e bônus
     const contSkill = this.actor.system.skills?.Cont;
     const skillTotal = contSkill?.total ?? (
@@ -2192,7 +2192,7 @@ await this._syncTrainingEffect(trainingId, rank + 1);
 }
 /**
  * jujutsu-chat-card.mjs
- * JujutsuLegacy — Chat Card Customizado
+ * HunterLegacy — Chat Card Customizado
  *
  * Substitui completamente o card nativo do dnd5e para ataques.
  * Fluxo:
@@ -2292,7 +2292,7 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       content,
       rollMode,
       flags: {
-        "jujutsu-system": {
+        "hunter-system": {
           jujutsuCard: true,
           cardData
         }
@@ -2781,7 +2781,7 @@ function _buildBreakdown(roll) {
       if ( game.dice3d ) game.dice3d.showForRoll(roll, game.user, true); // sem await
       return roll.total;
     } catch(e) {
-      console.error("JujutsuLegacy | Erro ao rolar crítico:", e);
+      console.error("HunterLegacy | Erro ao rolar crítico:", e);
       return 0;
     }
   }
@@ -2803,12 +2803,12 @@ function _buildBreakdown(roll) {
       let restante = amount;
 
       // 0. Verificar Explosão Defensiva pendente
-const expDefFlag = actor.getFlag("jujutsu-system", "explosaoDefensivaPendente") ?? null;
+const expDefFlag = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
 const expDefPendente = expDefFlag?.reducao ?? 0;
 if ( expDefPendente > 0 ) {
   const reducao = Math.min(expDefPendente, restante);
         restante = Math.max(0, restante - reducao);
-        await actor.unsetFlag("jujutsu-system", "explosaoDefensivaPendente");
+        await actor.unsetFlag("hunter-system", "explosaoDefensivaPendente");
         ChatMessage.create({
           speaker: ChatMessage.getSpeaker({ actor }),
           content: `🛡️ <strong>${actor.name}</strong> reduziu <strong>${reducao}</strong> de dano com Explosão Defensiva!`
@@ -2842,7 +2842,7 @@ if ( expDefPendente > 0 ) {
     }
   }
 
-  console.log("JujutsuLegacy | Chat card customizado registrado ✓");
+  console.log("HunterLegacy | Chat card customizado registrado ✓");
 })();
 
 /* ============================================================
@@ -2872,7 +2872,7 @@ if ( expDefPendente > 0 ) {
 
       // Redução de PA do Seis Olhos
       const seisOlhosItem = actor.items?.find(i => i.name === "Seis Olhos" && i.type === "feat");
-      const seisOlhosMode = actor.getFlag("jujutsu-system", "seisOlhosMode");
+      const seisOlhosMode = actor.getFlag("hunter-system", "seisOlhosMode");
       let paReduction = 0;
       if ( seisOlhosItem && seisOlhosMode ) {
         const prof    = actor.system.attributes?.prof ?? 2;
@@ -2923,7 +2923,7 @@ if ( expDefPendente > 0 ) {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
       content,
-      flags: { "jujutsu-system": { jujutsuExtraCard: true, cardData } }
+      flags: { "hunter-system": { jujutsuExtraCard: true, cardData } }
     });
   }
 
@@ -3297,7 +3297,7 @@ if ( expDefPendente > 0 ) {
     if ( btn ) { btn.textContent = `✓ ${amount} aplicado`; btn.disabled = true; btn.style.opacity = "0.6"; }
   }
 
-  console.log("JujutsuLegacy | Cards extras registrados ✓");
+  console.log("HunterLegacy | Cards extras registrados ✓");
 })();
 
 (function _registerCursedEnergyConsumption() {
@@ -3356,7 +3356,7 @@ const JJ_CONDITIONS = [
   { id: "jj-empoderado",      label: "Empoderado",       icon: "fas fa-fist-raised",       desc: "Dano corpo-a-corpo → 1d12. PA de técnicas mal-sucedidas não descontados." },
   { id: "jj-enfeiticado",     label: "Enfeitiçado",      icon: "fas fa-wand-sparkles",     desc: "Não pode atacar quem a enfeitiçou. Quem enfeitiçou tem vantagem em testes sociais." },
   { id: "jj-enfurecido",      label: "Enfurecido",       icon: "fas fa-fire-flame-curved", desc: "Ataca fonte da fúria com desvantagem. Dano corpo-a-corpo +1d4. Dura 1 minuto." },
-  { id: "jj-energia-esgotada",label: "Energia Esgotada", icon: "fas fa-battery-empty",     desc: "Não pode usar nenhuma habilidade ou técnica. Também está Letárgica." },
+  { id: "jj-aura-esgotada",   label: "Aura Esgotada",    icon: "fas fa-battery-empty",     desc: "Não pode usar nenhuma habilidade ou técnica. Também está Letárgica." },
   { id: "jj-estremecido",     label: "Estremecido",      icon: "fas fa-person-trembling",  desc: "Desvantagem em ataques. Não pode usar técnicas com concentração. Deslocamento custa 2×." },
   { id: "jj-exausto",         label: "Exausto",          icon: "fas fa-tired",             desc: "−2 em rolagens d20. −1,5m de deslocamento. Acumulável até 3× por técnicas." },
   { id: "jj-envenenado",      label: "Envenenado",       icon: "fas fa-skull-crossbones",  desc: "Desvantagem em ataques e testes. Após 1 dia, Salv. CON CD 15 para encerrar." },
@@ -3438,7 +3438,7 @@ function _injectJJConditions(element, actor) {
           name:     cond.label,
           icon:     "icons/svg/aura.svg",
           statuses: [condId],
-          flags:    { "jujutsu-system": { isJujutsuCondition: true } }
+          flags:    { "hunter-system": { isJujutsuCondition: true } }
         }]);
       } else {
         const existing = actor.effects.find(e => e.statuses?.has(condId));
@@ -3477,7 +3477,7 @@ function _injectJJConditions(element, actor) {
       name,
       icon:     "icons/svg/aura.svg",
       statuses: [`jj-custom-${name.toLowerCase().replace(/\s+/g, "-")}`],
-      flags:    { "jujutsu-system": { isCustomCondition: true } }
+      flags:    { "hunter-system": { isCustomCondition: true } }
     }]);
     ui.notifications.info(`Condição "${name}" adicionada a ${actor.name}.`);
   });
@@ -3705,7 +3705,7 @@ function _injectJJConditions(element, actor) {
     document.head.appendChild(style);
   }
 
-  console.log("JujutsuLegacy | Campo de custo de PA nas atividades carregado ✓");
+  console.log("HunterLegacy | Campo de custo de PA nas atividades carregado ✓");
 })();
 
 /* ============================================================
@@ -3716,13 +3716,13 @@ function _injectJJConditions(element, actor) {
  * ============================================================ */
 
 // Chave do flag onde guardamos a redução pendente
-const JJ_DEF_FLAG = "jujutsu-system.explosaoDefensivaPendente";
+const JJ_DEF_FLAG = "hunter-system.explosaoDefensivaPendente";
 
 /**
  * Handler do botão de Explosão Defensiva — chamado pelo listener no _onRender.
  */
 async function _onExplosaoDefensiva(actor) {
-  const flagData      = actor.getFlag("jujutsu-system", "explosaoDefensivaPendente") ?? null;
+  const flagData      = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
   const pendente      = flagData?.reducao ?? 0;
   const pendenteCusto = flagData?.paCusto ?? 0;
 
@@ -3735,7 +3735,7 @@ async function _onExplosaoDefensiva(actor) {
       no:  { label: "Manter" }
     });
     if ( !cancel ) return;
-    await actor.unsetFlag("jujutsu-system", "explosaoDefensivaPendente");
+    await actor.unsetFlag("hunter-system", "explosaoDefensivaPendente");
     const paAtual = actor.system?.energy?.generated ?? 0;
     await actor.update({ "system.energy.generated": paAtual + pendenteCusto });
     ui.notifications.info("Explosão Defensiva cancelada. PA devolvida.");
@@ -3745,7 +3745,7 @@ async function _onExplosaoDefensiva(actor) {
   const result = await _explosaoDefensivaDialog(actor);
   if ( !result ) return;
 
-  await actor.setFlag("jujutsu-system", "explosaoDefensivaPendente", { reducao: result.reducao, paCusto: result.paCusto });
+  await actor.setFlag("hunter-system", "explosaoDefensivaPendente", { reducao: result.reducao, paCusto: result.paCusto });
   const paAtual = actor.system?.energy?.generated ?? 0;
   await actor.update({ "system.energy.generated": Math.max(0, paAtual - result.paCusto) });
   ui.notifications.info(`🛡️ Explosão Defensiva ativa! Próximo dano reduzido em ${result.reducao} (${result.paCusto} PA gasto).`);
@@ -3833,12 +3833,12 @@ async function _aplicarExplosaoDefensiva(tokens, danoFinal) {
     const actor = token.actor;
     if ( !actor ) continue;
 
-      const expDefFlag     = actor.getFlag("jujutsu-system", "explosaoDefensivaPendente") ?? null;
+      const expDefFlag     = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
       const expDefPendente = expDefFlag?.reducao ?? 0;
       if ( expDefPendente > 0 ) {
         const reducao = Math.min(expDefPendente, danoRestante);
         danoRestante  = Math.max(0, danoRestante - reducao);
-        await actor.unsetFlag("jujutsu-system", "explosaoDefensivaPendente");
+        await actor.unsetFlag("hunter-system", "explosaoDefensivaPendente");
         ui.notifications.info(`🛡️ Explosão Defensiva: ${reducao} de dano reduzido para ${actor.name}!`);
         ChatMessage.create({
           speaker: ChatMessage.getSpeaker({ actor }),
@@ -3938,7 +3938,7 @@ function _setupFeatureSectionDrops(element, actor) {
       if ( !item || item.parent !== actor || item.type !== "feat" ) return;
       // Pequeno delay para o nativo processar primeiro
       setTimeout(async () => {
-        await item.setFlag("jujutsu-system", "featureSection", sectionId);
+        await item.setFlag("hunter-system", "featureSection", sectionId);
       }, 50);
     });
   });
@@ -3953,8 +3953,8 @@ function _setupFeatureSectionDrops(element, actor) {
       if ( dragData?.type !== "Item" ) return;
       const item = dragData.uuid ? await fromUuid(dragData.uuid) : actor.items.get(dragData.id);
       if ( !item || item.parent !== actor ) return;
-      const hasFlag = item.getFlag("jujutsu-system", "featureSection");
-      if ( hasFlag ) await item.unsetFlag("jujutsu-system", "featureSection");
+      const hasFlag = item.getFlag("hunter-system", "featureSection");
+      if ( hasFlag ) await item.unsetFlag("hunter-system", "featureSection");
     });
   });
 }
@@ -3973,7 +3973,7 @@ async function _applySeiOlhosEffects(actor, mode) {
   };
 
   for ( const id of Object.values(EFFECT_IDS) ) {
-    const existing = actor.effects.find(e => e.getFlag("jujutsu-system", "seisOlhosId") === id);
+    const existing = actor.effects.find(e => e.getFlag("hunter-system", "seisOlhosId") === id);
     if ( existing ) await existing.delete();
   }
 
@@ -4009,7 +4009,7 @@ async function _applySeiOlhosEffects(actor, mode) {
       origin: actor.uuid,
       disabled: false,
       changes: sealedChanges,
-      flags: { "jujutsu-system": { seisOlhosId: EFFECT_IDS.sealed } }
+      flags: { "hunter-system": { seisOlhosId: EFFECT_IDS.sealed } }
     }]);
   } else if ( mode === "full" ) {
     await actor.createEmbeddedDocuments("ActiveEffect", [{
@@ -4018,7 +4018,7 @@ async function _applySeiOlhosEffects(actor, mode) {
       origin: actor.uuid,
       disabled: false,
       changes: fullChanges,
-      flags: { "jujutsu-system": { seisOlhosId: EFFECT_IDS.full } }
+      flags: { "hunter-system": { seisOlhosId: EFFECT_IDS.full } }
     }]);
 
     await actor.createEmbeddedDocuments("ActiveEffect", [{
@@ -4028,7 +4028,7 @@ async function _applySeiOlhosEffects(actor, mode) {
       disabled: false,
       changes: [],
       duration: { rounds: 9999 },
-      flags: { "jujutsu-system": { seisOlhosId: EFFECT_IDS.psychic, psychicDamage: true } }
+      flags: { "hunter-system": { seisOlhosId: EFFECT_IDS.psychic, psychicDamage: true } }
     }]);
 
     _registerSeiOlhosTurnHook(actor);
@@ -4043,7 +4043,7 @@ function _registerSeiOlhosTurnHook(actor) {
     if ( combatant?.actor?.id !== actor.id ) return;
 
     const hasEffect = actor.effects.some(e =>
-      e.getFlag("jujutsu-system", "seisOlhosId") === "jj-seis-olhos-psychic"
+      e.getFlag("hunter-system", "seisOlhosId") === "jj-seis-olhos-psychic"
     );
     if ( !hasEffect ) {
       Hooks.off("combatTurnChange", actor._seisOlhosHookId);
@@ -4070,7 +4070,7 @@ function _registerSeiOlhosTurnHook(actor) {
    SOCKET — Geração de Energia (Personagem e NPC)
    ============================================================ */
 Hooks.on("ready", () => {
-  game.socket.on("system.jujutsu-system", async (data) => {
+  game.socket.on("system.hunter-system", async (data) => {
 
     // Personagem: jogador recebe pedido do GM para abrir dialog
     if ( data.action === "energyGenerationDialog" && data.userId === game.user.id ) {
@@ -4079,7 +4079,7 @@ Hooks.on("ready", () => {
       setTimeout(async () => {
         const choices = await EnergyGenerationDialog.configure(actor);
         if ( choices ) {
-          game.socket.emit("system.jujutsu-system", {
+          game.socket.emit("system.hunter-system", {
             action: "energyChoicesResult",
             actorId: data.actorId,
             choices
@@ -4114,7 +4114,7 @@ Hooks.on("ready", () => {
           close: () => "skip"
         });
         if ( !multiplicador || multiplicador === "skip" ) return;
-        game.socket.emit("system.jujutsu-system", {
+        game.socket.emit("system.hunter-system", {
           action: "npcEnergyChoices",
           actorId: data.actorId,
           nd,

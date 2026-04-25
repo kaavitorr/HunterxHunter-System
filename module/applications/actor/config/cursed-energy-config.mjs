@@ -13,7 +13,7 @@ export default class CursedEnergyConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/actors/config/cursed-energy-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/cursed-energy-config.hbs"
     }
   };
 

@@ -1,6 +1,6 @@
 /**
  * cursed-energy-consumption.mjs
- * JujutsuLegacy — Branch 5.3.x
+ * HunterLegacy — Branch 5.3.x
  *
  * Carregado diretamente pelo Foundry via system.json → esmodules.
  * NÃO precisa de build / Rollup. NÃO importa nada de outros módulos.
@@ -9,7 +9,7 @@
  * ─── INSTALAÇÃO ──────────────────────────────────────────────────────────────
  *
  *  1. Salve este arquivo em:
- *       Data/systems/jujutsu-system/module/systems/cursed-energy-consumption.mjs
+ *       Data/systems/hunter-system/module/systems/cursed-energy-consumption.mjs
  *
  *  2. Edite system.json — altere o bloco "esmodules":
  *       "esmodules": [
@@ -133,7 +133,7 @@ Hooks.on("dnd5e.activityConsumption", (activity, usageConfig, messageConfig, upd
   if ( !actor ) return;
 
   const seisOlhosItem = actor.items?.find(i => i.name === "Seis Olhos" && i.type === "feat");
-  const seisOlhosMode = actor.getFlag("jujutsu-system", "seisOlhosMode");
+  const seisOlhosMode = actor.getFlag("hunter-system", "seisOlhosMode");
   if ( !seisOlhosItem || !seisOlhosMode ) return;
 
   const prof     = actor.system.attributes?.prof ?? 2;
@@ -157,4 +157,4 @@ Hooks.on("dnd5e.activityConsumption", (activity, usageConfig, messageConfig, upd
   }
 });
 
-console.log("JujutsuLegacy | cursed-energy-consumption.mjs carregado ✓");
+console.log("HunterLegacy | cursed-energy-consumption.mjs carregado ✓");

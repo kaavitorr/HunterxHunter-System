@@ -43,7 +43,7 @@ export default class CreateScrollDialog extends Dialog5e {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/apps/spell-scroll-dialog.hbs"
+      template: "systems/hunter-system/templates/apps/spell-scroll-dialog.hbs"
     }
   };
 

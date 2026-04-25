@@ -1,5 +1,5 @@
 /**
- * Dados estáticos das Habilidades de Manipulação de Energia (Cap. 6)
+ * Dados estáticos dos Princípios de Nen (Cap. 6)
  * e dos Treinamentos (Cap. 6.5)
  */
 
@@ -15,7 +15,7 @@ export const MANIPULATION_ABILITIES = {
     label: "Defesa de Energia",
     stage: "beginner",
     cost: 3,
-    description: "Você reduz todo dano sem energia amaldiçoada pela metade (armas mundanas, disparos de fogo, etc.).",
+    description: "Você reduz todo dano sem aura pela metade (armas mundanas, disparos de fogo, etc.).",
     techniques: ["Defesa Sólida"],
     requires: { stage: "beginner", abilities: [] }
   },
@@ -68,10 +68,10 @@ export const MANIPULATION_ABILITIES = {
   // ── AVANÇADAS ────────────────────────────────────────────
   sentirMaldicao: {
     category: "advanced",
-    label: "Sentir Maldição",
+    label: "Sentir Nen",
     stage: "beginner",
     cost: 3,
-    description: "Sente espíritos e energia amaldiçoada em 6m ao redor. Pode adquirir múltiplas vezes (+3m cada).",
+    description: "Sente aura e Nen em 6m ao redor. Pode adquirir múltiplas vezes (+3m cada).",
     techniques: ["Detecção de Energia"],
     requires: { stage: "beginner", abilities: [] }
   },

@@ -16,13 +16,13 @@ export default class VariantRulesSettingsConfig extends BaseSettingsConfig {
   /** @override */
   static PARTS = {
     general: {
-      template: "systems/jujutsu-system/templates/settings/base-config.hbs"
+      template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
     encumbrance: {
-      template: "systems/jujutsu-system/templates/settings/base-config.hbs"
+      template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
     abilities: {
-      template: "systems/jujutsu-system/templates/settings/base-config.hbs"
+      template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
     footer: {
       template: "templates/generic/form-footer.hbs"

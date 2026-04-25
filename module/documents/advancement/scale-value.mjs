@@ -17,7 +17,7 @@ export default class ScaleValueAdvancement extends Advancement {
       },
       order: 60,
       icon: "icons/sundries/gaming/dice-pair-white-green.webp",
-      typeIcon: "systems/jujutsu-system/icons/svg/scale-value.svg",
+      typeIcon: "systems/hunter-system/icons/svg/scale-value.svg",
       title: game.i18n.localize("DND5E.ADVANCEMENT.ScaleValue.Title"),
       hint: game.i18n.localize("DND5E.ADVANCEMENT.ScaleValue.Hint"),
       multiLevel: true,

@@ -37,26 +37,26 @@ export default class ActivitySheet extends PseudoDocumentSheet {
       template: "templates/generic/tab-navigation.hbs"
     },
     identity: {
-      template: "systems/jujutsu-system/templates/activity/identity.hbs",
+      template: "systems/hunter-system/templates/activity/identity.hbs",
       templates: [
-        "systems/jujutsu-system/templates/activity/parts/activity-identity.hbs",
-        "systems/jujutsu-system/templates/activity/parts/activity-visibility.hbs"
+        "systems/hunter-system/templates/activity/parts/activity-identity.hbs",
+        "systems/hunter-system/templates/activity/parts/activity-visibility.hbs"
       ]
     },
     activation: {
-      template: "systems/jujutsu-system/templates/activity/activation.hbs",
+      template: "systems/hunter-system/templates/activity/activation.hbs",
       templates: [
-        "systems/jujutsu-system/templates/activity/parts/activity-time.hbs",
-        "systems/jujutsu-system/templates/activity/parts/activity-targeting.hbs",
-        "systems/jujutsu-system/templates/activity/parts/activity-consumption.hbs"
+        "systems/hunter-system/templates/activity/parts/activity-time.hbs",
+        "systems/hunter-system/templates/activity/parts/activity-targeting.hbs",
+        "systems/hunter-system/templates/activity/parts/activity-consumption.hbs"
       ]
     },
     effect: {
-      template: "systems/jujutsu-system/templates/activity/effect.hbs",
+      template: "systems/hunter-system/templates/activity/effect.hbs",
       templates: [
-        "systems/jujutsu-system/templates/activity/parts/activity-effects.hbs",
-        "systems/jujutsu-system/templates/activity/parts/activity-effect-level-limit.hbs",
-        "systems/jujutsu-system/templates/activity/parts/activity-effect-settings.hbs"
+        "systems/hunter-system/templates/activity/parts/activity-effects.hbs",
+        "systems/hunter-system/templates/activity/parts/activity-effect-level-limit.hbs",
+        "systems/hunter-system/templates/activity/parts/activity-effect-settings.hbs"
       ]
     }
   };
@@ -283,7 +283,7 @@ export default class ActivitySheet extends PseudoDocumentSheet {
           prefix: `effects.${data._index}.`,
           source: context.source.effects[data._index] ?? data,
           contentLink: data.effect.toAnchor().outerHTML,
-          additionalSettings: "systems/jujutsu-system/templates/activity/parts/activity-effect-settings.hbs"
+          additionalSettings: "systems/hunter-system/templates/activity/parts/activity-effect-settings.hbs"
         };
         arr.push(this._prepareAppliedEffectContext(context, effect));
         return arr;

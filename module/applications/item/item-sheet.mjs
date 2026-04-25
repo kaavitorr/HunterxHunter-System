@@ -54,34 +54,34 @@ export default class ItemSheet5e extends PrimarySheetMixin(DocumentSheet5e) {
   /** @override */
   static PARTS = {
     header: {
-      template: "systems/jujutsu-system/templates/items/header.hbs"
+      template: "systems/hunter-system/templates/items/header.hbs"
     },
     tabs: {
-      template: "systems/jujutsu-system/templates/shared/horizontal-tabs.hbs",
+      template: "systems/hunter-system/templates/shared/horizontal-tabs.hbs",
       templates: ["templates/generic/tab-navigation.hbs"]
     },
     activities: {
-      template: "systems/jujutsu-system/templates/items/activities.hbs",
+      template: "systems/hunter-system/templates/items/activities.hbs",
       templates: [
-        "systems/jujutsu-system/templates/inventory/columns/uses.hbs",
-        "systems/jujutsu-system/templates/shared/activities.hbs"
+        "systems/hunter-system/templates/inventory/columns/uses.hbs",
+        "systems/hunter-system/templates/shared/activities.hbs"
       ],
       scrollable: [""]
     },
     advancement: {
-      template: "systems/jujutsu-system/templates/items/advancement.hbs",
+      template: "systems/hunter-system/templates/items/advancement.hbs",
       scrollable: [""]
     },
     description: {
-      template: "systems/jujutsu-system/templates/items/description.hbs",
+      template: "systems/hunter-system/templates/items/description.hbs",
       scrollable: [""]
     },
     details: {
-      template: "systems/jujutsu-system/templates/items/details.hbs",
+      template: "systems/hunter-system/templates/items/details.hbs",
       scrollable: [""]
     },
     effects: {
-      template: "systems/jujutsu-system/templates/items/effects.hbs",
+      template: "systems/hunter-system/templates/items/effects.hbs",
       scrollable: [""]
     }
   };
@@ -387,7 +387,7 @@ export default class ItemSheet5e extends PrimarySheetMixin(DocumentSheet5e) {
   async _prepareEffectsContext(context, options) {
     const effectMap = {};
     const riders = [];
-    const riderIds = new Set(this.item.getFlag("jujutsu-system", "riders.effect") ?? []);
+    const riderIds = new Set(this.item.getFlag("hunter-system", "riders.effect") ?? []);
     context.tab = context.tabs.effects;
     context.effects = EffectsElement.prepareCategories(this.item.effects, { parent: this.item });
     for ( const category of Object.values(context.effects) ) {
@@ -526,12 +526,12 @@ export default class ItemSheet5e extends PrimarySheetMixin(DocumentSheet5e) {
     if ( advancement.classRestriction === "primary" ) {
       tags.push({
         label: "DND5E.AdvancementClassRestrictionPrimary",
-        icon: "systems/jujutsu-system/icons/svg/original-class.svg"
+        icon: "systems/hunter-system/icons/svg/original-class.svg"
       });
     } else if ( advancement.classRestriction === "secondary" ) {
       tags.push({
         label: "DND5E.AdvancementClassRestrictionSecondary",
-        icon: "systems/jujutsu-system/icons/svg/multiclass.svg"
+        icon: "systems/hunter-system/icons/svg/multiclass.svg"
       });
     }
     return tags;
@@ -1039,7 +1039,7 @@ export default class ItemSheet5e extends PrimarySheetMixin(DocumentSheet5e) {
     }
 
     if ( !advancements.length ) return false;
-    if ( this.item.actor?.system.metadata?.supportsAdvancement && !game.settings.get("jujutsu-system", "disableAdvancements") ) {
+    if ( this.item.actor?.system.metadata?.supportsAdvancement && !game.settings.get("hunter-system", "disableAdvancements") ) {
       const manager = AdvancementManager.forNewAdvancement(this.item.actor, this.item.id, advancements);
       if ( manager.steps.length ) return this._renderChild(manager);
     }

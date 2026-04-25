@@ -6,7 +6,7 @@
         {{!-- Portrait --}}
         {{#if editable}}
         <label class="slide-toggle header-interactable">
-            <input type="checkbox" name="flags.JujutsuLegacy.showTokenPortrait" {{ checked portrait.token }}>
+            <input type="checkbox" name="flags.HunterLegacy.showTokenPortrait" {{ checked portrait.token }}>
             {{#if portrait.token}}
             {{ localize "DOCUMENT.Token" }}
             <i class="fas fa-toggle-on" inert></i>
@@ -36,7 +36,7 @@
                 <button type="button" class="{{ rollableClass }} death-save unbutton" data-action="roll"
                         data-type="deathSave" data-tooltip="DND5E.DeathSaveRoll"
                         aria-label="{{ localize 'DND5E.DeathSaveRoll' }}">
-                    <dnd5e-icon src="systems/jujutsu-system/icons/svg/statuses/dead-outline.svg"></dnd5e-icon>
+                    <dnd5e-icon src="systems/hunter-system/icons/svg/statuses/dead-outline.svg"></dnd5e-icon>
                 </button>
 
                 {{#with system.attributes.death}}
@@ -333,10 +333,10 @@
             {{> "dnd5e.actor-classes" }}
             {{/if}}
 
-            {{!-- ENERGIA AMALDIÇOADA — ao lado da Classe --}}
+            {{!-- PONTOS DE AURA — ao lado da Classe --}}
             <div style="display:flex; flex-direction:column; gap:3px; min-width:200px;">
               <div style="display:flex; justify-content:space-between; font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:#707090;">
-                <span>Energia Amaldiçoada</span>
+                <span>Aura</span>
                 <span>PA Gerado</span>
               </div>
               <div style="display:flex; gap:4px;">

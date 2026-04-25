@@ -6,7 +6,7 @@ import ModuleArt from "../../module-art.mjs";
 export default class ModuleArtSettingsConfig extends FormApplication {
   /** @inheritDoc */
   constructor(object={}, options={}) {
-    object = foundry.utils.mergeObject(game.settings.get("jujutsu-system", "moduleArtConfiguration"), object, {inplace: false});
+    object = foundry.utils.mergeObject(game.settings.get("hunter-system", "moduleArtConfiguration"), object, {inplace: false});
     super(object, options);
   }
 
@@ -17,7 +17,7 @@ export default class ModuleArtSettingsConfig extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       title: game.i18n.localize("DND5E.ModuleArtConfigL"),
       id: "module-art-config",
-      template: "systems/jujutsu-system/templates/apps/module-art-config.hbs",
+      template: "systems/hunter-system/templates/apps/module-art-config.hbs",
       popOut: true,
       width: 600,
       height: "auto"
@@ -83,7 +83,7 @@ export default class ModuleArtSettingsConfig extends FormApplication {
 
   /** @inheritDoc */
   async _updateObject(event, formData) {
-    await game.settings.set("jujutsu-system", "moduleArtConfiguration", foundry.utils.expandObject(formData));
+    await game.settings.set("hunter-system", "moduleArtConfiguration", foundry.utils.expandObject(formData));
     return foundry.applications.settings.SettingsConfig.reloadConfirm({world: true});
   }
 }

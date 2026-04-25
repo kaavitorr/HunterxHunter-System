@@ -364,7 +364,7 @@ export default class GroupData extends GroupTemplate {
      */
     Hooks.callAll("dnd5e.groupRestCompleted", this.parent, results);
 
-    if ( config.advanceBastionTurn && game.user.isGM && game.settings.get("jujutsu-system", "bastionConfiguration").enabled ) {
+    if ( config.advanceBastionTurn && game.user.isGM && game.settings.get("hunter-system", "bastionConfiguration").enabled ) {
       await dnd5e.bastion.advanceAllBastions();
     }
 

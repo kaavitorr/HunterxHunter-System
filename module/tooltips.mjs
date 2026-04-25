@@ -214,7 +214,7 @@ export default class Tooltips5e {
     this.tooltip.classList.add("dnd5e-tooltip", "passive-tooltip", "dnd5e2", "themed", "theme-light");
     this.tooltip.classList.remove("theme-dark");
     this.tooltip.innerHTML = await foundry.applications.handlebars.renderTemplate(
-      "systems/jujutsu-system/templates/journal/passive-tooltip.hbs", context
+      "systems/hunter-system/templates/journal/passive-tooltip.hbs", context
     );
     game.tooltip._setAnchor(TooltipManager.TOOLTIP_DIRECTIONS.DOWN);
   }

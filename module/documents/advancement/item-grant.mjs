@@ -24,7 +24,7 @@ export default class ItemGrantAdvancement extends Advancement {
       },
       order: 40,
       icon: "icons/sundries/books/book-open-purple.webp",
-      typeIcon: "systems/jujutsu-system/icons/svg/item-grant.svg",
+      typeIcon: "systems/hunter-system/icons/svg/item-grant.svg",
       title: game.i18n.localize("DND5E.ADVANCEMENT.ItemGrant.Title"),
       hint: game.i18n.localize("DND5E.ADVANCEMENT.ItemGrant.Hint"),
       apps: {
@@ -160,7 +160,7 @@ export default class ItemGrantAdvancement extends Advancement {
     const updates = {};
     for ( const item of data.items ?? [] ) {
       this.actor.updateSource({ items: [item] });
-      updates[item._id] = item.flags.JujutsuLegacy.sourceId;
+      updates[item._id] = item.flags.HunterLegacy.sourceId;
     }
     this.updateSource({
       "value.ability": data.ability,
@@ -183,7 +183,7 @@ export default class ItemGrantAdvancement extends Advancement {
       const item = this.actor.items.get(id);
       if ( item ) {
         items.push(item.toObject());
-        items[item.flags.JujutsuLegacy?.sourceId ?? item._stats.compendiumSource ?? item.uuid] = item.toObject();
+        items[item.flags.HunterLegacy?.sourceId ?? item._stats.compendiumSource ?? item.uuid] = item.toObject();
       }
       this.actor.items.delete(id);
       added[`-=${id}`] = null;

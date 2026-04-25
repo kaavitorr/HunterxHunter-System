@@ -266,7 +266,7 @@ export default class ContainerData extends ItemDataModel.mixin(
    */
   static _migrateWeightlessData(source) {
     if ( foundry.utils.getProperty(source, "system.capacity.weightless") === true ) {
-      foundry.utils.setProperty(source, "flags.JujutsuLegacy.migratedProperties", ["weightlessContents"]);
+      foundry.utils.setProperty(source, "flags.HunterLegacy.migratedProperties", ["weightlessContents"]);
     }
   }
 

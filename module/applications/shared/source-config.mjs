@@ -21,7 +21,7 @@ export default class SourceConfig extends DocumentSheet5e {
   /** @override */
   static PARTS = {
     source: {
-      template: "systems/jujutsu-system/templates/apps/source-config.hbs"
+      template: "systems/hunter-system/templates/apps/source-config.hbs"
     },
     footer: {
       template: "templates/generic/form-footer.hbs"

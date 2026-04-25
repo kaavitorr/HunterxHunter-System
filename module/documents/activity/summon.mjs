@@ -29,7 +29,7 @@ export default class SummonActivity extends ActivityMixin(BaseSummonActivityData
   static metadata = Object.freeze(
     foundry.utils.mergeObject(super.metadata, {
       type: "summon",
-      img: "systems/jujutsu-system/icons/svg/activity/summon.svg",
+      img: "systems/hunter-system/icons/svg/activity/summon.svg",
       title: "DND5E.SUMMON.Title",
       hint: "DND5E.SUMMON.Hint",
       sheetClass: SummonSheet,
@@ -51,7 +51,7 @@ export default class SummonActivity extends ActivityMixin(BaseSummonActivityData
    * @type {boolean}
    */
   get canSummon() {
-    return game.user.can("TOKEN_CREATE") && (game.user.isGM || game.settings.get("jujutsu-system", "allowSummoning"));
+    return game.user.can("TOKEN_CREATE") && (game.user.isGM || game.settings.get("hunter-system", "allowSummoning"));
   }
 
   /* -------------------------------------------- */
@@ -150,7 +150,7 @@ export default class SummonActivity extends ActivityMixin(BaseSummonActivityData
     const summonUuid = this.summon.mode === "cr" ? await this.queryActor(profile) : profile.uuid;
     if ( !summonUuid ) return;
     const actor = await dnd5e.documents.Actor5e.fetchExisting(summonUuid, {
-      origin: { key: "flags.JujutsuLegacy.summon.origin", value: this.item?.uuid }
+      origin: { key: "flags.HunterLegacy.summon.origin", value: this.item?.uuid }
     });
 
     // Verify ownership of actor
@@ -265,7 +265,7 @@ export default class SummonActivity extends ActivityMixin(BaseSummonActivityData
     const prof = rollData.attributes?.prof ?? 0;
 
     // Add flags
-    actorUpdates["flags.JujutsuLegacy.summon"] = {
+    actorUpdates["flags.HunterLegacy.summon"] = {
       level: this.relevantLevel,
       mod: rollData.mod,
       origin: this.item.uuid,

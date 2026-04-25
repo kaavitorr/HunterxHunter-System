@@ -18,27 +18,27 @@ const { StringField } = foundry.data.fields;
  * Register all of the system's keybindings.
  */
 export function registerSystemKeybindings() {
-  game.keybindings.register("jujutsu-system", "skipDialogNormal", {
+  game.keybindings.register("hunter-system", "skipDialogNormal", {
     name: "KEYBINDINGS.DND5E.SkipDialogNormal",
     editable: [{ key: "ShiftLeft" }, { key: "ShiftRight" }]
   });
 
-  game.keybindings.register("jujutsu-system", "skipDialogAdvantage", {
+  game.keybindings.register("hunter-system", "skipDialogAdvantage", {
     name: "KEYBINDINGS.DND5E.SkipDialogAdvantage",
     editable: [{ key: "AltLeft" }, { key: "AltRight" }]
   });
 
-  game.keybindings.register("jujutsu-system", "skipDialogDisadvantage", {
+  game.keybindings.register("hunter-system", "skipDialogDisadvantage", {
     name: "KEYBINDINGS.DND5E.SkipDialogDisadvantage",
     editable: [{ key: "ControlLeft" }, { key: "ControlRight" }, { key: "OsLeft" }, { key: "OsRight" }]
   });
 
-  game.keybindings.register("jujutsu-system", "dragCopy", {
+  game.keybindings.register("hunter-system", "dragCopy", {
     name: "KEYBINDINGS.DND5E.DragCopy",
     editable: [{ key: "ControlLeft" }, { key: "ControlRight" }, { key: "AltLeft" }, { key: "AltRight" }]
   });
 
-  game.keybindings.register("jujutsu-system", "dragMove", {
+  game.keybindings.register("hunter-system", "dragMove", {
     name: "KEYBINDINGS.DND5E.DragMove",
     editable: [{ key: "ShiftLeft" }, { key: "ShiftRight" }, { key: "OsLeft" }, { key: "OsRight" }]
   });
@@ -51,7 +51,7 @@ export function registerSystemKeybindings() {
  */
 export function registerSystemSettings() {
   // Internal System Migration Version
-  game.settings.register("jujutsu-system", "systemMigrationVersion", {
+  game.settings.register("hunter-system", "systemMigrationVersion", {
     name: "System Migration Version",
     scope: "world",
     config: false,
@@ -60,14 +60,14 @@ export function registerSystemSettings() {
   });
 
   // Polymorph Settings
-  game.settings.register("jujutsu-system", "transformationSettings", {
+  game.settings.register("hunter-system", "transformationSettings", {
     scope: "client",
     config: false,
     type: TransformationSetting
   });
 
   // Rules version
-  game.settings.register("jujutsu-system", "rulesVersion", {
+  game.settings.register("hunter-system", "rulesVersion", {
     name: "SETTINGS.DND5E.RULESVERSION.Name",
     hint: "SETTINGS.DND5E.RULESVERSION.Hint",
     scope: "world",
@@ -82,7 +82,7 @@ export function registerSystemSettings() {
   });
 
   // Movement automation
-  game.settings.register("jujutsu-system", "movementAutomation", {
+  game.settings.register("hunter-system", "movementAutomation", {
     name: "SETTINGS.DND5E.AUTOMATION.Movement.Name",
     hint: "SETTINGS.DND5E.AUTOMATION.Movement.Hint",
     scope: "world",
@@ -97,7 +97,7 @@ export function registerSystemSettings() {
   });
 
   // Allow rotating square templates
-  game.settings.register("jujutsu-system", "gridAlignedSquareTemplates", {
+  game.settings.register("hunter-system", "gridAlignedSquareTemplates", {
     name: "SETTINGS.5eGridAlignedSquareTemplatesN",
     hint: "SETTINGS.5eGridAlignedSquareTemplatesL",
     scope: "world",
@@ -107,7 +107,7 @@ export function registerSystemSettings() {
   });
 
   // Loyalty
-  game.settings.register("jujutsu-system", "loyaltyScore", {
+  game.settings.register("hunter-system", "loyaltyScore", {
     name: "SETTINGS.DND5E.LOYALTY.Name",
     hint: "SETTINGS.DND5E.LOYALTY.Hint",
     scope: "world",
@@ -117,7 +117,7 @@ export function registerSystemSettings() {
   });
 
   // Disable Advancements
-  game.settings.register("jujutsu-system", "disableAdvancements", {
+  game.settings.register("hunter-system", "disableAdvancements", {
     name: "SETTINGS.5eNoAdvancementsN",
     hint: "SETTINGS.5eNoAdvancementsL",
     scope: "world",
@@ -127,7 +127,7 @@ export function registerSystemSettings() {
   });
 
   // Disable Concentration Tracking
-  game.settings.register("jujutsu-system", "disableConcentration", {
+  game.settings.register("hunter-system", "disableConcentration", {
     name: "SETTINGS.5eNoConcentrationN",
     hint: "SETTINGS.5eNoConcentrationL",
     scope: "world",
@@ -137,7 +137,7 @@ export function registerSystemSettings() {
   });
 
   // Collapse Item Cards (by default)
-  game.settings.register("jujutsu-system", "autoCollapseItemCards", {
+  game.settings.register("hunter-system", "autoCollapseItemCards", {
     name: "SETTINGS.5eAutoCollapseCardN",
     hint: "SETTINGS.5eAutoCollapseCardL",
     scope: "client",
@@ -150,7 +150,7 @@ export function registerSystemSettings() {
   });
 
   // Collapse Chat Card Trays
-  game.settings.register("jujutsu-system", "autoCollapseChatTrays", {
+  game.settings.register("hunter-system", "autoCollapseChatTrays", {
     name: "SETTINGS.DND5E.COLLAPSETRAYS.Name",
     hint: "SETTINGS.DND5E.COLLAPSETRAYS.Hint",
     scope: "client",
@@ -166,7 +166,7 @@ export function registerSystemSettings() {
   });
 
   // Allow Rests from Sheet
-  game.settings.register("jujutsu-system", "allowRests", {
+  game.settings.register("hunter-system", "allowRests", {
     name: "SETTINGS.DND5E.PERMISSIONS.AllowRests.Name",
     hint: "SETTINGS.DND5E.PERMISSIONS.AllowRests.Hint",
     scope: "world",
@@ -176,7 +176,7 @@ export function registerSystemSettings() {
   });
 
   // Allow Polymorphing
-  game.settings.register("jujutsu-system", "allowPolymorphing", {
+  game.settings.register("hunter-system", "allowPolymorphing", {
     name: "SETTINGS.DND5E.PERMISSIONS.AllowTransformation.Name",
     hint: "SETTINGS.DND5E.PERMISSIONS.AllowTransformation.Hint",
     scope: "world",
@@ -186,7 +186,7 @@ export function registerSystemSettings() {
   });
 
   // Allow Summoning
-  game.settings.register("jujutsu-system", "allowSummoning", {
+  game.settings.register("hunter-system", "allowSummoning", {
     name: "SETTINGS.DND5E.PERMISSIONS.AllowSummoning.Name",
     hint: "SETTINGS.DND5E.PERMISSIONS.AllowSummoning.Hint",
     scope: "world",
@@ -196,7 +196,7 @@ export function registerSystemSettings() {
   });
 
   // Metric Length Weights
-  game.settings.register("jujutsu-system", "metricLengthUnits", {
+  game.settings.register("hunter-system", "metricLengthUnits", {
     name: "SETTINGS.DND5E.METRIC.LengthUnits.Name",
     hint: "SETTINGS.DND5E.METRIC.LengthUnits.Hint",
     scope: "world",
@@ -206,7 +206,7 @@ export function registerSystemSettings() {
   });
 
   // Metric Volume Weights
-  game.settings.register("jujutsu-system", "metricVolumeUnits", {
+  game.settings.register("hunter-system", "metricVolumeUnits", {
     name: "SETTINGS.DND5E.METRIC.VolumeUnits.Name",
     hint: "SETTINGS.DND5E.METRIC.VolumeUnits.Hint",
     scope: "world",
@@ -216,7 +216,7 @@ export function registerSystemSettings() {
   });
 
   // Metric Unit Weights
-  game.settings.register("jujutsu-system", "metricWeightUnits", {
+  game.settings.register("hunter-system", "metricWeightUnits", {
     name: "SETTINGS.DND5E.METRIC.WeightUnits.Name",
     hint: "SETTINGS.DND5E.METRIC.WeightUnits.Hint",
     scope: "world",
@@ -226,7 +226,7 @@ export function registerSystemSettings() {
   });
 
   // Strict validation
-  game.settings.register("jujutsu-system", "strictValidation", {
+  game.settings.register("hunter-system", "strictValidation", {
     scope: "world",
     config: false,
     type: Boolean,
@@ -234,7 +234,7 @@ export function registerSystemSettings() {
   });
 
   // Dynamic art.
-  game.settings.registerMenu("jujutsu-system", "moduleArtConfiguration", {
+  game.settings.registerMenu("hunter-system", "moduleArtConfiguration", {
     name: "DND5E.ModuleArtConfigN",
     label: "DND5E.ModuleArtConfigL",
     hint: "DND5E.ModuleArtConfigH",
@@ -243,7 +243,7 @@ export function registerSystemSettings() {
     restricted: true
   });
 
-  game.settings.register("jujutsu-system", "moduleArtConfiguration", {
+  game.settings.register("hunter-system", "moduleArtConfiguration", {
     name: "Module Art Configuration",
     scope: "world",
     config: false,
@@ -257,7 +257,7 @@ export function registerSystemSettings() {
   });
 
   // Compendium Browser source exclusion
-  game.settings.registerMenu("jujutsu-system", "packSourceConfiguration", {
+  game.settings.registerMenu("hunter-system", "packSourceConfiguration", {
     name: "DND5E.CompendiumBrowser.Sources.Name",
     label: "DND5E.CompendiumBrowser.Sources.Label",
     hint: "DND5E.CompendiumBrowser.Sources.Hint",
@@ -266,7 +266,7 @@ export function registerSystemSettings() {
     restricted: true
   });
 
-  game.settings.register("jujutsu-system", "packSourceConfiguration", {
+  game.settings.register("hunter-system", "packSourceConfiguration", {
     name: "Pack Source Configuration",
     scope: "world",
     config: false,
@@ -283,7 +283,7 @@ export function registerSystemSettings() {
   });
 
   // Bastions
-  game.settings.registerMenu("jujutsu-system", "bastionConfiguration", {
+  game.settings.registerMenu("hunter-system", "bastionConfiguration", {
     name: "DND5E.Bastion.Configuration.Name",
     label: "DND5E.Bastion.Configuration.Label",
     hint: "DND5E.Bastion.Configuration.Hint",
@@ -292,7 +292,7 @@ export function registerSystemSettings() {
     restricted: true
   });
 
-  game.settings.register("jujutsu-system", "bastionConfiguration", {
+  game.settings.register("hunter-system", "bastionConfiguration", {
     name: "Bastion Configuration",
     scope: "world",
     config: false,
@@ -306,7 +306,7 @@ export function registerSystemSettings() {
   });
 
   // Calendar Settings
-  game.settings.registerMenu("jujutsu-system", "calendarConfiguration", {
+  game.settings.registerMenu("hunter-system", "calendarConfiguration", {
     name: "DND5E.CALENDAR.Configuration.Name",
     label: "DND5E.CALENDAR.Configuration.Label",
     hint: "DND5E.CALENDAR.Configuration.Hint",
@@ -314,7 +314,7 @@ export function registerSystemSettings() {
     type: CalendarSettingsConfig
   });
 
-  game.settings.register("jujutsu-system", "calendar", {
+  game.settings.register("hunter-system", "calendar", {
     name: "DND5E.CALENDAR.FIELDS.calendar.label",
     hint: "DND5E.CALENDAR.FIELDS.calendar.hint",
     scope: "world",
@@ -327,7 +327,7 @@ export function registerSystemSettings() {
     requiresReload: true
   });
 
-  game.settings.register("jujutsu-system", "calendarConfig", {
+  game.settings.register("hunter-system", "calendarConfig", {
     name: "Calendar Configuration",
     scope: "world",
     config: false,
@@ -335,7 +335,7 @@ export function registerSystemSettings() {
     onChange: () => dnd5e.ui.calendar?.onUpdateSettings?.()
   });
 
-  game.settings.register("jujutsu-system", "calendarPreferences", {
+  game.settings.register("hunter-system", "calendarPreferences", {
     name: "Calendar Preferences",
     scope: "user",
     config: false,
@@ -344,7 +344,7 @@ export function registerSystemSettings() {
   });
 
   // Combat Settings
-  game.settings.registerMenu("jujutsu-system", "combatConfiguration", {
+  game.settings.registerMenu("hunter-system", "combatConfiguration", {
     name: "SETTINGS.DND5E.COMBAT.Name",
     label: "SETTINGS.DND5E.COMBAT.Label",
     hint: "SETTINGS.DND5E.COMBAT.Hint",
@@ -353,7 +353,7 @@ export function registerSystemSettings() {
     restricted: true
   });
 
-  game.settings.register("jujutsu-system", "autoRecharge", {
+  game.settings.register("hunter-system", "autoRecharge", {
     name: "SETTINGS.DND5E.NPCS.AutoRecharge.Name",
     hint: "SETTINGS.DND5E.NPCS.AutoRecharge.Hint",
     scope: "world",
@@ -367,7 +367,7 @@ export function registerSystemSettings() {
     }
   });
 
-  game.settings.register("jujutsu-system", "autoRollNPCHP", {
+  game.settings.register("hunter-system", "autoRollNPCHP", {
     name: "SETTINGS.DND5E.NPCS.AutoRollNPCHP.Name",
     hint: "SETTINGS.DND5E.NPCS.AutoRollNPCHP.Hint",
     scope: "world",
@@ -381,7 +381,7 @@ export function registerSystemSettings() {
     }
   });
 
-  game.settings.register("jujutsu-system", "criticalDamageModifiers", {
+  game.settings.register("hunter-system", "criticalDamageModifiers", {
     name: "SETTINGS.DND5E.CRITICAL.MultiplyModifiers.Name",
     hint: "SETTINGS.DND5E.CRITICAL.MultiplyModifiers.Hint",
     scope: "world",
@@ -390,7 +390,7 @@ export function registerSystemSettings() {
     default: false
   });
 
-  game.settings.register("jujutsu-system", "criticalDamageMaxDice", {
+  game.settings.register("hunter-system", "criticalDamageMaxDice", {
     name: "SETTINGS.DND5E.CRITICAL.MaxDice.Name",
     hint: "SETTINGS.DND5E.CRITICAL.MaxDice.Hint",
     scope: "world",
@@ -399,7 +399,7 @@ export function registerSystemSettings() {
     default: false
   });
 
-  game.settings.register("jujutsu-system", "initiativeDexTiebreaker", {
+  game.settings.register("hunter-system", "initiativeDexTiebreaker", {
     name: "SETTINGS.DND5E.COMBAT.DexTiebreaker.Name",
     hint: "SETTINGS.DND5E.COMBAT.DexTiebreaker.Hint",
     scope: "world",
@@ -408,7 +408,7 @@ export function registerSystemSettings() {
     type: Boolean
   });
 
-  game.settings.register("jujutsu-system", "initiativeScore", {
+  game.settings.register("hunter-system", "initiativeScore", {
     name: "SETTINGS.DND5E.COMBAT.InitiativeScore.Name",
     hint: "SETTINGS.DND5E.COMBAT.InitiativeScore.Hint",
     scope: "world",
@@ -423,7 +423,7 @@ export function registerSystemSettings() {
   });
 
   // Variant Rules
-  game.settings.registerMenu("jujutsu-system", "variantRulesConfiguration", {
+  game.settings.registerMenu("hunter-system", "variantRulesConfiguration", {
     name: "SETTINGS.DND5E.VARIANT.Name",
     label: "SETTINGS.DND5E.VARIANT.Label",
     hint: "SETTINGS.DND5E.VARIANT.Hint",
@@ -432,7 +432,7 @@ export function registerSystemSettings() {
     restricted: true
   });
 
-  game.settings.register("jujutsu-system", "allowFeats", {
+  game.settings.register("hunter-system", "allowFeats", {
     name: "SETTINGS.DND5E.VARIANT.AllowFeats.Name",
     hint: "SETTINGS.DND5E.VARIANT.AllowFeats.Hint",
     scope: "world",
@@ -441,7 +441,7 @@ export function registerSystemSettings() {
     type: Boolean
   });
 
-  game.settings.register("jujutsu-system", "currencyWeight", {
+  game.settings.register("hunter-system", "currencyWeight", {
     name: "SETTINGS.DND5E.VARIANT.CurrencyWeight.Name",
     hint: "SETTINGS.DND5E.VARIANT.CurrencyWeight.Hint",
     scope: "world",
@@ -450,7 +450,7 @@ export function registerSystemSettings() {
     type: Boolean
   });
 
-  game.settings.register("jujutsu-system", "encumbrance", {
+  game.settings.register("hunter-system", "encumbrance", {
     name: "SETTINGS.DND5E.VARIANT.Encumbrance.Name",
     hint: "SETTINGS.DND5E.VARIANT.Encumbrance.Hint",
     scope: "world",
@@ -464,7 +464,7 @@ export function registerSystemSettings() {
     }
   });
 
-  game.settings.register("jujutsu-system", "honorScore", {
+  game.settings.register("hunter-system", "honorScore", {
     name: "SETTINGS.DND5E.VARIANT.HonorScore.Name",
     hint: "SETTINGS.DND5E.VARIANT.HonorScore.Hint",
     scope: "world",
@@ -474,7 +474,7 @@ export function registerSystemSettings() {
     requiresReload: true
   });
 
-  game.settings.register("jujutsu-system", "levelingMode", {
+  game.settings.register("hunter-system", "levelingMode", {
     name: "SETTINGS.DND5E.VARIANT.LevelingMode.Name",
     hint: "SETTINGS.DND5E.VARIANT.LevelingMode.Hint",
     scope: "world",
@@ -488,7 +488,7 @@ export function registerSystemSettings() {
     }
   });
 
-  game.settings.register("jujutsu-system", "proficiencyModifier", {
+  game.settings.register("hunter-system", "proficiencyModifier", {
     name: "SETTINGS.DND5E.VARIANT.ProficiencyModifier.Name",
     hint: "SETTINGS.DND5E.VARIANT.ProficiencyModifier.Hint",
     scope: "world",
@@ -501,7 +501,7 @@ export function registerSystemSettings() {
     }
   });
 
-  game.settings.register("jujutsu-system", "restVariant", {
+  game.settings.register("hunter-system", "restVariant", {
     name: "SETTINGS.DND5E.VARIANT.Rest.Name",
     hint: "SETTINGS.DND5E.VARIANT.Rest.Hint",
     scope: "world",
@@ -515,7 +515,7 @@ export function registerSystemSettings() {
     }
   });
 
-  game.settings.register("jujutsu-system", "sanityScore", {
+  game.settings.register("hunter-system", "sanityScore", {
     name: "SETTINGS.DND5E.VARIANT.SanityScore.Name",
     hint: "SETTINGS.DND5E.VARIANT.SanityScore.Hint",
     scope: "world",
@@ -526,7 +526,7 @@ export function registerSystemSettings() {
   });
 
   // Visibility Settings
-  game.settings.registerMenu("jujutsu-system", "visibilityConfiguration", {
+  game.settings.registerMenu("hunter-system", "visibilityConfiguration", {
     name: "SETTINGS.DND5E.VISIBILITY.Name",
     label: "SETTINGS.DND5E.VISIBILITY.Label",
     hint: "SETTINGS.DND5E.VISIBILITY.Hint",
@@ -535,7 +535,7 @@ export function registerSystemSettings() {
     restricted: true
   });
 
-  game.settings.register("jujutsu-system", "attackRollVisibility", {
+  game.settings.register("hunter-system", "attackRollVisibility", {
     name: "SETTINGS.DND5E.VISIBILITY.Attack.Name",
     hint: "SETTINGS.DND5E.VISIBILITY.Attack.Hint",
     scope: "world",
@@ -549,7 +549,7 @@ export function registerSystemSettings() {
     }
   });
 
-  game.settings.register("jujutsu-system", "bloodied", {
+  game.settings.register("hunter-system", "bloodied", {
     name: "SETTINGS.DND5E.BLOODIED.Name",
     hint: "SETTINGS.DND5E.BLOODIED.Hint",
     scope: "world",
@@ -563,7 +563,7 @@ export function registerSystemSettings() {
     }
   });
 
-  game.settings.register("jujutsu-system", "challengeVisibility", {
+  game.settings.register("hunter-system", "challengeVisibility", {
     name: "SETTINGS.DND5E.VISIBILITY.Challenge.Name",
     hint: "SETTINGS.DND5E.VISIBILITY.Challenge.Hint",
     scope: "world",
@@ -577,7 +577,7 @@ export function registerSystemSettings() {
     }
   });
 
-  game.settings.register("jujutsu-system", "concealItemDescriptions", {
+  game.settings.register("hunter-system", "concealItemDescriptions", {
     name: "SETTINGS.DND5E.VISIBILITY.ItemDescriptions.Name",
     hint: "SETTINGS.DND5E.VISIBILITY.ItemDescriptions.Hint",
     scope: "world",
@@ -587,7 +587,7 @@ export function registerSystemSettings() {
   });
 
   // Primary Group
-  game.settings.register("jujutsu-system", "primaryParty", {
+  game.settings.register("hunter-system", "primaryParty", {
     name: "Primary Party",
     scope: "world",
     config: false,
@@ -597,7 +597,7 @@ export function registerSystemSettings() {
   });
 
   // Control hints
-  game.settings.register("jujutsu-system", "controlHints", {
+  game.settings.register("hunter-system", "controlHints", {
     name: "DND5E.Controls.Name",
     hint: "DND5E.Controls.Hint",
     scope: "client",
@@ -607,7 +607,7 @@ export function registerSystemSettings() {
   });
 
   // NPC sheet default skills
-  game.settings.register("jujutsu-system", "defaultSkills", {
+  game.settings.register("hunter-system", "defaultSkills", {
     name: "SETTINGS.DND5E.DEFAULTSKILLS.Name",
     hint: "SETTINGS.DND5E.DEFAULTSKILLS.Hint",
     type: new foundry.data.fields.SetField(
@@ -631,7 +631,7 @@ function cacheSettings() {
   dnd5e.settings = {};
   for ( const setting of game.settings.settings.values() ) {
     const { key, namespace, onChange, requiresReload, scope } = setting;
-    if ( (scope !== "world") || (namespace !== "jujutsu-system") ) continue;
+    if ( (scope !== "world") || (namespace !== "hunter-system") ) continue;
     dnd5e.settings[key] = game.settings.get(namespace, key);
     if ( !requiresReload ) setting.onChange = (value, ...args) => {
       dnd5e.settings[key] = value;
@@ -646,7 +646,7 @@ function cacheSettings() {
  * Register additional settings after modules have had a chance to initialize to give them a chance to modify choices.
  */
 export function registerDeferredSettings() {
-  game.settings.register("jujutsu-system", "theme", {
+  game.settings.register("hunter-system", "theme", {
     name: "SETTINGS.DND5E.THEME.Name",
     hint: "SETTINGS.DND5E.THEME.Hint",
     scope: "client",
@@ -661,10 +661,10 @@ export function registerDeferredSettings() {
   });
 
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    setTheme(document.body, game.settings.get("jujutsu-system", "theme"));
+    setTheme(document.body, game.settings.get("hunter-system", "theme"));
   });
   matchMedia("(prefers-contrast: more)").addEventListener("change", () => {
-    setTheme(document.body, game.settings.get("jujutsu-system", "theme"));
+    setTheme(document.body, game.settings.get("hunter-system", "theme"));
   });
 
   // Hook into core color scheme setting.

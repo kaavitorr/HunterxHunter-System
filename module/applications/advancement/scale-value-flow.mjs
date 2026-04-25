@@ -9,7 +9,7 @@ export default class ScaleValueFlow extends AdvancementFlow {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/advancement/scale-value-flow.hbs"
+      template: "systems/hunter-system/templates/advancement/scale-value-flow.hbs"
     }
   };
 

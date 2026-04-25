@@ -50,7 +50,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
   constructor(options={}) {
     // Set initial size based on saved size
     const key = `${options.document?.type}${options.document?.limited ? ":limited" : ""}`;
-    const { width, height } = game.user.getFlag("jujutsu-system", `sheetPrefs.${key}`) ?? {};
+    const { width, height } = game.user.getFlag("hunter-system", `sheetPrefs.${key}`) ?? {};
     options.position ??= {};
     if ( width && !("width" in options.position) ) options.position.width = width;
     if ( height && !("height" in options.position) ) options.position.height = height;
@@ -103,11 +103,11 @@ export default class BaseActorSheet extends PrimarySheetMixin(
    */
   static LIMITED_PARTS = {
     header: {
-      template: "systems/jujutsu-system/templates/actors/limited-header.hbs"
+      template: "systems/hunter-system/templates/actors/limited-header.hbs"
     },
     biography: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/limited-body.hbs",
+      template: "systems/hunter-system/templates/actors/limited-body.hbs",
       scrollable: [""]
     }
   };
@@ -207,7 +207,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
         ? this.actor.system.source.rules === "2024"
         : dnd5e.settings.rulesVersion === "modern",
       rollableClass: this.isEditable ? "rollable" : "",
-      sidebarCollapsed: !!game.user.getFlag("jujutsu-system", this._sidebarCollapsedKeyPath),
+      sidebarCollapsed: !!game.user.getFlag("hunter-system", this._sidebarCollapsedKeyPath),
       system: this.actor.system,
       user: game.user,
       warnings: foundry.utils.deepClone(this.actor._preparationWarnings)
@@ -347,7 +347,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
 
     // Character Flags
     for ( const [key, config] of Object.entries(CONFIG.DND5E.characterFlags) ) {
-      const flag = { ...config, name: `flags.JujutsuLegacy.${key}`, value: foundry.utils.getProperty(flags.data, key) };
+      const flag = { ...config, name: `flags.HunterLegacy.${key}`, value: foundry.utils.getProperty(flags.data, key) };
       const fieldOptions = { label: config.name, hint: config.hint };
       if ( config.type === Boolean ) {
         flag.field = new BooleanField(fieldOptions);
@@ -610,7 +610,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
       method = spellcasting?.getSpellSlotKey?.(level) ?? method;
 
       // Spells from items
-      if ( spell.getFlag("jujutsu-system", "cachedFor") ) {
+      if ( spell.getFlag("hunter-system", "cachedFor") ) {
         method = "item";
         if ( !spell.system.linkedActivity?.displayInSpellbook ) return;
         registerSection(method);
@@ -834,7 +834,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
       : game.i18n.localize("DND5E.AbbreviationDC") : null;
 
     // Linked Uses
-    const cachedFor = fromUuidSync(item.flags.JujutsuLegacy?.cachedFor, { relative: item.parent, strict: false });
+    const cachedFor = fromUuidSync(item.flags.HunterLegacy?.cachedFor, { relative: item.parent, strict: false });
     if ( cachedFor ) {
       const targetItemUses = cachedFor.consumption?.targets.find(t => t.type === "itemUses");
       ctx.linkedUses = cachedFor.consumption?.targets.find(t => t.type === "activityUses")
@@ -966,7 +966,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
       sourceLabel = grantingItem?.name;
     } else {
       // Check spells added from advancements
-      const advancementOrigin = item.getFlag("jujutsu-system", "advancementOrigin");
+      const advancementOrigin = item.getFlag("hunter-system", "advancementOrigin");
       if ( advancementOrigin ) {
         const [itemId] = advancementOrigin.split(".");
         const grantingItem = item.parent.items.get(itemId);
@@ -1062,7 +1062,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
         const button = document.createElement("button");
         Object.assign(button, { type: "button", className: classes, ariaLabel: label, ariaPressed: filled });
         Object.assign(button.dataset, { n, tooltip, action: "togglePip" });
-        const icon = '<dnd5e-icon src="systems/jujutsu-system/icons/svg/spell-slot.svg"></dnd5e-icon>';
+        const icon = '<dnd5e-icon src="systems/hunter-system/icons/svg/spell-slot.svg"></dnd5e-icon>';
         button.insertAdjacentHTML("afterbegin", icon);
         slots.append(button);
       });
@@ -1134,7 +1134,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
 
     // Collapse sidebar
     if ( this.tabGroups.primary ) {
-      const sidebarCollapsed = !!game.user.getFlag("jujutsu-system", this._sidebarCollapsedKeyPath);
+      const sidebarCollapsed = !!game.user.getFlag("hunter-system", this._sidebarCollapsedKeyPath);
       this.element.classList.toggle("sidebar-collapsed", sidebarCollapsed);
     }
 
@@ -1225,7 +1225,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
     const classId = event.target.closest("[data-item-id]")?.dataset.itemId;
     if ( !delta || !classId ) return;
     const classItem = this.actor.items.get(classId);
-    if ( !game.settings.get("jujutsu-system", "disableAdvancements") ) {
+    if ( !game.settings.get("hunter-system", "disableAdvancements") ) {
       const manager = AdvancementManager.forLevelChange(this.actor, classId, delta);
       if ( manager.steps.length ) {
         if ( delta > 0 ) return this._renderChild(manager);
@@ -1257,7 +1257,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
     }));
 
     // Toggle sidebar
-    const sidebarCollapsed = game.user.getFlag("jujutsu-system", this._sidebarCollapsedKeyPath);
+    const sidebarCollapsed = game.user.getFlag("hunter-system", this._sidebarCollapsedKeyPath);
     if ( sidebarCollapsed !== undefined ) this._toggleSidebar(sidebarCollapsed);
   }
 
@@ -1433,7 +1433,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
     if ( height !== "auto" ) prefs.height = height;
     if ( foundry.utils.isEmpty(prefs) ) return;
     const key = `${this.actor.type}${this.actor.limited ? ":limited": ""}`;
-    game.user.setFlag("jujutsu-system", `sheetPrefs.${key}`, prefs);
+    game.user.setFlag("hunter-system", `sheetPrefs.${key}`, prefs);
   }
 
   /* -------------------------------------------- */
@@ -1577,7 +1577,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
    */
   static #toggleSidebar(event, target) {
     const collapsed = this._toggleSidebar();
-    game.user.setFlag("jujutsu-system", this._sidebarCollapsedKeyPath, collapsed);
+    game.user.setFlag("hunter-system", this._sidebarCollapsedKeyPath, collapsed);
   }
 
   /* -------------------------------------------- */
@@ -1614,11 +1614,11 @@ export default class BaseActorSheet extends PrimarySheetMixin(
       if ( value ) continue;
 
       // Keep the flag for synthetic actor overrides
-      if ( this.actor.isToken && this.actor.parent.baseActor.getFlag("jujutsu-system", key) ) continue;
+      if ( this.actor.isToken && this.actor.parent.baseActor.getFlag("hunter-system", key) ) continue;
 
-      delete submitData.flags.JujutsuLegacy[key];
-      if ( foundry.utils.hasProperty(this.document._source, `flags.JujutsuLegacy.${key}`) ) {
-        submitData.flags.JujutsuLegacy[`-=${key}`] = null;
+      delete submitData.flags.HunterLegacy[key];
+      if ( foundry.utils.hasProperty(this.document._source, `flags.HunterLegacy.${key}`) ) {
+        submitData.flags.HunterLegacy[`-=${key}`] = null;
       }
     }
 
@@ -1722,16 +1722,16 @@ export default class BaseActorSheet extends PrimarySheetMixin(
 
   /** @override */
   async _onDropActor(event, actor) {
-    const canPolymorph = game.user.isGM || (this.actor.isOwner && game.settings.get("jujutsu-system", "allowPolymorphing"));
+    const canPolymorph = game.user.isGM || (this.actor.isOwner && game.settings.get("hunter-system", "allowPolymorphing"));
     if ( !canPolymorph || (this.tabGroups.primary === "bastion") ) return;
 
     // Configure the transformation
     const settings = await TransformDialog.promptSettings(this.actor, actor, {
-      transform: { settings: game.settings.get("jujutsu-system", "transformationSettings") },
+      transform: { settings: game.settings.get("hunter-system", "transformationSettings") },
       windowId: this.window?.windowId
     });
     if ( !settings ) return;
-    await game.settings.set("jujutsu-system", "transformationSettings", settings.toObject());
+    await game.settings.set("hunter-system", "transformationSettings", settings.toObject());
 
     return this.actor.transformInto(actor, settings);
   }
@@ -1829,7 +1829,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
     behavior ??= event._behavior;
     const itemsWithoutAdvancement = items.filter(i => !i.system.advancement?.size);
     const multipleAdvancements = (items.length - itemsWithoutAdvancement.length) > 1;
-    if ( multipleAdvancements && !game.settings.get("jujutsu-system", "disableAdvancements") ) {
+    if ( multipleAdvancements && !game.settings.get("hunter-system", "disableAdvancements") ) {
       ui.notifications.warn(game.i18n.format("DND5E.WarnCantAddMultipleAdvancements"));
       items = itemsWithoutAdvancement;
     }
@@ -1897,7 +1897,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
 
     // Bypass normal creation flow for any items with advancement
     if ( actor.system.metadata?.supportsAdvancement && !foundry.utils.isEmpty(itemData.system.advancement)
-        && !game.settings.get("jujutsu-system", "disableAdvancements") ) {
+        && !game.settings.get("hunter-system", "disableAdvancements") ) {
       // Ensure that this item isn't violating the singleton rule
       const dataModel = CONFIG.Item.dataModels[itemData.type];
       const singleton = dataModel?.metadata.singleton ?? false;

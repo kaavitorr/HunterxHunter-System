@@ -85,41 +85,41 @@ export default class CompendiumBrowser extends Application5e {
     header: {
       id: "header",
       classes: ["header"],
-      template: "systems/jujutsu-system/templates/compendium/browser-header.hbs"
+      template: "systems/hunter-system/templates/compendium/browser-header.hbs"
     },
     search: {
       id: "sidebar-search",
       classes: ["filter-element"],
       container: { id: "sidebar", classes: ["sidebar", "flexcol"] },
-      template: "systems/jujutsu-system/templates/compendium/browser-sidebar-search.hbs"
+      template: "systems/hunter-system/templates/compendium/browser-sidebar-search.hbs"
     },
     types: {
       id: "sidebar-types",
       container: { id: "sidebar", classes: ["sidebar", "flexcol"] },
-      template: "systems/jujutsu-system/templates/compendium/browser-sidebar-types.hbs"
+      template: "systems/hunter-system/templates/compendium/browser-sidebar-types.hbs"
     },
     filters: {
       id: "sidebar-filters",
       container: { id: "sidebar", classes: ["sidebar", "flexcol"] },
-      template: "systems/jujutsu-system/templates/compendium/browser-sidebar-filters.hbs",
-      templates: ["systems/jujutsu-system/templates/compendium/browser-sidebar-filter-set.hbs"]
+      template: "systems/hunter-system/templates/compendium/browser-sidebar-filters.hbs",
+      templates: ["systems/hunter-system/templates/compendium/browser-sidebar-filter-set.hbs"]
     },
     results: {
       id: "results",
       classes: ["results"],
-      template: "systems/jujutsu-system/templates/compendium/browser-results.hbs",
-      templates: ["systems/jujutsu-system/templates/compendium/browser-entry.hbs"],
+      template: "systems/hunter-system/templates/compendium/browser-results.hbs",
+      templates: ["systems/hunter-system/templates/compendium/browser-entry.hbs"],
       scrollable: [""]
     },
     footer: {
       id: "footer",
       classes: ["footer"],
-      template: "systems/jujutsu-system/templates/compendium/browser-footer.hbs"
+      template: "systems/hunter-system/templates/compendium/browser-footer.hbs"
     },
     tabs: {
       id: "tabs",
       classes: ["tabs", "tabs-left"],
-      template: "systems/jujutsu-system/templates/compendium/browser-tabs.hbs"
+      template: "systems/hunter-system/templates/compendium/browser-tabs.hbs"
     }
   };
 
@@ -133,21 +133,21 @@ export default class CompendiumBrowser extends Application5e {
     {
       tab: "classes",
       label: "TYPES.Item.classPl",
-      svg: "systems/jujutsu-system/icons/svg/items/class.svg",
+      svg: "systems/hunter-system/icons/svg/items/class.svg",
       documentClass: "Item",
       types: ["class"]
     },
     {
       tab: "subclasses",
       label: "TYPES.Item.subclassPl",
-      svg: "systems/jujutsu-system/icons/svg/items/subclass.svg",
+      svg: "systems/hunter-system/icons/svg/items/subclass.svg",
       documentClass: "Item",
       types: ["subclass"]
     },
     {
       tab: "races",
       label: "TYPES.Item.racePl",
-      svg: "systems/jujutsu-system/icons/svg/items/race.svg",
+      svg: "systems/hunter-system/icons/svg/items/race.svg",
       documentClass: "Item",
       types: ["race"]
     },
@@ -161,14 +161,14 @@ export default class CompendiumBrowser extends Application5e {
     {
       tab: "backgrounds",
       label: "TYPES.Item.backgroundPl",
-      svg: "systems/jujutsu-system/icons/svg/items/background.svg",
+      svg: "systems/hunter-system/icons/svg/items/background.svg",
       documentClass: "Item",
       types: ["background"]
     },
     {
       tab: "physical",
       label: "DND5E.CompendiumBrowser.Tabs.Item.other",
-      svg: "systems/jujutsu-system/icons/svg/backpack.svg",
+      svg: "systems/hunter-system/icons/svg/backpack.svg",
       documentClass: "Item",
       types: ["physical"]
     },
@@ -182,28 +182,28 @@ export default class CompendiumBrowser extends Application5e {
     {
       tab: "monsters",
       label: "DND5E.CompendiumBrowser.Tabs.Monster.other",
-      svg: "systems/jujutsu-system/icons/svg/actors/npc.svg",
+      svg: "systems/hunter-system/icons/svg/actors/npc.svg",
       documentClass: "Actor",
       types: ["npc"]
     },
     {
       tab: "vehicles",
       label: "TYPES.Actor.vehiclePl",
-      svg: "systems/jujutsu-system/icons/svg/actors/vehicle.svg",
+      svg: "systems/hunter-system/icons/svg/actors/vehicle.svg",
       documentClass: "Actor",
       types: ["vehicle"]
     },
     {
       tab: "actors",
       label: "DOCUMENT.Actors",
-      svg: "systems/jujutsu-system/icons/svg/actors/npc.svg",
+      svg: "systems/hunter-system/icons/svg/actors/npc.svg",
       documentClass: "Actor",
       advanced: true
     },
     {
       tab: "items",
       label: "DOCUMENT.Items",
-      svg: "systems/jujutsu-system/icons/svg/backpack.svg",
+      svg: "systems/hunter-system/icons/svg/backpack.svg",
       documentClass: "Item",
       advanced: true
     }
@@ -657,7 +657,7 @@ export default class CompendiumBrowser extends Application5e {
       selected: this.#selected.has(uuid)
     };
     const html = await foundry.applications.handlebars.renderTemplate(
-      "systems/jujutsu-system/templates/compendium/browser-entry.hbs", context
+      "systems/hunter-system/templates/compendium/browser-entry.hbs", context
     );
     const template = document.createElement("template");
     template.innerHTML = html;
@@ -722,7 +722,7 @@ export default class CompendiumBrowser extends Application5e {
         return obj;
       }, {});
     const filter = await foundry.applications.handlebars.renderTemplate(
-      "systems/jujutsu-system/templates/compendium/browser-sidebar-filter-set.hbs",
+      "systems/hunter-system/templates/compendium/browser-sidebar-filter-set.hbs",
       {
         locked,
         value: lockExclusive && (lockedSource !== undefined) ? {} : locked,
@@ -1110,7 +1110,7 @@ export default class CompendiumBrowser extends Application5e {
         && sources.has(p.collection)
 
         // If types are set and specified in compendium flag, only include those that include the correct types
-        && (!types.size || !p.metadata.flags.JujutsuLegacy?.types || new Set(p.metadata.flags.JujutsuLegacy.types).intersects(types)))
+        && (!types.size || !p.metadata.flags.HunterLegacy?.types || new Set(p.metadata.flags.HunterLegacy.types).intersects(types)))
 
       // Generate an index based on the needed fields
       .map(async p => await Promise.all((await p.getIndex({ fields: Array.from(indexFields) })
@@ -1128,7 +1128,7 @@ export default class CompendiumBrowser extends Application5e {
         // Remove any documents that don't match the specified types or the provided filters
         .filter(i =>
           (!types.size || (types.has(i.type)
-            && (!p.metadata.flags.JujutsuLegacy?.types || p.metadata.flags.JujutsuLegacy.types.includes(i.type))))
+            && (!p.metadata.flags.HunterLegacy?.types || p.metadata.flags.HunterLegacy.types.includes(i.type))))
             && (!filters.length || Filter.performCheck(i, filters))
         )
 

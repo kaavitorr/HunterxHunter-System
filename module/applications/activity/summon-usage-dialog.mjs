@@ -17,7 +17,7 @@ export default class SummonUsageDialog extends ActivityUsageDialog {
   static PARTS = {
     ...super.PARTS,
     creation: {
-      template: "systems/jujutsu-system/templates/activity/summon-usage-creation.hbs"
+      template: "systems/hunter-system/templates/activity/summon-usage-creation.hbs"
     }
   };
 

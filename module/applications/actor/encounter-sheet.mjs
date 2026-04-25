@@ -33,26 +33,26 @@ export default class EncounterActorSheet extends MultiActorSheet {
   /** @override */
   static PARTS = {
     header: {
-      template: "systems/jujutsu-system/templates/actors/encounter/header.hbs"
+      template: "systems/hunter-system/templates/actors/encounter/header.hbs"
     },
     tabs: {
-      template: "systems/jujutsu-system/templates/shared/horizontal-tabs.hbs",
+      template: "systems/hunter-system/templates/shared/horizontal-tabs.hbs",
       templates: ["templates/generic/tab-navigation.hbs"]
     },
     members: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/encounter/members.hbs",
+      template: "systems/hunter-system/templates/actors/encounter/members.hbs",
       scrollable: [""]
     },
     inventory: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-inventory.hbs",
-      templates: ["systems/jujutsu-system/templates/inventory/inventory.hbs"],
+      template: "systems/hunter-system/templates/actors/tabs/actor-inventory.hbs",
+      templates: ["systems/hunter-system/templates/inventory/inventory.hbs"],
       scrollable: [""]
     },
     description: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/group/biography.hbs",
+      template: "systems/hunter-system/templates/actors/group/biography.hbs",
       scrollable: [""]
     }
   };
@@ -233,7 +233,7 @@ export default class EncounterActorSheet extends MultiActorSheet {
     new Award({
       award: {
         currency: { ...this.actor.system.currency },
-        savedDestinations: this.actor.getFlag("jujutsu-system", "awardDestinations"),
+        savedDestinations: this.actor.getFlag("hunter-system", "awardDestinations"),
         xp: await this.actor.system.getXPValue()
       }
     }).render({ force: true });

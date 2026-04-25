@@ -239,7 +239,7 @@ export default class SpellData extends ItemDataModel.mixin(ActivitiesTemplate, I
 
   /** @override */
   get criticalThreshold() {
-    return this.parent?.actor?.flags.JujutsuLegacy?.spellCriticalThreshold ?? Infinity;
+    return this.parent?.actor?.flags.HunterLegacy?.spellCriticalThreshold ?? Infinity;
   }
 
   /* -------------------------------------------- */
@@ -250,13 +250,13 @@ export default class SpellData extends ItemDataModel.mixin(ActivitiesTemplate, I
    */
   get linkedActivity() {
     const relative = this.parent.actor;
-    const uuid = this.parent.getFlag("jujutsu-system", "cachedFor");
+    const uuid = this.parent.getFlag("hunter-system", "cachedFor");
     if ( !relative || !uuid ) return null;
     const data = foundry.utils.parseUuid(uuid, { relative });
     const [itemId, , activityId] = (data?.embedded ?? []).slice(-3);
     return relative.items.get(itemId)?.system.activities?.get(activityId) ?? null;
     // TODO: Swap back to fromUuidSync once https://github.com/foundryvtt/foundryvtt/issues/11214 is resolved
-    // return fromUuidSync(this.parent.getFlag("jujutsu-system", "cachedFor"), { relative, strict: false }) ?? null;
+    // return fromUuidSync(this.parent.getFlag("hunter-system", "cachedFor"), { relative, strict: false }) ?? null;
   }
 
   /* -------------------------------------------- */
@@ -324,7 +324,7 @@ export default class SpellData extends ItemDataModel.mixin(ActivitiesTemplate, I
   static _migrateComponentData(source) {
     const components = filteredKeys(source.system?.components ?? {});
     if ( components.length ) {
-      foundry.utils.setProperty(source, "flags.JujutsuLegacy.migratedProperties", components);
+      foundry.utils.setProperty(source, "flags.HunterLegacy.migratedProperties", components);
     }
   }
 
@@ -534,7 +534,7 @@ export default class SpellData extends ItemDataModel.mixin(ActivitiesTemplate, I
         // Fallback to detecting from flags.
         if ( !grantingItem ) {
           // Check for advancement-granted spells.
-          const advancementOrigin = this.parent.getFlag("jujutsu-system", "advancementOrigin");
+          const advancementOrigin = this.parent.getFlag("hunter-system", "advancementOrigin");
           if ( advancementOrigin ) {
             const [itemId] = advancementOrigin.split(".");
             grantingItem = this.parent.actor.items.get(itemId);
@@ -649,7 +649,7 @@ export default class SpellData extends ItemDataModel.mixin(ActivitiesTemplate, I
   /** @inheritDoc */
   getRollData(...options) {
     const data = super.getRollData(...options);
-    data.item.level = data.item.level + (this.parent.getFlag("jujutsu-system", "scaling")
+    data.item.level = data.item.level + (this.parent.getFlag("hunter-system", "scaling")
       ?? (this.level !== 0 ? this.scalingIncrease : 0));
     return data;
   }

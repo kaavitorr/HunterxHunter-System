@@ -26,7 +26,7 @@ export default class AdvancementConfig extends PseudoDocumentSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/advancement/advancement-controls-section.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-controls-section.hbs"
     }
   };
 

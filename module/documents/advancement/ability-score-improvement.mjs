@@ -24,7 +24,7 @@ export default class AbilityScoreImprovementAdvancement extends Advancement {
       },
       order: 20,
       icon: "icons/magic/symbols/star-solid-gold.webp",
-      typeIcon: "systems/jujutsu-system/icons/svg/ability-score-improvement.svg",
+      typeIcon: "systems/hunter-system/icons/svg/ability-score-improvement.svg",
       title: game.i18n.localize("DND5E.ADVANCEMENT.AbilityScoreImprovement.Title"),
       hint: game.i18n.localize("DND5E.ADVANCEMENT.AbilityScoreImprovement.Hint"),
       apps: {
@@ -70,7 +70,7 @@ export default class AbilityScoreImprovementAdvancement extends Advancement {
    * @type {boolean}
    */
   get allowFeat() {
-    return (this.item.type === "class") && (game.settings.get("jujutsu-system", "allowFeats")
+    return (this.item.type === "class") && (game.settings.get("hunter-system", "allowFeats")
       || dnd5e.settings.rulesVersion === "modern");
   }
 

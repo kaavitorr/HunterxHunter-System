@@ -189,7 +189,7 @@ export default class ClassData extends ItemDataModel.mixin(
       needsMigration = true;
     }
 
-    if ( needsMigration ) foundry.utils.setProperty(source, "flags.JujutsuLegacy.persistSourceMigration", true);
+    if ( needsMigration ) foundry.utils.setProperty(source, "flags.HunterLegacy.persistSourceMigration", true);
   }
 
   /* -------------------------------------------- */

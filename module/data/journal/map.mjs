@@ -41,7 +41,7 @@ export default class MapLocationJournalPageData extends foundry.abstract.TypeDat
     if ( !this.code ) return;
     const { icon: IconClass, ...style } = foundry.utils.mergeObject(
       CONFIG.DND5E.mapLocationMarker.default,
-      CONFIG.DND5E.mapLocationMarker[this.parent.getFlag("jujutsu-system", "mapMarkerStyle")] ?? {},
+      CONFIG.DND5E.mapLocationMarker[this.parent.getFlag("hunter-system", "mapMarkerStyle")] ?? {},
       {inplace: false}
     );
     return new IconClass({code: this.code, ...options, ...style});

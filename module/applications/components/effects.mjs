@@ -190,7 +190,7 @@ export default class EffectsElement extends (foundry.applications.elements.Adopt
       },
       {
         name: "DND5E.ConcentrationBreak",
-        icon: '<dnd5e-icon src="systems/jujutsu-system/icons/svg/break-concentration.svg"></dnd5e-icon>',
+        icon: '<dnd5e-icon src="systems/hunter-system/icons/svg/break-concentration.svg"></dnd5e-icon>',
         condition: () => isConcentrationEffect,
         callback: () => this.document.endConcentration(effect),
         group: "state"

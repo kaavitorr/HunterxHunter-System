@@ -39,7 +39,7 @@ export default function ActivityMixin(Base) {
       sheetClass: ActivitySheet,
       usage: {
         actions: {},
-        chatCard: "systems/jujutsu-system/templates/chat/activity-card.hbs",
+        chatCard: "systems/hunter-system/templates/chat/activity-card.hbs",
         dialog: ActivityUsageDialog
       }
     });
@@ -241,7 +241,7 @@ export default function ActivityMixin(Base) {
 
       // Create concentration effect & end previous effects
       if ( usageConfig.concentration?.begin ) {
-        const effect = await item.actor.beginConcentrating(activity, { "flags.JujutsuLegacy.scaling": usageConfig.scaling });
+        const effect = await item.actor.beginConcentrating(activity, { "flags.HunterLegacy.scaling": usageConfig.scaling });
         if ( effect ) {
           results.effects ??= [];
           results.effects.push(effect);
@@ -275,7 +275,7 @@ export default function ActivityMixin(Base) {
       if ( usageConfig.subsequentActions !== false ) {
         const deltas = results.message?.system?.deltas ?? results.message?.data?.system?.deltas;
         const consumed = this.createConsumedFlag(this.actor, deltas);
-        if ( consumed ) item.updateSource({ "flags.JujutsuLegacy.consumed": consumed });
+        if ( consumed ) item.updateSource({ "flags.HunterLegacy.consumed": consumed });
         activity._triggerSubsequentActions(usageConfig, results);
       }
 
@@ -440,7 +440,7 @@ export default function ActivityMixin(Base) {
           || (!linked && hasSpellSlotConsumption);
       }
 
-      const levelingFlag = this.item.getFlag("jujutsu-system", "spellLevel");
+      const levelingFlag = this.item.getFlag("hunter-system", "spellLevel");
       if ( levelingFlag ) {
         // Handle fixed scaling from spell scrolls
         config.scaling = false;
@@ -467,13 +467,13 @@ export default function ActivityMixin(Base) {
         config.scaling ??= 0;
       }
 
-      if ( this.requiresConcentration && !game.settings.get("jujutsu-system", "disableConcentration") ) {
+      if ( this.requiresConcentration && !game.settings.get("hunter-system", "disableConcentration") ) {
         config.concentration ??= {};
         config.concentration.begin ??= true;
         const { effects } = this.actor.concentration;
         const limit = this.actor.system.attributes?.concentration?.limit ?? 0;
         if ( limit && (limit <= effects.size) ) config.concentration.end ??= effects.find(e => {
-          const data = e.flags.JujutsuLegacy?.item?.data ?? {};
+          const data = e.flags.HunterLegacy?.item?.data ?? {};
           return (data === this.id) || (data._id === this.id);
         })?.id ?? effects.first()?.id ?? null;
       }
@@ -497,7 +497,7 @@ export default function ActivityMixin(Base) {
      * @protected
      */
     async _prepareUsageScaling(usageConfig, messageConfig, item) {
-      const levelingFlag = this.item.getFlag("jujutsu-system", "spellLevel");
+      const levelingFlag = this.item.getFlag("hunter-system", "spellLevel");
       if ( levelingFlag ) {
         usageConfig.scaling = Math.max(0, levelingFlag.value - levelingFlag.base);
       } else if ( this.isSpell ) {
@@ -510,9 +510,9 @@ export default function ActivityMixin(Base) {
 
       if ( usageConfig.scaling ) {
         foundry.utils.setProperty(messageConfig, "data.system.scaling", usageConfig.scaling);
-        if ( usageConfig.scaling !== item.flags.JujutsuLegacy?.scaling ) {
+        if ( usageConfig.scaling !== item.flags.HunterLegacy?.scaling ) {
           item.actor._embeddedPreparation = true;
-          item.updateSource({ "flags.JujutsuLegacy.scaling": usageConfig.scaling });
+          item.updateSource({ "flags.HunterLegacy.scaling": usageConfig.scaling });
           delete item.actor._embeddedPreparation;
           item.prepareFinalAttributes();
         }
@@ -598,7 +598,7 @@ export default function ActivityMixin(Base) {
             const otherLinkedActivity = linkedActivity.type === "forward"
               ? linkedActivity.item.system.activities.get(linkedActivity.activity.id) : linkedActivity;
             if ( updates.delete.includes(linkedActivity.item.id)
-              && (this.item.getFlag("jujutsu-system", "cachedFor") === otherLinkedActivity?.relativeUUID) ) {
+              && (this.item.getFlag("hunter-system", "cachedFor") === otherLinkedActivity?.relativeUUID) ) {
               updates.delete.push(this.item.id);
             }
           } else if ( results?.length ) {
@@ -911,7 +911,7 @@ export default function ActivityMixin(Base) {
       }, {});
       if ( canUpdate && !foundry.utils.isEmpty(lastDamageTypes)
         && (this.actor && this.actor.items.has(this.item.id)) ) {
-        await this.item.setFlag("jujutsu-system", `last.${this.id}.damageType`, lastDamageTypes);
+        await this.item.setFlag("hunter-system", `last.${this.id}.damageType`, lastDamageTypes);
       }
 
       /**
@@ -1010,7 +1010,7 @@ export default function ActivityMixin(Base) {
       const consumed = this.createConsumedFlag(message.getAssociatedActor(), message.system.deltas);
       const scaling = message.system.scaling ?? 0;
       const item = (consumed || scaling) ? this.item.clone({
-        "flags.JujutsuLegacy": { consumed, scaling }
+        "flags.HunterLegacy": { consumed, scaling }
       }, { keepId: true }) : this.item;
       const activity = item.system.activities.get(this.id);
 
@@ -1173,7 +1173,7 @@ export default function ActivityMixin(Base) {
      */
     getLinkedActivity(relativeUUID) {
       if ( !this.actor ) return null;
-      relativeUUID ??= this.item.getFlag("jujutsu-system", "cachedFor");
+      relativeUUID ??= this.item.getFlag("hunter-system", "cachedFor");
       return fromUuidSync(relativeUUID, { relative: this.actor, strict: false });
     }
 
@@ -1187,7 +1187,7 @@ export default function ActivityMixin(Base) {
     getRollData(options) {
       const rollData = this.item.getRollData(options);
       rollData.activity = { ...this };
-      rollData.consumed = this.item.flags.JujutsuLegacy?.consumed;
+      rollData.consumed = this.item.flags.HunterLegacy?.consumed;
       rollData.mod = this.actor?.system.abilities?.[this.ability]?.mod ?? 0;
       return rollData;
     }

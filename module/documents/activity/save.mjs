@@ -20,7 +20,7 @@ export default class SaveActivity extends ActivityMixin(BaseSaveActivityData) {
   static metadata = Object.freeze(
     foundry.utils.mergeObject(super.metadata, {
       type: "save",
-      img: "systems/jujutsu-system/icons/svg/activity/save.svg",
+      img: "systems/hunter-system/icons/svg/activity/save.svg",
       title: "DND5E.SAVE.Title.one",
       hint: "DND5E.SAVE.Hint",
       sheetClass: SaveSheet,
@@ -76,7 +76,7 @@ export default class SaveActivity extends ActivityMixin(BaseSaveActivityData) {
   /** @inheritDoc */
   async rollDamage(config={}, dialog={}, message={}) {
     message = foundry.utils.mergeObject({
-      "data.flags.JujutsuLegacy.roll": {
+      "data.flags.HunterLegacy.roll": {
         damageOnSave: this.damage.onSave
       }
     }, message);

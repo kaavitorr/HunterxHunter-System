@@ -22,7 +22,7 @@ export default class HitDiceConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/actors/config/hit-dice-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/hit-dice-config.hbs"
     }
   };
 

@@ -20,7 +20,7 @@ export default class DamageRollConfigurationDialog extends RollConfigurationDial
   static PARTS = {
     ...super.PARTS,
     formulas: {
-      template: "systems/jujutsu-system/templates/dice/damage-formulas.hbs"
+      template: "systems/hunter-system/templates/dice/damage-formulas.hbs"
     }
   };
 

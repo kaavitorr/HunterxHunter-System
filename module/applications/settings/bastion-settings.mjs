@@ -16,7 +16,7 @@ export default class BastionSettingsConfig extends BaseSettingsConfig {
   static PARTS = {
     ...super.PARTS,
     config: {
-      template: "systems/jujutsu-system/templates/settings/bastion-config.hbs"
+      template: "systems/hunter-system/templates/settings/bastion-config.hbs"
     }
   };
 
@@ -28,7 +28,7 @@ export default class BastionSettingsConfig extends BaseSettingsConfig {
   async _preparePartContext(partId, context, options) {
     context = await super._preparePartContext(partId, context, options);
     context.fields = BastionSetting.schema.fields;
-    context.source = game.settings.get("jujutsu-system", "bastionConfiguration");
+    context.source = game.settings.get("hunter-system", "bastionConfiguration");
     return context;
   }
 }

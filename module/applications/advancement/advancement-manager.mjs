@@ -53,7 +53,7 @@ export default class AdvancementManager extends Application5e {
   /** @override */
   static PARTS = {
     manager: {
-      template: "systems/jujutsu-system/templates/advancement/advancement-manager.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-manager.hbs"
     }
   };
 
@@ -679,7 +679,7 @@ export default class AdvancementManager extends Application5e {
         // Apply changes based on step type
         if ( (type === "delete") && this.step.item ) {
           if ( this.step.flow?.retainedData?.retainedItems ) {
-            this.step.flow.retainedData.retainedItems[this.step.item.flags.JujutsuLegacy?.sourceId] = this.step.item.toObject();
+            this.step.flow.retainedData.retainedItems[this.step.item.flags.HunterLegacy?.sourceId] = this.step.item.toObject();
           }
           this.clone.items.delete(this.step.item.id);
         } else if ( (type === "delete") && this.step.advancement ) {
@@ -956,7 +956,7 @@ class AdvancementVisualizer extends Application5e {
   /** @override */
   static PARTS = {
     steps: {
-      template: "systems/jujutsu-system/templates/advancement/advancement-visualizer.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-visualizer.hbs"
     }
   };
 

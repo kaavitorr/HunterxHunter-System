@@ -16,12 +16,12 @@ export default class DamageSheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     effect: {
-      template: "systems/jujutsu-system/templates/activity/damage-effect.hbs",
+      template: "systems/hunter-system/templates/activity/damage-effect.hbs",
       templates: [
         ...super.PARTS.effect.templates,
-        "systems/jujutsu-system/templates/activity/parts/damage-damage.hbs",
-        "systems/jujutsu-system/templates/activity/parts/damage-part.hbs",
-        "systems/jujutsu-system/templates/activity/parts/damage-parts.hbs"
+        "systems/hunter-system/templates/activity/parts/damage-damage.hbs",
+        "systems/hunter-system/templates/activity/parts/damage-part.hbs",
+        "systems/hunter-system/templates/activity/parts/damage-parts.hbs"
       ]
     }
   };

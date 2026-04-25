@@ -11,7 +11,7 @@ export default function DependentDocumentMixin(Base) {
     prepareData() {
       super.prepareData();
       if ( this.flags?.dnd5e?.dependentOn && this.uuid ) {
-        dnd5e.registry.dependents.track(this.flags.JujutsuLegacy.dependentOn, this);
+        dnd5e.registry.dependents.track(this.flags.HunterLegacy.dependentOn, this);
       }
     }
 
@@ -21,7 +21,7 @@ export default function DependentDocumentMixin(Base) {
     _onDelete(options, userId) {
       super._onDelete(options, userId);
       if ( this.flags?.dnd5e?.dependentOn && this.uuid ) {
-        dnd5e.registry.dependents.untrack(this.flags.JujutsuLegacy.dependentOn, this);
+        dnd5e.registry.dependents.untrack(this.flags.HunterLegacy.dependentOn, this);
       }
     }
   }

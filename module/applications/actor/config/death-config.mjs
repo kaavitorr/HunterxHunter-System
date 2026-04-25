@@ -17,7 +17,7 @@ export default class DeathConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/actors/config/death-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/death-config.hbs"
     }
   };
 

@@ -32,7 +32,7 @@ export default class ActivityChoiceDialog extends Application5e {
 
   static PARTS = {
     activities: {
-      template: "systems/jujutsu-system/templates/activity/activity-choices.hbs"
+      template: "systems/hunter-system/templates/activity/activity-choices.hbs"
     }
   };
 
@@ -84,11 +84,11 @@ export default class ActivityChoiceDialog extends Application5e {
   /** @inheritDoc */
   async _prepareContext(options) {
     let controlHint;
-    if ( game.settings.get("jujutsu-system", "controlHints") ) {
+    if ( game.settings.get("hunter-system", "controlHints") ) {
       controlHint = game.i18n.localize("DND5E.Controls.Activity.FastForwardHint");
       controlHint = controlHint.replace(
         "<left-click>",
-        `<img src="systems/jujutsu-system/icons/svg/mouse-left.svg" alt="${game.i18n.localize("DND5E.Controls.LeftClick")}">`
+        `<img src="systems/hunter-system/icons/svg/mouse-left.svg" alt="${game.i18n.localize("DND5E.Controls.LeftClick")}">`
       );
     }
     const activities = this.#item.system.activities

@@ -145,7 +145,7 @@ async _onStartTurn(combatant) {
       }
       // Caso contrário, GM emite socket para o dono
       else if ( game.user.isGM ) {
-        game.socket.emit("system.jujutsu-system", {
+        game.socket.emit("system.hunter-system", {
           action: "energyGenerationDialog",
           actorId: combatant.actor.id,
           userId: owner.id
@@ -197,7 +197,7 @@ async _onStartTurn(combatant) {
 
 // GM processa escolhas de energia recebidas via socket do jogador
 Hooks.on("ready", () => {
-  game.socket.on("system.jujutsu-system", async (data) => {
+  game.socket.on("system.hunter-system", async (data) => {
     if ( data.action !== "energyChoicesResult" ) return;
     if ( !game.user.isGM ) return;
     const actor = game.actors.get(data.actorId);

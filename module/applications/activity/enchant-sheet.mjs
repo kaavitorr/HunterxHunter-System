@@ -16,10 +16,10 @@ export default class EnchantSheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     effect: {
-      template: "systems/jujutsu-system/templates/activity/enchant-effect.hbs",
+      template: "systems/hunter-system/templates/activity/enchant-effect.hbs",
       templates: [
-        "systems/jujutsu-system/templates/activity/parts/enchant-enchantments.hbs",
-        "systems/jujutsu-system/templates/activity/parts/enchant-restrictions.hbs"
+        "systems/hunter-system/templates/activity/parts/enchant-enchantments.hbs",
+        "systems/hunter-system/templates/activity/parts/enchant-restrictions.hbs"
       ]
     }
   };

@@ -11,7 +11,7 @@ export default class SizeFlow extends AdvancementFlow {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/advancement/size-flow.hbs"
+      template: "systems/hunter-system/templates/advancement/size-flow.hbs"
     }
   };
 

@@ -32,8 +32,8 @@ export default class BaseRestDialog extends Dialog5e {
       width: 380
     },
     templates: [
-      "systems/jujutsu-system/templates/actors/rest/parts/hit-dice.hbs",
-      "systems/jujutsu-system/templates/actors/rest/parts/rest-request.hbs"
+      "systems/hunter-system/templates/actors/rest/parts/hit-dice.hbs",
+      "systems/hunter-system/templates/actors/rest/parts/rest-request.hbs"
     ]
   };
 
@@ -43,7 +43,7 @@ export default class BaseRestDialog extends Dialog5e {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/actors/rest/base-rest.hbs"
+      template: "systems/hunter-system/templates/actors/rest/base-rest.hbs"
     }
   };
 
@@ -87,7 +87,7 @@ export default class BaseRestDialog extends Dialog5e {
    */
   get promptNewDay() {
     const duration = CONFIG.DND5E.restTypes[this.config.type]
-      ?.duration?.[game.settings.get("jujutsu-system", "restVariant")] ?? 0;
+      ?.duration?.[game.settings.get("hunter-system", "restVariant")] ?? 0;
     // Only prompt if rest is longer than 10 minutes and less than 24 hours
     return (duration > 10) && (duration < 1440);
   }
@@ -121,7 +121,7 @@ export default class BaseRestDialog extends Dialog5e {
       hd: this.actor.system.attributes?.hd,
       hp: this.actor.system.attributes?.hp,
       isGroup: this.actor.type === "group",
-      variant: game.settings.get("jujutsu-system", "restVariant")
+      variant: game.settings.get("hunter-system", "restVariant")
     };
     if ( this.promptNewDay ) context.fields.push({
       disabled: !!this.config.request,
@@ -163,7 +163,7 @@ export default class BaseRestDialog extends Dialog5e {
     }
 
     if ( this.isPartyGroup ) {
-      const restSettings = this.actor.getFlag("jujutsu-system", "restSettings") ?? {};
+      const restSettings = this.actor.getFlag("hunter-system", "restSettings") ?? {};
       context.request = [
         {
           field: new BooleanField({
@@ -205,7 +205,7 @@ export default class BaseRestDialog extends Dialog5e {
     const data = foundry.utils.expandObject(formData.object);
     if ( this.isPartyGroup ) {
       data.targets = filteredKeys(data.targets ?? {});
-      this.actor.setFlag("jujutsu-system", "restSettings", data);
+      this.actor.setFlag("hunter-system", "restSettings", data);
     }
     foundry.utils.mergeObject(this.config, data);
     this.#rested = true;

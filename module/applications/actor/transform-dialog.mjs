@@ -49,15 +49,15 @@ export default class TransformDialog extends Dialog5e {
   /** @override */
   static PARTS = {
     details: {
-      template: "systems/jujutsu-system/templates/apps/transform-details.hbs"
+      template: "systems/hunter-system/templates/apps/transform-details.hbs"
     },
     presets: {
       container: { id: "settings-area" },
-      template: "systems/jujutsu-system/templates/apps/transform-presets.hbs"
+      template: "systems/hunter-system/templates/apps/transform-presets.hbs"
     },
     settings: {
       container: { id: "settings-area" },
-      template: "systems/jujutsu-system/templates/apps/transform-settings.hbs"
+      template: "systems/hunter-system/templates/apps/transform-settings.hbs"
     },
     footer: {
       template: "templates/generic/form-footer.hbs"

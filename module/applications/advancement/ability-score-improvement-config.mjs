@@ -20,11 +20,11 @@ export default class AbilityScoreImprovementConfig extends AdvancementConfig {
   static PARTS = {
     ...super.PARTS,
     details: {
-      template: "systems/jujutsu-system/templates/advancement/ability-score-improvement-config-details.hbs"
+      template: "systems/hunter-system/templates/advancement/ability-score-improvement-config-details.hbs"
     },
     scores: {
-      template: "systems/jujutsu-system/templates/advancement/ability-score-improvement-config-scores.hbs",
-      templates: ["systems/jujutsu-system/templates/advancement/parts/advancement-ability-score-control.hbs"]
+      template: "systems/hunter-system/templates/advancement/ability-score-improvement-config-scores.hbs",
+      templates: ["systems/hunter-system/templates/advancement/parts/advancement-ability-score-control.hbs"]
     }
   };
 

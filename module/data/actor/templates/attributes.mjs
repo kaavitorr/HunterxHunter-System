@@ -263,7 +263,7 @@ export default class AttributesFields {
     const encumbrance = this.attributes.encumbrance ??= {};
     const baseUnits = CONFIG.DND5E.encumbrance.baseUnits[this.parent.type]
       ?? CONFIG.DND5E.encumbrance.baseUnits.default;
-    const unitSystem = game.settings.get("jujutsu-system", "metricWeightUnits") ? "metric" : "imperial";
+    const unitSystem = game.settings.get("hunter-system", "metricWeightUnits") ? "metric" : "imperial";
     const { attributes } = this;
 
     // Get the total weight from items
@@ -273,7 +273,7 @@ export default class AttributesFields {
 
     // [Optional] add Currency Weight (for non-transformed actors)
     const currency = this.currency;
-    if ( game.settings.get("jujutsu-system", "currencyWeight") && currency ) {
+    if ( game.settings.get("hunter-system", "currencyWeight") && currency ) {
       const numCoins = Object.values(currency).reduce((val, denom) => val + Math.max(denom, 0), 0);
       const currencyPerWeight = config.currencyPerWeight[unitSystem];
       weight += convertWeight(
@@ -287,7 +287,7 @@ export default class AttributesFields {
     const keys = Object.keys(CONFIG.DND5E.actorSizes);
     const index = keys.findIndex(k => k === this.traits.size);
     const sizeConfig = CONFIG.DND5E.actorSizes[
-      keys[this.parent.flags.JujutsuLegacy?.powerfulBuild ? Math.min(index + 1, keys.length - 1) : index]
+      keys[this.parent.flags.HunterLegacy?.powerfulBuild ? Math.min(index + 1, keys.length - 1) : index]
     ];
     const sizeMod = sizeConfig?.capacityMultiplier ?? sizeConfig?.token ?? 1;
     let maximumMultiplier;
@@ -336,7 +336,7 @@ export default class AttributesFields {
    */
   static prepareExhaustionLevel() {
     const exhaustion = this.parent.effects.get(ActiveEffect5e.ID.EXHAUSTION);
-    const level = exhaustion?.getFlag("jujutsu-system", "exhaustionLevel");
+    const level = exhaustion?.getFlag("hunter-system", "exhaustionLevel");
     this.attributes.exhaustion = Number.isFinite(level) ? level : 0;
   }
 
@@ -372,7 +372,7 @@ export default class AttributesFields {
    */
   static prepareInitiative(rollData) {
     const init = this.attributes.init ??= {};
-    const flags = this.parent.flags.JujutsuLegacy ?? {};
+    const flags = this.parent.flags.HunterLegacy ?? {};
     const globalCheckBonus = simplifyBonus(this.bonuses?.abilities?.check, rollData);
 
     // Compute initiative modifier
@@ -545,7 +545,7 @@ export default class AttributesFields {
     if ( !Number.isInteger(changes.total) || (changes.total === 0) ) return;
 
     this.parent._displayTokenEffect(changes);
-    if ( !game.settings.get("jujutsu-system", "disableConcentration") && (userId === game.userId)
+    if ( !game.settings.get("hunter-system", "disableConcentration") && (userId === game.userId)
       && (options.dnd5e?.concentrationCheck !== false)
       && (changes.total < 0) && ((changes.temp < 0) || (curr.value < curr.effectiveMax)) ) {
       this.parent.challengeConcentration({ dc: this.parent.getConcentrationDC(-changes.total) });

@@ -37,7 +37,7 @@ export default class Award extends Application5e {
   /** @override */
   static PARTS = {
     award: {
-      template: "systems/jujutsu-system/templates/apps/award.hbs"
+      template: "systems/hunter-system/templates/apps/award.hbs"
     }
   };
 
@@ -105,7 +105,7 @@ export default class Award extends Application5e {
     }, {});
     context.destinations = Award.prepareDestinations(this.transferDestinations, this.award.savedDestinations);
     context.each = this.award.each ?? false;
-    context.hideXP = game.settings.get("jujutsu-system", "levelingMode") === "noxp";
+    context.hideXP = game.settings.get("hunter-system", "levelingMode") === "noxp";
     context.noPrimaryParty = !game.actors.party && !this.isPartyAward;
     context.xp = this.award.xp ?? this.origin?.system.details?.xp?.value;
 
@@ -122,7 +122,7 @@ export default class Award extends Application5e {
    */
   static prepareDestinations(destinations, savedDestinations) {
     const icons = {
-      container: '<dnd5e-icon class="fa-fw" src="systems/jujutsu-system/icons/svg/backpack.svg"></dnd5e-icon>',
+      container: '<dnd5e-icon class="fa-fw" src="systems/hunter-system/icons/svg/backpack.svg"></dnd5e-icon>',
       group: '<i class="fa-solid fa-people-group"></i>',
       vehicle: '<i class="fa-solid fa-sailboat"></i>'
     };
@@ -196,7 +196,7 @@ export default class Award extends Application5e {
    */
   _saveDestinations(destinations) {
     const target = this.isPartyAward ? this.origin : game.user;
-    target.setFlag("jujutsu-system", "awardDestinations", destinations);
+    target.setFlag("hunter-system", "awardDestinations", destinations);
   }
 
   /* -------------------------------------------- */
@@ -385,7 +385,7 @@ export default class Award extends Application5e {
 
       // Otherwise show the UI with defaults
       else {
-        const savedDestinations = game.user.getFlag("jujutsu-system", "awardDestinations");
+        const savedDestinations = game.user.getFlag("hunter-system", "awardDestinations");
         const app = new Award({ award: { currency, xp, each, savedDestinations } });
         app.render({ force: true });
       }

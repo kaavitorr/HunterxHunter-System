@@ -16,13 +16,13 @@ export default class ItemGrantConfig extends AdvancementConfig {
   static PARTS = {
     ...super.PARTS,
     details: {
-      template: "systems/jujutsu-system/templates/advancement/item-grant-config-details.hbs"
+      template: "systems/hunter-system/templates/advancement/item-grant-config-details.hbs"
     },
     spellConfig: {
-      template: "systems/jujutsu-system/templates/advancement/advancement-spell-config-section.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-spell-config-section.hbs"
     },
     items: {
-      template: "systems/jujutsu-system/templates/advancement/item-grant-config-items.hbs"
+      template: "systems/hunter-system/templates/advancement/item-grant-config-items.hbs"
     }
   };
 

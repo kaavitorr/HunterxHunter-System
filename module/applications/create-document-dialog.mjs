@@ -26,7 +26,7 @@ export default class CreateDocumentDialog extends Dialog5e {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/apps/document-create.hbs"
+      template: "systems/hunter-system/templates/apps/document-create.hbs"
     }
   };
 

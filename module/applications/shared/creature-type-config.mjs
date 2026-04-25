@@ -19,7 +19,7 @@ export default class CreatureTypeConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/shared/config/creature-type-config.hbs"
+      template: "systems/hunter-system/templates/shared/config/creature-type-config.hbs"
     }
   };
 

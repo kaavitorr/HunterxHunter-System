@@ -8,7 +8,7 @@ export default class SheetConfig5e extends foundry.applications.apps.DocumentShe
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/jujutsu-system/templates/shared/sheet-config.hbs"
+      template: "systems/hunter-system/templates/shared/sheet-config.hbs"
     });
   }
 
@@ -29,9 +29,9 @@ export default class SheetConfig5e extends foundry.applications.apps.DocumentShe
     delete formData.defaultClass;
     this.object.update(formData);
 
-    if ( "flags.JujutsuLegacy.theme" in formData ) {
+    if ( "flags.HunterLegacy.theme" in formData ) {
       const sheet = this.object.sheet.element?.[0];
-      if ( sheet ) setTheme(sheet, formData["flags.JujutsuLegacy.theme"]);
+      if ( sheet ) setTheme(sheet, formData["flags.HunterLegacy.theme"]);
     }
   }
 }

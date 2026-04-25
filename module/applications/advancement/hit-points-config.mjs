@@ -15,7 +15,7 @@ export default class HitPointsConfig extends AdvancementConfig {
   static PARTS = {
     ...super.PARTS,
     hitPoints: {
-      template: "systems/jujutsu-system/templates/advancement/hit-points-config.hbs"
+      template: "systems/hunter-system/templates/advancement/hit-points-config.hbs"
     }
   };
 

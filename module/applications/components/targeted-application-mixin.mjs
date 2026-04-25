@@ -100,7 +100,7 @@ export default function TargetedApplicationMixin(Base) {
       this.targetSourceControl.querySelectorAll("button").forEach(b =>
         b.addEventListener("click", this._onChangeTargetMode.bind(this))
       );
-      if ( !this.chatMessage?.getFlag("jujutsu-system", "targets")?.length ) this.targetSourceControl.hidden = true;
+      if ( !this.chatMessage?.getFlag("hunter-system", "targets")?.length ) this.targetSourceControl.hidden = true;
 
       this.targetList = document.createElement("ul");
       this.targetList.classList.add("targets", "unlist");
@@ -118,7 +118,7 @@ export default function TargetedApplicationMixin(Base) {
       const targetedTokens = new Map();
       switch ( this.targetingMode ) {
         case "targeted":
-          this.chatMessage?.getFlag("jujutsu-system", "targets")?.forEach(t => targetedTokens.set(t.uuid, t.name));
+          this.chatMessage?.getFlag("hunter-system", "targets")?.forEach(t => targetedTokens.set(t.uuid, t.name));
           break;
         case "selected":
           canvas.tokens?.controlled?.forEach(t => {

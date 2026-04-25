@@ -34,7 +34,7 @@ export default class BastionAttackMessageData extends ChatMessageDataModel {
     actions: {
       resolve: BastionAttackMessageData.#onResolve
     },
-    template: "systems/jujutsu-system/templates/chat/bastion-attack-summary.hbs"
+    template: "systems/hunter-system/templates/chat/bastion-attack-summary.hbs"
   }, { inplace: false }));
 
   /* -------------------------------------------- */

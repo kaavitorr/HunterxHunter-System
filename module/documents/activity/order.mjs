@@ -19,13 +19,13 @@ export default class OrderActivity extends ActivityMixin(BaseOrderActivityData) 
   /** @inheritDoc */
   static metadata = Object.freeze(foundry.utils.mergeObject(super.metadata, {
     type: "order",
-    img: "systems/jujutsu-system/icons/svg/activity/order.svg",
+    img: "systems/hunter-system/icons/svg/activity/order.svg",
     title: "DND5E.FACILITY.Order.Issue",
     usage: {
       actions: {
         pay: OrderActivity.#onPayOrder
       },
-      chatCard: "systems/jujutsu-system/templates/chat/order-activity-card.hbs",
+      chatCard: "systems/hunter-system/templates/chat/order-activity-card.hbs",
       dialog: OrderUsageDialog
     }
   }, { inplace: false }));
@@ -188,7 +188,7 @@ export default class OrderActivity extends ActivityMixin(BaseOrderActivityData) 
   _prepareUsageScaling(usageConfig, messageConfig, item) {
     // FIXME: No scaling happening here, but this is the only context we have both usageConfig and messageConfig.
     const { costs, craft, trade } = usageConfig;
-    messageConfig.data.flags.JujutsuLegacy.order = { costs, craft, trade };
+    messageConfig.data.flags.HunterLegacy.order = { costs, craft, trade };
   }
 
   /* -------------------------------------------- */
@@ -202,7 +202,7 @@ export default class OrderActivity extends ActivityMixin(BaseOrderActivityData) 
 
   /** @override */
   _usageChatButtons(message) {
-    const { costs } = message.data.flags.JujutsuLegacy.order;
+    const { costs } = message.data.flags.HunterLegacy.order;
     if ( !costs.gold || costs.paid ) return [];
     return [{
       label: game.i18n.localize("DND5E.FACILITY.Costs.Automatic"),
@@ -219,7 +219,7 @@ export default class OrderActivity extends ActivityMixin(BaseOrderActivityData) 
 
   /** @override */
   async _usageChatContext(message) {
-    const { costs, craft, trade } = message.data.flags.JujutsuLegacy.order;
+    const { costs, craft, trade } = message.data.flags.HunterLegacy.order;
     const { type } = this.item.system;
     const supplements = [];
     if ( costs.days ) supplements.push(`
@@ -285,8 +285,8 @@ export default class OrderActivity extends ActivityMixin(BaseOrderActivityData) 
    */
   static async #onPayOrder(event, target, message) {
     const { method } = target.dataset;
-    const order = message.getFlag("jujutsu-system", "order");
-    const config = foundry.utils.expandObject({ "data.flags.JujutsuLegacy.order": order });
+    const order = message.getFlag("hunter-system", "order");
+    const config = foundry.utils.expandObject({ "data.flags.HunterLegacy.order": order });
     if ( method === "automatic" ) {
       try {
         await CurrencyManager.deductActorCurrency(this.actor, order.costs.gold, CONFIG.DND5E.defaultCurrency, {
@@ -298,7 +298,7 @@ export default class OrderActivity extends ActivityMixin(BaseOrderActivityData) 
         return;
       }
     }
-    foundry.utils.setProperty(config, "data.flags.JujutsuLegacy.order.costs.paid", true);
+    foundry.utils.setProperty(config, "data.flags.HunterLegacy.order.costs.paid", true);
     const context = await this._usageChatContext(config);
     const content = await foundry.applications.handlebars.renderTemplate(this.metadata.usage.chatCard, context);
     await message.update({ content, flags: config.data.flags });

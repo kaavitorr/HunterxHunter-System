@@ -19,7 +19,7 @@ export default class InitiativeConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/actors/config/initiative-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/initiative-config.hbs"
     }
   };
 
@@ -69,8 +69,8 @@ export default class InitiativeConfig extends BaseConfigSheet {
     context.flags = {
       alert: {
         field: new BooleanField({ label: game.i18n.localize("DND5E.FlagsAlert") }),
-        name: "flags.JujutsuLegacy.initiativeAlert",
-        value: source.flags.JujutsuLegacy?.initiativeAlert
+        name: "flags.HunterLegacy.initiativeAlert",
+        value: source.flags.HunterLegacy?.initiativeAlert
       }
     };
 

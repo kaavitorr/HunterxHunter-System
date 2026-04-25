@@ -25,7 +25,7 @@ export default class JournalNavigationConfig extends DocumentSheet5e {
   /** @override */
   static PARTS = {
     form: {
-      template: "systems/jujutsu-system/templates/journal/config/navigation-config.hbs"
+      template: "systems/hunter-system/templates/journal/config/navigation-config.hbs"
     }
   };
 
@@ -52,14 +52,14 @@ export default class JournalNavigationConfig extends DocumentSheet5e {
   /** @inheritDoc */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const data = this.document.getFlag("jujutsu-system", "navigation") ?? {};
+    const data = this.document.getFlag("hunter-system", "navigation") ?? {};
     const entryOptions = getCollectionDocumentOptions(this.document.collection, {
       disabled: entry => entry._id === this.document.id
     });
     context.fields = ["previous", "up", "next"].map(name => ({
       field: new StringField(),
       label: game.i18n.localize(`DND5E.JOURNALENTRY.Navigation.${name.capitalize()}`),
-      name: `flags.JujutsuLegacy.navigation.${name}`,
+      name: `flags.HunterLegacy.navigation.${name}`,
       options: entryOptions,
       value: data[name]
     }));
@@ -74,10 +74,10 @@ export default class JournalNavigationConfig extends DocumentSheet5e {
   _processFormData(event, form, formData) {
     const submitData = super._processFormData(event, form, formData);
 
-    const navigation = submitData.flags.JujutsuLegacy.navigation;
-    const keys = Object.keys(this.document.flags.JujutsuLegacy ?? {});
+    const navigation = submitData.flags.HunterLegacy.navigation;
+    const keys = Object.keys(this.document.flags.HunterLegacy ?? {});
     if ( Object.values(navigation).some(v => v) ) {
-      submitData.flags.JujutsuLegacy.navigation = Object.entries(navigation).reduce((obj, [k, v]) => {
+      submitData.flags.HunterLegacy.navigation = Object.entries(navigation).reduce((obj, [k, v]) => {
         if ( v ) obj[k] = v;
         else obj[`-=${k}`] = null;
         return obj;

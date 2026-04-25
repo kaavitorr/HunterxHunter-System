@@ -16,7 +16,7 @@ export default class SpellSlotsConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/actors/config/spell-slots-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/spell-slots-config.hbs"
     }
   };
 

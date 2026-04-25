@@ -65,7 +65,7 @@ export default class ModuleArt {
    * @returns {Promise<void>}
    */
   async #parseArtMapping(moduleId, mapping, credit) {
-    let settings = game.settings.get("jujutsu-system", "moduleArtConfiguration")?.[moduleId];
+    let settings = game.settings.get("hunter-system", "moduleArtConfiguration")?.[moduleId];
     settings ??= {portraits: true, tokens: true};
     for ( const [packName, actors] of Object.entries(mapping) ) {
       const pack = game.packs.get(packName);
@@ -128,7 +128,7 @@ export default class ModuleArt {
    * @returns {ModuleArtDescriptor[]}
    */
   static getArtModules() {
-    const settings = game.settings.get("jujutsu-system", "moduleArtConfiguration");
+    const settings = game.settings.get("hunter-system", "moduleArtConfiguration");
     const unsorted = [];
     const configs = [];
 

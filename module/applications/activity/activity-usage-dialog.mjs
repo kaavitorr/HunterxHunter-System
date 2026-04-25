@@ -49,16 +49,16 @@ export default class ActivityUsageDialog extends Dialog5e {
   /** @override */
   static PARTS = {
     scaling: {
-      template: "systems/jujutsu-system/templates/activity/activity-usage-scaling.hbs"
+      template: "systems/hunter-system/templates/activity/activity-usage-scaling.hbs"
     },
     concentration: {
-      template: "systems/jujutsu-system/templates/activity/activity-usage-concentration.hbs"
+      template: "systems/hunter-system/templates/activity/activity-usage-concentration.hbs"
     },
     consumption: {
-      template: "systems/jujutsu-system/templates/activity/activity-usage-consumption.hbs"
+      template: "systems/hunter-system/templates/activity/activity-usage-consumption.hbs"
     },
     creation: {
-      template: "systems/jujutsu-system/templates/activity/activity-usage-creation.hbs"
+      template: "systems/hunter-system/templates/activity/activity-usage-creation.hbs"
     },
     footer: {
       template: "templates/generic/form-footer.hbs"
@@ -158,7 +158,7 @@ export default class ActivityUsageDialog extends Dialog5e {
   /** @inheritDoc */
   async _prepareContext(options) {
     if ( "scaling" in this.config ) {
-      this.#item = this.#item.clone({ "flags.JujutsuLegacy.scaling": this.config.scaling }, { keepId: true });
+      this.#item = this.#item.clone({ "flags.HunterLegacy.scaling": this.config.scaling }, { keepId: true });
     }
     return {
       ...await super._prepareContext(options),
@@ -191,7 +191,7 @@ export default class ActivityUsageDialog extends Dialog5e {
    * @protected
    */
   async _prepareConcentrationContext(context, options) {
-    if ( !this.activity.requiresConcentration || game.settings.get("jujutsu-system", "disableConcentration")
+    if ( !this.activity.requiresConcentration || game.settings.get("hunter-system", "disableConcentration")
       || !this._shouldDisplay("concentration") ) return context;
     context.hasConcentration = true;
     context.notes = [];
@@ -204,7 +204,7 @@ export default class ActivityUsageDialog extends Dialog5e {
     }];
     if ( this.config.concentration?.begin ) {
       const existingConcentration = Array.from(this.actor.concentration.effects).map(effect => {
-        const data = effect.getFlag("jujutsu-system", "item");
+        const data = effect.getFlag("hunter-system", "item");
         return {
           value: effect.id,
           label: data?.data?.name ?? this.actor.items.get(data?.id)?.name

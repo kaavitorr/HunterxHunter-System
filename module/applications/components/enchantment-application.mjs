@@ -82,7 +82,7 @@ export default class EnchantmentApplicationElement extends MaybeAdoptable {
     // Calculate the maximum targets
     let item = this.enchantmentItem;
     const scaling = this.chatMessage.system.scaling;
-    if ( scaling ) item = item.clone({ "flags.JujutsuLegacy.scaling": scaling });
+    if ( scaling ) item = item.clone({ "flags.HunterLegacy.scaling": scaling });
     const activity = item.system.activities.get(this.enchantmentActivity.id);
     const maxTargets = activity.target?.affects?.count;
     if ( maxTargets ) {
@@ -159,7 +159,7 @@ export default class EnchantmentApplicationElement extends MaybeAdoptable {
     }
 
     this.enchantmentActivity.applyEnchantment(
-      this.chatMessage.getFlag("jujutsu-system", "use.enchantmentProfile"),
+      this.chatMessage.getFlag("hunter-system", "use.enchantmentProfile"),
       droppedItem,
       { chatMessage: this.chatMessage, concentration }
     );

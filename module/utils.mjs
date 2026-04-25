@@ -492,7 +492,7 @@ export function areKeysPressed(event, action) {
   addModifiers(MODIFIER_KEYS.CONTROL, event.ctrlKey);
   addModifiers("Meta", event.metaKey);
   addModifiers(MODIFIER_KEYS.SHIFT, event.shiftKey);
-  return game.keybindings.get("jujutsu-system", action).some(b => {
+  return game.keybindings.get("hunter-system", action).some(b => {
     if ( game.keyboard.downKeys.has(b.key) && b.modifiers.every(m => activeModifiers[m]) ) return true;
     if ( b.modifiers.length ) return false;
     return activeModifiers[b.key];
@@ -774,7 +774,7 @@ function _convertSystemUnits(value, from, to, config, { message, strict }) {
  */
 export function defaultUnits(type) {
   const settingKey = type === "travel" ? "metricLengthUnits" : `metric${type.capitalize()}Units`;
-  return CONFIG.DND5E.defaultUnits[type]?.[game.settings.get("jujutsu-system", settingKey) ? "metric" : "imperial"];
+  return CONFIG.DND5E.defaultUnits[type]?.[game.settings.get("hunter-system", settingKey) ? "metric" : "imperial"];
 }
 
 /* -------------------------------------------- */
@@ -839,71 +839,71 @@ export function parseOrString(raw) {
 export async function preloadHandlebarsTemplates() {
   const partials = [
     // Shared Partials
-    "systems/jujutsu-system/templates/shared/active-effects.hbs",
-    "systems/jujutsu-system/templates/apps/parts/trait-list.hbs",
-    "systems/jujutsu-system/templates/apps/parts/traits-list.hbs",
+    "systems/hunter-system/templates/shared/active-effects.hbs",
+    "systems/hunter-system/templates/apps/parts/trait-list.hbs",
+    "systems/hunter-system/templates/apps/parts/traits-list.hbs",
 
     // Actor Sheet Partials
-    "systems/jujutsu-system/templates/actors/parts/actor-classes.hbs",
-    "systems/jujutsu-system/templates/actors/parts/actor-trait-pills.hbs",
-    "systems/jujutsu-system/templates/actors/parts/actor-traits.hbs",
-    "systems/jujutsu-system/templates/actors/parts/actor-features.hbs",
-    "systems/jujutsu-system/templates/actors/parts/actor-spellbook.hbs",
-    "systems/jujutsu-system/templates/actors/parts/actor-warnings.hbs",
-    "systems/jujutsu-system/templates/actors/parts/actor-warnings-dialog.hbs",
-    "systems/jujutsu-system/templates/actors/parts/biography-textbox.hbs",
-    "systems/jujutsu-system/templates/actors/tabs/character-bastion.hbs",
-    "systems/jujutsu-system/templates/actors/tabs/character-biography.hbs",
-    "systems/jujutsu-system/templates/actors/tabs/character-details.hbs",
-    "systems/jujutsu-system/templates/actors/tabs/creature-special-traits.hbs",
-    "systems/jujutsu-system/templates/actors/tabs/npc-biography.hbs",
+    "systems/hunter-system/templates/actors/parts/actor-classes.hbs",
+    "systems/hunter-system/templates/actors/parts/actor-trait-pills.hbs",
+    "systems/hunter-system/templates/actors/parts/actor-traits.hbs",
+    "systems/hunter-system/templates/actors/parts/actor-features.hbs",
+    "systems/hunter-system/templates/actors/parts/actor-spellbook.hbs",
+    "systems/hunter-system/templates/actors/parts/actor-warnings.hbs",
+    "systems/hunter-system/templates/actors/parts/actor-warnings-dialog.hbs",
+    "systems/hunter-system/templates/actors/parts/biography-textbox.hbs",
+    "systems/hunter-system/templates/actors/tabs/character-bastion.hbs",
+    "systems/hunter-system/templates/actors/tabs/character-biography.hbs",
+    "systems/hunter-system/templates/actors/tabs/character-details.hbs",
+    "systems/hunter-system/templates/actors/tabs/creature-special-traits.hbs",
+    "systems/hunter-system/templates/actors/tabs/npc-biography.hbs",
 
     // Chat Message Partials
-    "systems/jujutsu-system/templates/chat/parts/card-activities.hbs",
-    "systems/jujutsu-system/templates/chat/parts/card-deltas.hbs",
+    "systems/hunter-system/templates/chat/parts/card-activities.hbs",
+    "systems/hunter-system/templates/chat/parts/card-deltas.hbs",
 
     // Item Sheet Partials
-    "systems/jujutsu-system/templates/items/details/details-background.hbs",
-    "systems/jujutsu-system/templates/items/details/details-class.hbs",
-    "systems/jujutsu-system/templates/items/details/details-consumable.hbs",
-    "systems/jujutsu-system/templates/items/details/details-container.hbs",
-    "systems/jujutsu-system/templates/items/details/details-equipment.hbs",
-    "systems/jujutsu-system/templates/items/details/details-facility.hbs",
-    "systems/jujutsu-system/templates/items/details/details-feat.hbs",
-    "systems/jujutsu-system/templates/items/details/details-loot.hbs",
-    "systems/jujutsu-system/templates/items/details/details-mountable.hbs",
-    "systems/jujutsu-system/templates/items/details/details-species.hbs",
-    "systems/jujutsu-system/templates/items/details/details-spell.hbs",
-    "systems/jujutsu-system/templates/items/details/details-spellcasting.hbs",
-    "systems/jujutsu-system/templates/items/details/details-starting-equipment.hbs",
-    "systems/jujutsu-system/templates/items/details/details-subclass.hbs",
-    "systems/jujutsu-system/templates/items/details/details-tool.hbs",
-    "systems/jujutsu-system/templates/items/details/details-weapon.hbs",
-    "systems/jujutsu-system/templates/items/parts/item-summary.hbs",
-    "systems/jujutsu-system/templates/items/parts/item-tooltip.hbs",
-    "systems/jujutsu-system/templates/items/parts/spell-block.hbs",
+    "systems/hunter-system/templates/items/details/details-background.hbs",
+    "systems/hunter-system/templates/items/details/details-class.hbs",
+    "systems/hunter-system/templates/items/details/details-consumable.hbs",
+    "systems/hunter-system/templates/items/details/details-container.hbs",
+    "systems/hunter-system/templates/items/details/details-equipment.hbs",
+    "systems/hunter-system/templates/items/details/details-facility.hbs",
+    "systems/hunter-system/templates/items/details/details-feat.hbs",
+    "systems/hunter-system/templates/items/details/details-loot.hbs",
+    "systems/hunter-system/templates/items/details/details-mountable.hbs",
+    "systems/hunter-system/templates/items/details/details-species.hbs",
+    "systems/hunter-system/templates/items/details/details-spell.hbs",
+    "systems/hunter-system/templates/items/details/details-spellcasting.hbs",
+    "systems/hunter-system/templates/items/details/details-starting-equipment.hbs",
+    "systems/hunter-system/templates/items/details/details-subclass.hbs",
+    "systems/hunter-system/templates/items/details/details-tool.hbs",
+    "systems/hunter-system/templates/items/details/details-weapon.hbs",
+    "systems/hunter-system/templates/items/parts/item-summary.hbs",
+    "systems/hunter-system/templates/items/parts/item-tooltip.hbs",
+    "systems/hunter-system/templates/items/parts/spell-block.hbs",
 
     // Field Partials
-    "systems/jujutsu-system/templates/shared/fields/field-activation.hbs",
-    "systems/jujutsu-system/templates/shared/fields/field-damage.hbs",
-    "systems/jujutsu-system/templates/shared/fields/field-duration.hbs",
-    "systems/jujutsu-system/templates/shared/fields/field-range.hbs",
-    "systems/jujutsu-system/templates/shared/fields/field-targets.hbs",
-    "systems/jujutsu-system/templates/shared/fields/field-uses.hbs",
-    "systems/jujutsu-system/templates/shared/fields/fieldlist.hbs",
-    "systems/jujutsu-system/templates/shared/fields/formlist.hbs",
+    "systems/hunter-system/templates/shared/fields/field-activation.hbs",
+    "systems/hunter-system/templates/shared/fields/field-damage.hbs",
+    "systems/hunter-system/templates/shared/fields/field-duration.hbs",
+    "systems/hunter-system/templates/shared/fields/field-range.hbs",
+    "systems/hunter-system/templates/shared/fields/field-targets.hbs",
+    "systems/hunter-system/templates/shared/fields/field-uses.hbs",
+    "systems/hunter-system/templates/shared/fields/fieldlist.hbs",
+    "systems/hunter-system/templates/shared/fields/formlist.hbs",
 
     // Journal Partials
-    "systems/jujutsu-system/templates/journal/parts/journal-legacy-traits.hbs",
-    "systems/jujutsu-system/templates/journal/parts/journal-modern-traits.hbs",
-    "systems/jujutsu-system/templates/journal/parts/journal-table.hbs",
+    "systems/hunter-system/templates/journal/parts/journal-legacy-traits.hbs",
+    "systems/hunter-system/templates/journal/parts/journal-modern-traits.hbs",
+    "systems/hunter-system/templates/journal/parts/journal-table.hbs",
 
     // Activity Partials
-    "systems/jujutsu-system/templates/activity/parts/activity-usage-notes.hbs",
+    "systems/hunter-system/templates/activity/parts/activity-usage-notes.hbs",
 
     // Advancement Partials
-    "systems/jujutsu-system/templates/advancement/parts/advancement-controls.hbs",
-    "systems/jujutsu-system/templates/advancement/parts/advancement-spell-config.hbs"
+    "systems/hunter-system/templates/advancement/parts/advancement-controls.hbs",
+    "systems/hunter-system/templates/advancement/parts/advancement-spell-config.hbs"
   ];
 
   const paths = {};

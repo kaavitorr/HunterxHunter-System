@@ -152,7 +152,7 @@
                             {{#if ctx.activities.length}}
                             <ol class="activities unlist">
                                 {{#each ctx.activities}}
-                                {{> "systems/jujutsu-system/templates/inventory/activity.hbs" columns=../../columns
+                                {{> "systems/hunter-system/templates/inventory/activity.hbs" columns=../../columns
                                     item=../item }}
                                 {{/each}}
                             </ol>
@@ -181,7 +181,7 @@
     {{#if encumbrance}}
     <div class="bottom">
         <div class="encumbrance">
-            {{> "systems/jujutsu-system/templates/inventory/encumbrance.hbs" hasBreakpoints=true }}
+            {{> "systems/hunter-system/templates/inventory/encumbrance.hbs" hasBreakpoints=true }}
         </div>
     </div>
     {{/if}}

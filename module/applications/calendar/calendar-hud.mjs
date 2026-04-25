@@ -28,15 +28,15 @@ export default class CalendarHUD extends BaseCalendarHUD {
   static PARTS = {
     startButtons: {
       classes: ["calendar-buttons"],
-      template: "systems/jujutsu-system/templates/apps/calendar-buttons.hbs"
+      template: "systems/hunter-system/templates/apps/calendar-buttons.hbs"
     },
     core: {
       classes: ["calendar-core"],
-      template: "systems/jujutsu-system/templates/apps/calendar-core.hbs"
+      template: "systems/hunter-system/templates/apps/calendar-core.hbs"
     },
     endButtons: {
       classes: ["calendar-buttons"],
-      template: "systems/jujutsu-system/templates/apps/calendar-buttons.hbs"
+      template: "systems/hunter-system/templates/apps/calendar-buttons.hbs"
     }
   };
 
@@ -209,7 +209,7 @@ export default class CalendarHUD extends BaseCalendarHUD {
    * @param {CalendarTimeDeltas} [deltas={}]  Information on the time change deltas.
    */
   async renderCore(deltas={}) {
-    const prefs = game.settings.get("jujutsu-system", "calendarPreferences");
+    const prefs = game.settings.get("hunter-system", "calendarPreferences");
     const dateFormatter = CONFIG.DND5E.calendar.formatters.find(f => f.value === prefs.formatters.date);
     this.element.querySelector(".calendar-date").innerText = dateFormatter ? game.time.calendar.format(
       game.time.components, dateFormatter.formatter

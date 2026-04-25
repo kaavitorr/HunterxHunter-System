@@ -21,7 +21,7 @@ export default class HitPointsConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/actors/config/hit-points-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/hit-points-config.hbs"
     }
   };
 

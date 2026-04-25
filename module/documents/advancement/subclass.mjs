@@ -20,7 +20,7 @@ export default class SubclassAdvancement extends Advancement {
       },
       order: 70,
       icon: "icons/skills/trades/mining-pickaxe-yellow-blue.webp",
-      typeIcon: "systems/jujutsu-system/icons/svg/subclass.svg",
+      typeIcon: "systems/hunter-system/icons/svg/subclass.svg",
       title: game.i18n.localize("DND5E.ADVANCEMENT.Subclass.Title"),
       hint: game.i18n.localize("DND5E.ADVANCEMENT.Subclass.Hint"),
       apps: {
@@ -64,7 +64,7 @@ export default class SubclassAdvancement extends Advancement {
   async apply(level, { retainedData={}, uuid }={}, options={}) {
     if ( options.initial ) return;
 
-    const useRetained = uuid === foundry.utils.getProperty(retainedData, "flags.JujutsuLegacy.sourceId");
+    const useRetained = uuid === foundry.utils.getProperty(retainedData, "flags.HunterLegacy.sourceId");
     let itemData = useRetained ? retainedData : null;
     if ( !itemData ) {
       itemData = await this.createItemData(uuid);

@@ -20,9 +20,9 @@ export default class ContainerSheet extends ItemSheet5e {
   static PARTS = {
     ...super.PARTS,
     contents: {
-      template: "systems/jujutsu-system/templates/items/contents.hbs",
+      template: "systems/hunter-system/templates/items/contents.hbs",
       templates: [
-        "systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/encumbrance.hbs"
+        "systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/encumbrance.hbs"
       ],
       scrollable: [""]
     }

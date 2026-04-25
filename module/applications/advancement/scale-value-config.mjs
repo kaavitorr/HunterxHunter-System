@@ -20,15 +20,15 @@ export default class ScaleValueConfig extends AdvancementConfig {
   static PARTS = {
     config: {
       container: { classes: ["column-container"], id: "column-left" },
-      template: "systems/jujutsu-system/templates/advancement/advancement-controls-section.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-controls-section.hbs"
     },
     details: {
       container: { classes: ["column-container"], id: "column-left" },
-      template: "systems/jujutsu-system/templates/advancement/scale-value-config-details.hbs"
+      template: "systems/hunter-system/templates/advancement/scale-value-config-details.hbs"
     },
     levels: {
       container: { classes: ["column-container"], id: "column-right" },
-      template: "systems/jujutsu-system/templates/advancement/scale-value-config-levels.hbs"
+      template: "systems/hunter-system/templates/advancement/scale-value-config-levels.hbs"
     }
   };
 

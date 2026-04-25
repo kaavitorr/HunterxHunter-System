@@ -25,7 +25,7 @@ export default class TraitFlow extends AdvancementFlow {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/advancement/trait-flow.hbs"
+      template: "systems/hunter-system/templates/advancement/trait-flow.hbs"
     }
   };
 

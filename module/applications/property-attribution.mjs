@@ -36,7 +36,7 @@ export default class PropertyAttribution extends Application5e {
   /** @override */
   static PARTS = {
     attribution: {
-      template: "systems/jujutsu-system/templates/apps/property-attribution.hbs"
+      template: "systems/hunter-system/templates/apps/property-attribution.hbs"
     }
   };
 

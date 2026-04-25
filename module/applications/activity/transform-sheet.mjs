@@ -22,11 +22,11 @@ export default class TransformSheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     effect: {
-      template: "systems/jujutsu-system/templates/activity/transform-effect.hbs",
+      template: "systems/hunter-system/templates/activity/transform-effect.hbs",
       templates: [
         ...super.PARTS.effect.templates,
-        "systems/jujutsu-system/templates/activity/parts/transform-profiles.hbs",
-        "systems/jujutsu-system/templates/activity/parts/transform-settings.hbs"
+        "systems/hunter-system/templates/activity/parts/transform-profiles.hbs",
+        "systems/hunter-system/templates/activity/parts/transform-settings.hbs"
       ]
     }
   };

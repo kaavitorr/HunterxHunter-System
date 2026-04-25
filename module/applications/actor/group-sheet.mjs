@@ -27,30 +27,30 @@ export default class GroupActorSheet extends MultiActorSheet {
   /** @override */
   static PARTS = {
     header: {
-      template: "systems/jujutsu-system/templates/actors/group/header.hbs"
+      template: "systems/hunter-system/templates/actors/group/header.hbs"
     },
     tabs: {
-      template: "systems/jujutsu-system/templates/shared/horizontal-tabs.hbs",
+      template: "systems/hunter-system/templates/shared/horizontal-tabs.hbs",
       templates: ["templates/generic/tab-navigation.hbs"]
     },
     members: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/group/members.hbs",
-      templates: ["systems/jujutsu-system/templates/actors/group/member.hbs"],
+      template: "systems/hunter-system/templates/actors/group/members.hbs",
+      templates: ["systems/hunter-system/templates/actors/group/member.hbs"],
       scrollable: [""]
     },
     inventory: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/group/inventory.hbs",
+      template: "systems/hunter-system/templates/actors/group/inventory.hbs",
       templates: [
-        "systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs",
-        "systems/jujutsu-system/templates/inventory/containers.hbs", "systems/jujutsu-system/templates/inventory/encumbrance.hbs"
+        "systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs",
+        "systems/hunter-system/templates/inventory/containers.hbs", "systems/hunter-system/templates/inventory/encumbrance.hbs"
       ],
       scrollable: [".sidebar", ".body"]
     },
     biography: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/group/biography.hbs",
+      template: "systems/hunter-system/templates/actors/group/biography.hbs",
       scrollable: [""]
     }
   };
@@ -70,7 +70,7 @@ export default class GroupActorSheet extends MultiActorSheet {
 
   /** @inheritDoc */
   get inventorySource() {
-    const inventorySource = this.actor.getFlag("jujutsu-system", "inventorySource") ?? "group";
+    const inventorySource = this.actor.getFlag("hunter-system", "inventorySource") ?? "group";
     const { primaryVehicle } = this.actor.system;
     if ( (inventorySource === "vehicle") && primaryVehicle?.isOwner ) return primaryVehicle;
     return super.inventorySource;
@@ -102,7 +102,7 @@ export default class GroupActorSheet extends MultiActorSheet {
    * @protected
    */
   async _prepareHeaderContext(context, options) {
-    context.showXP = game.settings.get("jujutsu-system", "levelingMode") !== "noxp";
+    context.showXP = game.settings.get("hunter-system", "levelingMode") !== "noxp";
     context.travelPace = this.actor.system.getTravelPace();
     return context;
   }
@@ -248,7 +248,7 @@ export default class GroupActorSheet extends MultiActorSheet {
     const { pct, max, value } = encumbrance;
     const defaultUnits = CONFIG.DND5E.encumbrance.baseUnits.default;
     const baseUnits = CONFIG.DND5E.encumbrance.baseUnits[actor.type] ?? defaultUnits;
-    const systemUnits = game.settings.get("jujutsu-system", "metricWeightUnits") ? "metric" : "imperial";
+    const systemUnits = game.settings.get("hunter-system", "metricWeightUnits") ? "metric" : "imperial";
     context.encumbrance = {
       pct,
       max: convertWeight(max, baseUnits[systemUnits], defaultUnits[systemUnits]),
@@ -365,7 +365,7 @@ export default class GroupActorSheet extends MultiActorSheet {
    */
   static #onAward() {
     new Award({
-      award: { savedDestinations: this.actor.getFlag("jujutsu-system", "awardDestinations") },
+      award: { savedDestinations: this.actor.getFlag("hunter-system", "awardDestinations") },
       origin: this.actor
     }).render({ force: true });
   }
@@ -443,7 +443,7 @@ export default class GroupActorSheet extends MultiActorSheet {
    */
   static #onToggleInventory(event, target) {
     const { inventory } = target.dataset;
-    this.actor.setFlag("jujutsu-system", "inventorySource", inventory);
+    this.actor.setFlag("hunter-system", "inventorySource", inventory);
   }
 
   /* -------------------------------------------- */

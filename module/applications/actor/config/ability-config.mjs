@@ -14,7 +14,7 @@ export default class AbilityConfig extends BaseProficiencyConfig {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/actors/config/ability-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/ability-config.hbs"
     }
   };
 

@@ -229,7 +229,7 @@ export default class ActivitiesTemplate extends SystemDataModel {
     if ( this.#shouldCreateInitialActivity(source) ) this.#createInitialActivity(source);
     const uses = source.system?.uses ?? {};
     if ( source._id && source.type && ("value" in uses) && uses.max ) {
-      foundry.utils.setProperty(source, "flags.JujutsuLegacy.migratedUses", uses.value);
+      foundry.utils.setProperty(source, "flags.HunterLegacy.migratedUses", uses.value);
     }
   }
 
@@ -330,7 +330,7 @@ export default class ActivitiesTemplate extends SystemDataModel {
   async recoverUses(periods, rollData) {
     const updates = {};
     const rolls = [];
-    const autoRecharge = game.settings.get("jujutsu-system", "autoRecharge");
+    const autoRecharge = game.settings.get("hunter-system", "autoRecharge");
     const shouldRecharge = periods.includes("turnStart") && this.parent.actor.system.isNPC && (autoRecharge !== "no");
     const recharge = async doc => {
       const config = { apply: false };
@@ -407,9 +407,9 @@ export default class ActivitiesTemplate extends SystemDataModel {
       return riders;
     }, { activity: new Set(), effect: new Set() });
     if ( !riders.activity.size && !riders.effect.size ) {
-      foundry.utils.setProperty(changed, "flags.JujutsuLegacy.-=riders", null);
+      foundry.utils.setProperty(changed, "flags.HunterLegacy.-=riders", null);
     } else {
-      foundry.utils.setProperty(changed, "flags.JujutsuLegacy.riders", Object.entries(riders)
+      foundry.utils.setProperty(changed, "flags.HunterLegacy.riders", Object.entries(riders)
         .reduce((updates, [key, value]) => {
           if ( value.size ) updates[key] = Array.from(value);
           else updates[`-=${key}`] = null;

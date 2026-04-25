@@ -15,7 +15,7 @@
         <div class="portrait {{#if portrait.token}}token{{/if}}">
             {{#if editable}}
             <label class="slide-toggle roboto-upper">
-                <input type="checkbox" name="flags.JujutsuLegacy.showTokenPortrait" {{ checked portrait.token }}>
+                <input type="checkbox" name="flags.HunterLegacy.showTokenPortrait" {{ checked portrait.token }}>
                 {{#if portrait.token}}
                 <i class="fas fa-toggle-on" inert></i>
                 {{ localize "DOCUMENT.Token" }}
@@ -170,7 +170,7 @@
 {{!-- Cursed Energy --}}
 <div class="meter-group">
   <div class="label roboto-condensed-upper" style="display: flex; justify-content: space-between;">
-    <span>Energia Amaldiçoada</span>
+    <span>Pontos de Aura</span>
     {{#if editable}}
     <button type="button" class="config-button unbutton" data-action="showConfiguration"
             data-config="cursedEnergy" data-tooltip="JUJUTSU.Energy.Config"
@@ -218,11 +218,11 @@
                         <i class="fas fa-cog" inert></i>
                     </button>
                     {{/if}}
-                    <span>Dados de Energia</span>
+                    <span>Dados de Aura</span>
                     {{#if editable}}
                     <button type="button" class="config-button unbutton" data-action="showConfiguration"
                             data-config="cursedEnergyDice" data-tooltip="JUJUTSU.EnergyDice.Config"
-                            aria-label="Configurar Dados de Energia">
+                            aria-label="Configurar Dados de Aura">
                         <i class="fas fa-cog" inert></i>
                     </button>
                     {{/if}}
@@ -266,7 +266,7 @@
                 <button type="button" class="{{ rollableClass }} death-save unbutton" data-action="roll"
                         data-type="deathSave" data-tooltip="DND5E.DeathSaveRoll"
                         aria-label="{{ localize 'DND5E.DeathSaveRoll' }}">
-                    <dnd5e-icon src="systems/jujutsu-system/icons/svg/statuses/dead.svg"></dnd5e-icon>
+                    <dnd5e-icon src="systems/hunter-system/icons/svg/statuses/dead.svg"></dnd5e-icon>
                 </button>
                 {{/if}}
 
@@ -450,7 +450,7 @@
             </h3>
             <div class="jj-seis-olhos-options">
                 <label class="jj-seis-olhos-option {{#if (eq seisOlhosMode 'sealed')}}active{{/if}}">
-                    <input type="radio" name="flags.jujutsu-system.seisOlhosMode" value="sealed"
+                    <input type="radio" name="flags.hunter-system.seisOlhosMode" value="sealed"
                            {{#if (eq seisOlhosMode 'sealed')}}checked{{/if}}>
                     <div class="jj-seis-olhos-btn">
                         <i class="fas fa-eye-slash" inert></i>
@@ -458,7 +458,7 @@
                     </div>
                 </label>
                 <label class="jj-seis-olhos-option {{#if (eq seisOlhosMode 'full')}}active{{/if}}">
-                    <input type="radio" name="flags.jujutsu-system.seisOlhosMode" value="full"
+                    <input type="radio" name="flags.hunter-system.seisOlhosMode" value="full"
                            {{#if (eq seisOlhosMode 'full')}}checked{{/if}}>
                     <div class="jj-seis-olhos-btn">
                         <i class="fas fa-eye" inert></i>

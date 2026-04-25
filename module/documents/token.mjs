@@ -128,7 +128,7 @@ export default class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
       actionConfig.getCostFunction = (...args) => this.getMovementActionCostFunction(type, ...args);
     }
     CONFIG.Token.movement.actions.crawl.getCostFunction = token => {
-      const noAutomation = game.settings.get("jujutsu-system", "movementAutomation") === "none";
+      const noAutomation = game.settings.get("hunter-system", "movementAutomation") === "none";
       const { actor } = token;
       const actorMovement = actor?.system.attributes?.movement;
       const hasMovement = actorMovement !== undefined;
@@ -150,7 +150,7 @@ export default class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
    * @returns {TokenMovementActionCostFunction}
    */
   static getMovementActionCostFunction(type, token, options) {
-    const noAutomation = game.settings.get("jujutsu-system", "movementAutomation") === "none";
+    const noAutomation = game.settings.get("hunter-system", "movementAutomation") === "none";
     const { actor } = token;
     const actorMovement = actor?.system.attributes?.movement;
     const walkFallback = CONFIG.DND5E.movementTypes[type]?.walkFallback;
@@ -219,7 +219,7 @@ export default class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
 
     if ( this.actor?.system.isNPC && !this.actorLink
       && foundry.utils.getProperty(this.actor, "system.attributes.hp.formula")?.trim().length ) {
-      const autoRoll = options.dnd5e?.autoRollNPCHP ?? game.settings.get("jujutsu-system", "autoRollNPCHP");
+      const autoRoll = options.dnd5e?.autoRollNPCHP ?? game.settings.get("hunter-system", "autoRollNPCHP");
       if ( autoRoll === "no" ) return;
       const roll = await this.actor.rollNPCHitPoints({ chatMessage: autoRoll === "yes" });
       const update = {
@@ -241,7 +241,7 @@ export default class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
   _onDelete(options, userId) {
     super._onDelete(options, userId);
 
-    const origin = this.actor?.getFlag("jujutsu-system", "summon.origin");
+    const origin = this.actor?.getFlag("hunter-system", "summon.origin");
     if ( origin ) {
       const { collection, primaryId } = foundry.utils.parseUuid(origin);
       dnd5e.registry.summons.untrack(collection?.get?.(primaryId)?.uuid, this.actor.uuid);

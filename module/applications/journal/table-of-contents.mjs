@@ -24,7 +24,7 @@ export default class TableOfContentsCompendium extends foundry.applications.side
   static PARTS = {
     article: {
       root: true,
-      template: "systems/jujutsu-system/templates/journal/table-of-contents.hbs"
+      template: "systems/hunter-system/templates/journal/table-of-contents.hbs"
     }
   };
 
@@ -106,7 +106,7 @@ export default class TableOfContentsCompendium extends foundry.applications.side
         name: flags.title ?? entry.name,
         pages: Array.from(entry.pages).map(({ flags, id, name, sort }) => ({
           id, sort, flags,
-          name: flags.JujutsuLegacy?.title ?? name,
+          name: flags.HunterLegacy?.title ?? name,
           entryId: entry.id
         }))
       };

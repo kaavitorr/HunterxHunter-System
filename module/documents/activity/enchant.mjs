@@ -22,7 +22,7 @@ export default class EnchantActivity extends ActivityMixin(BaseEnchantActivityDa
   static metadata = Object.freeze(
     foundry.utils.mergeObject(super.metadata, {
       type: "enchant",
-      img: "systems/jujutsu-system/icons/svg/activity/enchant.svg",
+      img: "systems/hunter-system/icons/svg/activity/enchant.svg",
       title: "DND5E.ENCHANT.Title",
       hint: "DND5E.ENCHANT.Hint",
       sheetClass: EnchantSheet,
@@ -65,7 +65,7 @@ export default class EnchantActivity extends ActivityMixin(BaseEnchantActivityDa
   /** @inheritDoc */
   _prepareUsageConfig(config) {
     config = super._prepareUsageConfig(config);
-    const existingProfile = this.existingEnchantment?.flags.JujutsuLegacy?.enchantmentProfile;
+    const existingProfile = this.existingEnchantment?.flags.HunterLegacy?.enchantmentProfile;
     config.enchantmentProfile ??= this.item.effects.has(existingProfile) ? existingProfile
       : this.availableEnchantments[0]?._id;
     return config;
@@ -86,11 +86,11 @@ export default class EnchantActivity extends ActivityMixin(BaseEnchantActivityDa
 
     // Store selected enchantment profile in message flag
     if ( usageConfig.enchantmentProfile ) foundry.utils.setProperty(
-      messageConfig, "data.flags.JujutsuLegacy.use.enchantmentProfile", usageConfig.enchantmentProfile
+      messageConfig, "data.flags.HunterLegacy.use.enchantmentProfile", usageConfig.enchantmentProfile
     );
 
     // Don't display message if just auto-disabling existing enchantment
-    if ( this.existingEnchantment?.flags.JujutsuLegacy?.enchantmentProfile === usageConfig.enchantmentProfile ) {
+    if ( this.existingEnchantment?.flags.HunterLegacy?.enchantmentProfile === usageConfig.enchantmentProfile ) {
       messageConfig.create = false;
     }
   }
@@ -99,7 +99,7 @@ export default class EnchantActivity extends ActivityMixin(BaseEnchantActivityDa
 
   /** @override */
   onRenderChatCard(message, element) {
-    const enchantmentProfile = message.getFlag("jujutsu-system", "use.enchantmentProfile");
+    const enchantmentProfile = message.getFlag("hunter-system", "use.enchantmentProfile");
     if ( !enchantmentProfile || !message.isContentVisible ) return;
 
     // Ensure concentration is still being maintained
@@ -125,7 +125,7 @@ export default class EnchantActivity extends ActivityMixin(BaseEnchantActivityDa
     if ( existingEnchantment ) await existingEnchantment?.delete({ chatMessageOrigin: results.message?.id });
 
     // If no existing enchantment, or existing enchantment profile doesn't match provided one, create new enchantment
-    if ( !existingEnchantment || (existingEnchantment.flags.JujutsuLegacy?.enchantmentProfile !== config.enchantmentProfile) ) {
+    if ( !existingEnchantment || (existingEnchantment.flags.HunterLegacy?.enchantmentProfile !== config.enchantmentProfile) ) {
       const concentration = results.effects.find(e => e.statuses.has(CONFIG.specialStatusEffects.CONCENTRATING));
       this.applyEnchantment(config.enchantmentProfile, this.item, {
         chatMessage: results.message, concentration, strict: false
@@ -172,7 +172,7 @@ export default class EnchantActivity extends ActivityMixin(BaseEnchantActivityDa
 
     const flags = { enchantmentProfile: profile };
     if ( concentration ) flags.dependentOn = concentration.uuid;
-    const enchantmentData = effect.clone({ origin: this.uuid, "flags.JujutsuLegacy": flags }).toObject();
+    const enchantmentData = effect.clone({ origin: this.uuid, "flags.HunterLegacy": flags }).toObject();
 
     /**
      * Hook that fires before an enchantment is applied to an item.
@@ -195,7 +195,7 @@ export default class EnchantActivity extends ActivityMixin(BaseEnchantActivityDa
       }
       enchantmentData._id = foundry.utils.randomID();
       const toCreate = await Item5e.createWithContents([item], {
-        transformAll: item => item.clone({ "flags.JujutsuLegacy.dependentOn": `.ActiveEffect.${enchantmentData._id}` })
+        transformAll: item => item.clone({ "flags.HunterLegacy.dependentOn": `.ActiveEffect.${enchantmentData._id}` })
       });
       [item] = await Item5e.createDocuments(toCreate, { keepId: true, parent: actor });
     }

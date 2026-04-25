@@ -25,7 +25,7 @@ export default class BaseSettingsConfig extends Application5e {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/settings/base-config.hbs"
+      template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
     footer: {
       template: "templates/generic/form-footer.hbs"
@@ -64,7 +64,7 @@ export default class BaseSettingsConfig extends Application5e {
       field: isDataField ? setting.type : new Field({ required: true, blank: false }),
       hint: game.i18n.localize(setting.hint),
       label: game.i18n.localize(setting.name),
-      value: game.settings.get("jujutsu-system", name)
+      value: game.settings.get("hunter-system", name)
     };
     if ( (setting.type === Boolean) || (setting.type instanceof BooleanField) ) data.input = createCheckboxInput;
     if ( setting.choices ) data.options = Object.entries(setting.choices)
@@ -90,9 +90,9 @@ export default class BaseSettingsConfig extends Application5e {
     let requiresWorldReload = false;
     for ( const [key, value] of Object.entries(foundry.utils.expandObject(formData.object)) ) {
       const setting = game.settings.settings.get(`dnd5e.${key}`);
-      const current = game.settings.get("jujutsu-system", key, { document: true });
+      const current = game.settings.get("hunter-system", key, { document: true });
       const prior = current?._source?.value ?? current;
-      const updated = await game.settings.set("jujutsu-system", key, value, { document: true });
+      const updated = await game.settings.set("hunter-system", key, value, { document: true });
       if ( prior === (updated?._source?.value ?? updated) ) continue;
       requiresClientReload ||= (setting.scope !== "world") && setting.requiresReload;
       requiresWorldReload ||= (setting.scope === "world") && setting.requiresReload;

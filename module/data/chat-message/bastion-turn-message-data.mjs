@@ -46,7 +46,7 @@ export default class BastionTurnMessageData extends ChatMessageDataModel {
       claimGold: BastionTurnMessageData.#onClaimGold,
       viewItem: BastionTurnMessageData.#onViewItem
     },
-    template: "systems/jujutsu-system/templates/chat/bastion-turn-summary.hbs"
+    template: "systems/hunter-system/templates/chat/bastion-turn-summary.hbs"
   }, { inplace: false }));
 
   /* -------------------------------------------- */

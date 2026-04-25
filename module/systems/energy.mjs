@@ -1,5 +1,5 @@
 /**
- * Sistema de Energia Amaldiçoada (PA)
+ * Sistema de Aura (PA)
  * 
  * PA Máxima = (nível × 20) + bonuses.maxEnergy + (intensiveTraining.maxEnergy × 5)
  * Limite por turno = nível × baseMultiplier

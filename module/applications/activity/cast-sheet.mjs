@@ -19,10 +19,10 @@ export default class CastSheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     effect: {
-      template: "systems/jujutsu-system/templates/activity/cast-effect.hbs",
+      template: "systems/hunter-system/templates/activity/cast-effect.hbs",
       templates: [
-        "systems/jujutsu-system/templates/activity/parts/cast-spell.hbs",
-        "systems/jujutsu-system/templates/activity/parts/cast-details.hbs"
+        "systems/hunter-system/templates/activity/parts/cast-spell.hbs",
+        "systems/hunter-system/templates/activity/parts/cast-details.hbs"
       ]
     }
   };

@@ -37,7 +37,7 @@ export default class RuleJournalPageData extends foundry.abstract.TypeDataModel 
     };
     return {
       content: await foundry.applications.handlebars.renderTemplate(
-        "systems/jujutsu-system/templates/journal/page-rule-tooltip.hbs", context
+        "systems/hunter-system/templates/journal/page-rule-tooltip.hbs", context
       ),
       classes: ["dnd5e-tooltip", "rule-tooltip", "dnd5e2", "themed", "theme-light"]
     };

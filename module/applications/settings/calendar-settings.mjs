@@ -20,10 +20,10 @@ export default class CalendarSettingsConfig extends BaseSettingsConfig {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/settings/base-config.hbs"
+      template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
     preferences: {
-      template: "systems/jujutsu-system/templates/settings/base-config.hbs"
+      template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
     footer: {
       template: "templates/generic/form-footer.hbs"
@@ -63,7 +63,7 @@ export default class CalendarSettingsConfig extends BaseSettingsConfig {
    * @protected
    */
   async _prepareConfigContext(context, options) {
-    const data = game.settings.get("jujutsu-system", "calendarConfig");
+    const data = game.settings.get("hunter-system", "calendarConfig");
     context.fields = Object.entries(CalendarConfigSetting.schema.fields)
       .filter(([name]) => name !== "buttons")
       .map(([name, field]) => ({
@@ -97,7 +97,7 @@ export default class CalendarSettingsConfig extends BaseSettingsConfig {
    * @protected
    */
   async _preparePreferencesContext(context, options) {
-    const data = game.settings.get("jujutsu-system", "calendarPreferences");
+    const data = game.settings.get("hunter-system", "calendarPreferences");
     const fields = CalendarPreferencesSetting.schema.fields;
     context.fields = [
       {
@@ -126,7 +126,7 @@ export default class CalendarSettingsConfig extends BaseSettingsConfig {
         level: "warn",
         text: game.i18n.localize("DND5E.CALENDAR.Configuration.UnavailableMessage")
       };
-    } else if ( !game.settings.get("jujutsu-system", "calendarConfig")?.enabled ) {
+    } else if ( !game.settings.get("hunter-system", "calendarConfig")?.enabled ) {
       context.disabled = !game.user.isGM;
       context.message = {
         level: "warn",

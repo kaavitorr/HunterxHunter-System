@@ -247,7 +247,7 @@ export default class EquipmentData extends ItemDataModel.mixin(
    */
   static _migrateStealth(source) {
     if ( foundry.utils.getProperty(source, "system.stealth") === true ) {
-      foundry.utils.setProperty(source, "flags.JujutsuLegacy.migratedProperties", ["stealthDisadvantage"]);
+      foundry.utils.setProperty(source, "flags.HunterLegacy.migratedProperties", ["stealthDisadvantage"]);
     }
   }
 

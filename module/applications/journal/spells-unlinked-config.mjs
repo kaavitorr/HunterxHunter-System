@@ -22,10 +22,10 @@ export default class SpellsUnlinkedConfig extends DocumentSheet5e {
   /** @override */
   static PARTS = {
     spell: {
-      template: "systems/jujutsu-system/templates/journal/spell/unlinked-spell.hbs"
+      template: "systems/hunter-system/templates/journal/spell/unlinked-spell.hbs"
     },
     source: {
-      template: "systems/jujutsu-system/templates/journal/spell/unlinked-source.hbs"
+      template: "systems/hunter-system/templates/journal/spell/unlinked-source.hbs"
     }
   };
 

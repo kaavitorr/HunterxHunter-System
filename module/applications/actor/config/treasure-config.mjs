@@ -15,7 +15,7 @@ export default class TreasureConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/actors/config/treasure-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/treasure-config.hbs"
     }
   };
 

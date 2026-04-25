@@ -24,7 +24,7 @@ export default class ItemChoiceAdvancement extends ItemGrantAdvancement {
       },
       order: 50,
       icon: "icons/magic/symbols/cog-orange-red.webp",
-      typeIcon: "systems/jujutsu-system/icons/svg/item-choice.svg",
+      typeIcon: "systems/hunter-system/icons/svg/item-choice.svg",
       title: game.i18n.localize("DND5E.ADVANCEMENT.ItemChoice.Title"),
       hint: game.i18n.localize("DND5E.ADVANCEMENT.ItemChoice.Hint"),
       multiLevel: true,
@@ -150,7 +150,7 @@ export default class ItemChoiceAdvancement extends ItemGrantAdvancement {
     const items = [];
     const messages = [];
     for ( const item of data.items ?? [] ) {
-      const original = await fromUuid(item.flags.JujutsuLegacy.sourceId);
+      const original = await fromUuid(item.flags.HunterLegacy.sourceId);
       try {
         original?.system.validatePrerequisites?.(this.actor, {
           level: level || this.actor.system.details?.level, throwError: true

@@ -32,7 +32,7 @@ export default class SetDateDialog extends Dialog5e {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/apps/set-date-dialog.hbs"
+      template: "systems/hunter-system/templates/apps/set-date-dialog.hbs"
     }
   };
 

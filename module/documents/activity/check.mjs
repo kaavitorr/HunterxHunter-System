@@ -21,7 +21,7 @@ export default class CheckActivity extends ActivityMixin(BaseCheckActivityData) 
   static metadata = Object.freeze(
     foundry.utils.mergeObject(super.metadata, {
       type: "check",
-      img: "systems/jujutsu-system/icons/svg/activity/check.svg",
+      img: "systems/hunter-system/icons/svg/activity/check.svg",
       title: "DND5E.CHECK.Title",
       hint: "DND5E.CHECK.Hint",
       sheetClass: CheckSheet,
@@ -63,7 +63,7 @@ export default class CheckActivity extends ActivityMixin(BaseCheckActivityData) 
           <span class="hidden-dc">${wrap(label)}</span>
         ` : wrap(label),
         icon: checkType === "tool" ? '<i class="fa-solid fa-hammer" inert></i>'
-          : '<i class="dnd5e-icon" data-src="systems/jujutsu-system/icons/svg/ability-score-improvement.svg" inert></i>',
+          : '<i class="dnd5e-icon" data-src="systems/hunter-system/icons/svg/ability-score-improvement.svg" inert></i>',
         dataset
       });
     };

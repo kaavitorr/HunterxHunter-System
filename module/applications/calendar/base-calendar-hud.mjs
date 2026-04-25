@@ -26,8 +26,8 @@ export default class BaseCalendarHUD extends Application5e {
    * @type {boolean}
    */
   static get shouldDisplay() {
-    return (game.settings.get("jujutsu-system", "calendarConfig")?.enabled || false)
-      && (game.settings.get("jujutsu-system", "calendarPreferences")?.visible || false);
+    return (game.settings.get("hunter-system", "calendarConfig")?.enabled || false)
+      && (game.settings.get("hunter-system", "calendarPreferences")?.visible || false);
   }
 
   /* -------------------------------------------- */

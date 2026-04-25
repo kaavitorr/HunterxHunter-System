@@ -18,7 +18,7 @@ export default class RotateAreaConfig extends foundry.applications.sheets.Region
   /** @override */
   static PARTS = {
     form: {
-      template: "systems/jujutsu-system/templates/region-behaviors/rotate-area-config.hbs",
+      template: "systems/hunter-system/templates/region-behaviors/rotate-area-config.hbs",
       scrollable: [""]
     },
     footer: {

@@ -27,26 +27,26 @@ const registerMethods = [registerSourceBooks, registerSpellLists];
 /* -------------------------------------------- */
 
 /**
- * Register package source books from `flags.JujutsuLegacy.sourceBooks`.
+ * Register package source books from `flags.HunterLegacy.sourceBooks`.
  * @param {Module|System|World} manifest  Manifest from which to register data.
  * @returns {string|void}                 Description of the data registered.
  */
 function registerSourceBooks(manifest) {
-  if ( !manifest.flags.JujutsuLegacy?.sourceBooks ) return;
-  Object.assign(CONFIG.DND5E.sourceBooks, manifest.flags.JujutsuLegacy.sourceBooks);
+  if ( !manifest.flags.HunterLegacy?.sourceBooks ) return;
+  Object.assign(CONFIG.DND5E.sourceBooks, manifest.flags.HunterLegacy.sourceBooks);
   return "source books";
 }
 
 /* -------------------------------------------- */
 
 /**
- * Register package spell lists from `flags.JujutsuLegacy.spellLists`.
+ * Register package spell lists from `flags.HunterLegacy.spellLists`.
  * @param {Module|System|World} manifest  Manifest from which to register data.
  * @returns {string|void}                 Description of the data registered.
  */
 function registerSpellLists(manifest) {
-  if ( !Array.isArray(manifest.flags.JujutsuLegacy?.spellLists) ) return;
-  manifest.flags.JujutsuLegacy.spellLists.forEach(uuid => dnd5e.registry.spellLists.register(uuid));
+  if ( !Array.isArray(manifest.flags.HunterLegacy?.spellLists) ) return;
+  manifest.flags.HunterLegacy.spellLists.forEach(uuid => dnd5e.registry.spellLists.register(uuid));
   return "spell lists";
 }
 
@@ -77,12 +77,12 @@ const setupMethods = [setupPackDisplay, setupPackSorting];
 /* -------------------------------------------- */
 
 /**
- * Set application based on `flags.JujutsuLegacy.display`.
+ * Set application based on `flags.HunterLegacy.display`.
  * @param {Compendium} pack  Pack to set up.
  * @returns {string|void}    Description of the step.
  */
 function setupPackDisplay(pack) {
-  const display = pack.metadata.flags.display ?? pack.metadata.flags.JujutsuLegacy?.display;
+  const display = pack.metadata.flags.display ?? pack.metadata.flags.HunterLegacy?.display;
   if ( display !== "table-of-contents" ) return;
   pack.applicationClass = TableOfContentsCompendium;
   return "table of contents";
@@ -94,14 +94,14 @@ let collectionSortingModes;
 let sortingChanged = false;
 
 /**
- * Set default sorting order based on `flags.JujutsuLegacy.sorting`.
+ * Set default sorting order based on `flags.HunterLegacy.sorting`.
  * @param {Compendium} pack  Pack to set up.
  * @returns {string|void}    Description of the step.
  */
 function setupPackSorting(pack) {
   collectionSortingModes ??= game.settings.get("core", "collectionSortingModes") ?? {};
-  if ( !pack.metadata.flags.JujutsuLegacy?.sorting || collectionSortingModes[pack.metadata.id] ) return;
-  collectionSortingModes[pack.metadata.id] = pack.metadata.flags.JujutsuLegacy.sorting;
+  if ( !pack.metadata.flags.HunterLegacy?.sorting || collectionSortingModes[pack.metadata.id] ) return;
+  collectionSortingModes[pack.metadata.id] = pack.metadata.flags.HunterLegacy.sorting;
   sortingChanged = true;
   return "default sorting";
 }

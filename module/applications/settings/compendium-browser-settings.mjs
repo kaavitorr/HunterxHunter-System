@@ -44,11 +44,11 @@ export default class CompendiumBrowserSettingsConfig extends Application5e {
   static PARTS = {
     sidebar: {
       id: "sidebar",
-      template: "systems/jujutsu-system/templates/compendium/sources-sidebar.hbs"
+      template: "systems/hunter-system/templates/compendium/sources-sidebar.hbs"
     },
     packs: {
       id: "packs",
-      template: "systems/jujutsu-system/templates/compendium/sources-packs.hbs"
+      template: "systems/hunter-system/templates/compendium/sources-packs.hbs"
     }
   };
 
@@ -176,7 +176,7 @@ export default class CompendiumBrowserSettingsConfig extends Application5e {
         const { packageName, flags } = metadata;
         let tag = "";
         // Special case handling for D&D SRD.
-        if ( packageName === "jujutsu-system" ) {
+        if ( packageName === "hunter-system" ) {
           tag = flags?.dnd5e?.sourceBook?.replace("SRD ", "");
         }
         return {
@@ -298,8 +298,8 @@ export default class CompendiumBrowserSettingsConfig extends Application5e {
       case "package": packs = this._onTogglePackage(target); break;
       default: return;
     }
-    const setting = { ...game.settings.get("jujutsu-system", "packSourceConfiguration"), ...packs };
-    await game.settings.set("jujutsu-system", "packSourceConfiguration", setting);
+    const setting = { ...game.settings.get("hunter-system", "packSourceConfiguration"), ...packs };
+    await game.settings.set("hunter-system", "packSourceConfiguration", setting);
     this.render();
   }
 
@@ -342,7 +342,7 @@ export default class CompendiumBrowserSettingsConfig extends Application5e {
    */
   static collateSources() {
     const sources = new Set();
-    const setting = game.settings.get("jujutsu-system", "packSourceConfiguration");
+    const setting = game.settings.get("hunter-system", "packSourceConfiguration");
     for ( const { collection, documentName } of game.packs ) {
       if ( (documentName !== "Actor") && (documentName !== "Item") ) continue;
       if ( setting[collection] !== false ) sources.add(collection);

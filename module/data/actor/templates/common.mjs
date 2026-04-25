@@ -132,7 +132,7 @@ export default class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplat
    * @param {object} [options.originalSaves]       Original ability data for transformed actors.
    */
   prepareAbilities({ rollData={}, originalSaves }={}) {
-    const flags = this.parent.flags.JujutsuLegacy ?? {};
+    const flags = this.parent.flags.HunterLegacy ?? {};
     const { prof = 0, ac } = this.attributes ?? {};
     Object.values(this.abilities).forEach(a => a.mod = Math.floor((a.value - 10) / 2));
     const checkBonus = simplifyBonus(this.bonuses?.abilities?.check, rollData);
@@ -192,12 +192,12 @@ export default class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplat
    */
   calculateAbilityCheckProficiency(multiplier, ability, options={}) {
     let roundDown = true;
-    if ( (multiplier < 1) && ((game.settings.get("jujutsu-system", "rulesVersion") === "legacy") || options.skill) ) {
+    if ( (multiplier < 1) && ((game.settings.get("hunter-system", "rulesVersion") === "legacy") || options.skill) ) {
       if ( this.parent._isRemarkableAthlete(ability) ) {
         multiplier = .5;
         roundDown = false;
       }
-      else if ( this.parent.flags.JujutsuLegacy?.jackOfAllTrades ) multiplier = .5;
+      else if ( this.parent.flags.HunterLegacy?.jackOfAllTrades ) multiplier = .5;
     }
     return new Proficiency(this.attributes.prof, multiplier, roundDown);
   }
@@ -214,7 +214,7 @@ export default class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplat
    * @returns {Proficiency}
    */
   calculateToolProficiency(multiplier, ability, options={}) {
-    if ( (multiplier === 1) && this.parent.flags.JujutsuLegacy?.toolExpertise ) {
+    if ( (multiplier === 1) && this.parent.flags.HunterLegacy?.toolExpertise ) {
       return new Proficiency(this.attributes.prof, 2, true);
     }
     return this.calculateAbilityCheckProficiency(multiplier, ability, options);

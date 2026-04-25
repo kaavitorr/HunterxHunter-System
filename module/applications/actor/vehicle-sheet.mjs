@@ -49,47 +49,47 @@ export default class VehicleActorSheet extends BaseActorSheet {
   /** @override */
   static PARTS = {
     sidebarCollapser: {
-      template: "systems/jujutsu-system/templates/actors/parts/sidebar-collapser.hbs"
+      template: "systems/hunter-system/templates/actors/parts/sidebar-collapser.hbs"
     },
     sidebar: {
-      template: "systems/jujutsu-system/templates/actors/vehicle/sidebar.hbs",
+      template: "systems/hunter-system/templates/actors/vehicle/sidebar.hbs",
       templates: [
-        "systems/jujutsu-system/templates/actors/parts/actor-trait-line.hbs",
-        "systems/jujutsu-system/templates/actors/parts/actor-trait-pills.hbs"
+        "systems/hunter-system/templates/actors/parts/actor-trait-line.hbs",
+        "systems/hunter-system/templates/actors/parts/actor-trait-pills.hbs"
       ],
       scrollable: [""]
     },
     stations: {
-      template: "systems/jujutsu-system/templates/actors/vehicle/stations.hbs",
-      templates: ["systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs"],
+      template: "systems/hunter-system/templates/actors/vehicle/stations.hbs",
+      templates: ["systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs"],
       scrollable: [""]
     },
     tabs: {
       classes: ["tabs-right"],
-      template: "systems/jujutsu-system/templates/shared/sidebar-tabs.hbs"
+      template: "systems/hunter-system/templates/shared/sidebar-tabs.hbs"
     },
     inventory: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-inventory.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/actor-inventory.hbs",
       templates: [
-        "systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs",
-        "systems/jujutsu-system/templates/inventory/containers.hbs", "systems/jujutsu-system/templates/inventory/encumbrance.hbs"
+        "systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs",
+        "systems/hunter-system/templates/inventory/containers.hbs", "systems/hunter-system/templates/inventory/encumbrance.hbs"
       ],
       scrollable: [""]
     },
     crew: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/vehicle/crew.hbs",
+      template: "systems/hunter-system/templates/actors/vehicle/crew.hbs",
       scrollable: [""]
     },
     effects: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-effects.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/actor-effects.hbs",
       scrollable: [""]
     },
     description: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/vehicle/description.hbs",
+      template: "systems/hunter-system/templates/actors/vehicle/description.hbs",
       scrollable: [""]
     }
   };
@@ -98,7 +98,7 @@ export default class VehicleActorSheet extends BaseActorSheet {
 
   /** @override */
   static TABS = [
-    { tab: "inventory", label: "DND5E.VEHICLE.Tabs.Cargo", svg: "systems/jujutsu-system/icons/svg/backpack.svg" },
+    { tab: "inventory", label: "DND5E.VEHICLE.Tabs.Cargo", svg: "systems/hunter-system/icons/svg/backpack.svg" },
     { tab: "crew", label: "DND5E.VEHICLE.Tabs.CrewPassengers", icon: "fa-solid fa-users",
       condition: this.vehicleHasCrew },
     { tab: "effects", label: "DND5E.Effects", icon: "fas fa-bolt" },
@@ -134,9 +134,9 @@ export default class VehicleActorSheet extends BaseActorSheet {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     context.options = {
-      showAbilities: this.actor.getFlag("jujutsu-system", "showVehicleAbilities"),
-      showInitiative: this.actor.getFlag("jujutsu-system", "showVehicleInitiative"),
-      showQuality: this.actor.getFlag("jujutsu-system", "showVehicleQuality")
+      showAbilities: this.actor.getFlag("hunter-system", "showVehicleAbilities"),
+      showInitiative: this.actor.getFlag("hunter-system", "showVehicleInitiative"),
+      showQuality: this.actor.getFlag("hunter-system", "showVehicleQuality")
     };
     return context;
   }
@@ -326,7 +326,7 @@ export default class VehicleActorSheet extends BaseActorSheet {
    */
   async _prepareDraftAnimals() {
     const { baseUnits, draftMultiplier } = CONFIG.DND5E.encumbrance;
-    const unitSystem = game.settings.get("jujutsu-system", "metricWeightUnits") ? "metric" : "imperial";
+    const unitSystem = game.settings.get("hunter-system", "metricWeightUnits") ? "metric" : "imperial";
     const units = baseUnits.default[unitSystem];
     return Promise.all(this.actor.system.draft.value.map(async uuid => {
       const actor = await fromUuid(uuid);
@@ -422,7 +422,7 @@ export default class VehicleActorSheet extends BaseActorSheet {
       || context.itemCategories.features?.length
       || context.itemCategories.stations?.length
       || context.system.draft?.value.length
-      || this.actor.getFlag("jujutsu-system", "showVehicleAbilities");
+      || this.actor.getFlag("hunter-system", "showVehicleAbilities");
     this.element.classList.toggle("has-stations", !!hasStations);
   }
 

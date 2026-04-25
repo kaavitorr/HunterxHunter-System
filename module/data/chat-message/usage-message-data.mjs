@@ -34,7 +34,7 @@ export default class UsageMessageData extends ChatMessageDataModel {
 
   /** @inheritDoc */
   static metadata = Object.freeze(foundry.utils.mergeObject(super.metadata, {
-    template: "systems/jujutsu-system/templates/chat/usage-card.hbs"
+    template: "systems/hunter-system/templates/chat/usage-card.hbs"
   }, { inplace: false }));
 
   /* -------------------------------------------- */
@@ -93,7 +93,7 @@ export default class UsageMessageData extends ChatMessageDataModel {
     super._onRender(element);
     this.activity?.onRenderChatCard(this.parent, element);
     this._displayChatActionButtons(element);
-    if ( game.settings.get("jujutsu-system", "autoCollapseItemCards") ) {
+    if ( game.settings.get("hunter-system", "autoCollapseItemCards") ) {
       element.querySelectorAll(".description.collapsible").forEach(el => el.classList.add("collapsed"));
     }
     this.activity?.activateChatListeners(this.parent, element);

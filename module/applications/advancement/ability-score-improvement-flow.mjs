@@ -22,8 +22,8 @@ export default class AbilityScoreImprovementFlow extends AdvancementFlow {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/advancement/ability-score-improvement-flow.hbs",
-      templates: ["systems/jujutsu-system/templates/advancement/parts/advancement-ability-score-control.hbs"]
+      template: "systems/hunter-system/templates/advancement/ability-score-improvement-flow.hbs",
+      templates: ["systems/hunter-system/templates/advancement/parts/advancement-ability-score-control.hbs"]
     }
   };
 
@@ -70,7 +70,7 @@ export default class AbilityScoreImprovementFlow extends AdvancementFlow {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       dragDrop: [{ dropSelector: "form" }],
-      template: "systems/jujutsu-system/templates/advancement/ability-score-improvement-flow.hbs"
+      template: "systems/hunter-system/templates/advancement/ability-score-improvement-flow.hbs"
     });
   }
 

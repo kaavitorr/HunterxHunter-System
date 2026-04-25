@@ -28,7 +28,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       width: 200,
       order: 800,
       priority: 1000,
-      template: "systems/jujutsu-system/templates/inventory/columns/capacity.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/capacity.hbs"
     },
     charges: {
       id: "charges",
@@ -36,14 +36,14 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 800,
       priority: 600,
       label: "DND5E.Charges",
-      template: "systems/jujutsu-system/templates/inventory/columns/uses.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/uses.hbs"
     },
     controls: {
       id: "controls",
       width: 70,
       order: 1000,
       priority: 1000,
-      template: "systems/jujutsu-system/templates/inventory/columns/controls.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/controls.hbs"
     },
     formula: {
       id: "formula",
@@ -51,7 +51,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 700,
       priority: 700,
       label: "DND5E.SpellHeader.Formula",
-      template: "systems/jujutsu-system/templates/inventory/columns/formula.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/formula.hbs"
     },
     price: {
       id: "price",
@@ -59,7 +59,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 300,
       priority: 300,
       label: "DND5E.Price",
-      template: "systems/jujutsu-system/templates/inventory/columns/price.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/price.hbs"
     },
     range: {
       id: "range",
@@ -67,7 +67,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 300,
       priority: 800,
       label: "DND5E.SpellHeader.Range",
-      template: "systems/jujutsu-system/templates/inventory/columns/range.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/range.hbs"
     },
     recovery: {
       id: "recovery",
@@ -75,7 +75,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 400,
       priority: 500,
       label: "DND5E.Recovery",
-      template: "systems/jujutsu-system/templates/inventory/columns/recovery.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/recovery.hbs"
     },
     roll: {
       id: "roll",
@@ -83,7 +83,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 600,
       priority: 800,
       label: "DND5E.SpellHeader.Roll",
-      template: "systems/jujutsu-system/templates/inventory/columns/roll.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/roll.hbs"
     },
     school: {
       id: "school",
@@ -91,7 +91,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 100,
       priority: 100,
       label: "DND5E.SpellHeader.School",
-      template: "systems/jujutsu-system/templates/inventory/columns/school.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/school.hbs"
     },
     target: {
       id: "target",
@@ -99,7 +99,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 400,
       priority: 800,
       label: "DND5E.SpellHeader.Target",
-      template: "systems/jujutsu-system/templates/inventory/columns/target.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/target.hbs"
     },
     time: {
       id: "time",
@@ -107,7 +107,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 200,
       priority: 800,
       label: "DND5E.SpellHeader.Time",
-      template: "systems/jujutsu-system/templates/inventory/columns/time.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/time.hbs"
     },
     quantity: {
       id: "quantity",
@@ -115,7 +115,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 500,
       priority: 500,
       label: "DND5E.Quantity",
-      template: "systems/jujutsu-system/templates/inventory/columns/quantity.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/quantity.hbs"
     },
     uses: {
       id: "uses",
@@ -123,7 +123,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 500,
       priority: 600,
       label: "DND5E.Uses",
-      template: "systems/jujutsu-system/templates/inventory/columns/uses.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/uses.hbs"
     },
     weight: {
       id: "weight",
@@ -131,7 +131,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       order: 400,
       priority: 400,
       label: "DND5E.Weight",
-      template: "systems/jujutsu-system/templates/inventory/columns/weight.hbs"
+      template: "systems/hunter-system/templates/inventory/columns/weight.hbs"
     }
   };
 
@@ -362,7 +362,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       name: "DND5E.Scroll.CreateScroll",
       icon: '<i class="fa-solid fa-scroll"></i>',
       condition: () => {
-        const isSpell = (item.type === "spell") && !item.getFlag("jujutsu-system", "cachedFor");
+        const isSpell = (item.type === "spell") && !item.getFlag("hunter-system", "cachedFor");
         const canEdit = this.actor.isOwner && !this.actor.collection.locked;
         return isSpell && canEdit;
       },
@@ -373,7 +373,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       group: "action"
     }, {
       name: "DND5E.ConcentrationBreak",
-      icon: '<dnd5e-icon src="systems/jujutsu-system/icons/svg/break-concentration.svg"></dnd5e-icon>',
+      icon: '<dnd5e-icon src="systems/hunter-system/icons/svg/break-concentration.svg"></dnd5e-icon>',
       condition: () => this.actor?.concentration?.items.has(item),
       callback: () => this.actor?.endConcentration(item),
       group: "state"
@@ -402,7 +402,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
         const isPrepared = CONFIG.DND5E.spellcasting[item.system.method]?.prepares;
         const isAlways = item.system.prepared === CONFIG.DND5E.spellPreparationStates.always.value;
         const canEdit = item.isOwner && !compendiumLocked;
-        return !item.hasRecharge && isPrepared && !isAlways && canEdit && !item.getFlag("jujutsu-system", "cachedFor");
+        return !item.hasRecharge && isPrepared && !isAlways && canEdit && !item.getFlag("hunter-system", "cachedFor");
       },
       callback: li => this._onAction(li, "prepare"),
       group: "state"
@@ -762,7 +762,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       } else {
         const chatData = await item.getChatData({secrets: item.isOwner});
         const summary = $(await foundry.applications.handlebars.renderTemplate(
-          "systems/jujutsu-system/templates/items/parts/item-summary.hbs", chatData
+          "systems/hunter-system/templates/items/parts/item-summary.hbs", chatData
         ));
         $(li).append(summary.hide());
         summary.slideDown(200);
@@ -786,7 +786,7 @@ export default class InventoryElement extends (foundry.applications.elements.Ado
       this.app.expandedSections.set(item.id, false);
     } else {
       const context = await item.getChatData({ secrets: item.isOwner });
-      const template = "systems/jujutsu-system/templates/items/parts/item-summary.hbs";
+      const template = "systems/hunter-system/templates/items/parts/item-summary.hbs";
       const content = await foundry.applications.handlebars.renderTemplate(template, context);
       summary.querySelectorAll(".item-summary").forEach(el => el.remove());
       summary.insertAdjacentHTML("beforeend", content);

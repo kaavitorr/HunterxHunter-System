@@ -19,7 +19,7 @@ export default class ToolsConfig extends TraitsConfig {
   /** @override */
   static PARTS = {
     traits: {
-      template: "systems/jujutsu-system/templates/actors/config/tools-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/tools-config.hbs"
     }
   };
 

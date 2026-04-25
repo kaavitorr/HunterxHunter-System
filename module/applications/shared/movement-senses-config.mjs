@@ -19,7 +19,7 @@ export default class MovementSensesConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/shared/config/movement-senses-config.hbs"
+      template: "systems/hunter-system/templates/shared/config/movement-senses-config.hbs"
     }
   };
 

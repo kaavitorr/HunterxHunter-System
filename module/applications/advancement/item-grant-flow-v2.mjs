@@ -11,7 +11,7 @@ export default class ItemGrantFlow extends AdvancementFlow {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/advancement/item-grant-flow-v2.hbs"
+      template: "systems/hunter-system/templates/advancement/item-grant-flow-v2.hbs"
     }
   };
 

@@ -21,7 +21,7 @@ export default class TraitsConfig extends BaseConfigSheet {
   /** @override */
   static PARTS = {
     traits: {
-      template: "systems/jujutsu-system/templates/actors/config/traits-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/traits-config.hbs"
     }
   };
 

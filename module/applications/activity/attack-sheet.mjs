@@ -16,20 +16,20 @@ export default class AttackSheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     identity: {
-      template: "systems/jujutsu-system/templates/activity/attack-identity.hbs",
+      template: "systems/hunter-system/templates/activity/attack-identity.hbs",
       templates: [
         ...super.PARTS.identity.templates,
-        "systems/jujutsu-system/templates/activity/parts/attack-identity.hbs"
+        "systems/hunter-system/templates/activity/parts/attack-identity.hbs"
       ]
     },
     effect: {
-      template: "systems/jujutsu-system/templates/activity/attack-effect.hbs",
+      template: "systems/hunter-system/templates/activity/attack-effect.hbs",
       templates: [
         ...super.PARTS.effect.templates,
-        "systems/jujutsu-system/templates/activity/parts/attack-damage.hbs",
-        "systems/jujutsu-system/templates/activity/parts/attack-details.hbs",
-        "systems/jujutsu-system/templates/activity/parts/damage-part.hbs",
-        "systems/jujutsu-system/templates/activity/parts/damage-parts.hbs"
+        "systems/hunter-system/templates/activity/parts/attack-damage.hbs",
+        "systems/hunter-system/templates/activity/parts/attack-details.hbs",
+        "systems/hunter-system/templates/activity/parts/damage-part.hbs",
+        "systems/hunter-system/templates/activity/parts/damage-parts.hbs"
       ]
     }
   };

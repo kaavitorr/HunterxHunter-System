@@ -17,7 +17,7 @@
 
     <div class="manipulation-resources">
       <div class="resource-box">
-        <label>Pontos de Maldição</label>
+        <label>Pontos de Nen</label>
         <input type="number"
           name="system.curseResources.cursePoints"
           value="{{actor.system.curseResources.cursePoints}}"
@@ -31,15 +31,15 @@
   <div class="stage-effects">
     {{#if (eq actor.system.manipulation.stage "beginner")}}
       <p class="stage-effect-text">
-        ⚠️ <strong>Iniciante:</strong> Precisa de ação bônus para ativar e desativar sua energia amaldiçoada.
+        ⚠️ <strong>Iniciante:</strong> Precisa de ação bônus para ativar e desativar sua aura.
       </p>
     {{else if (eq actor.system.manipulation.stage "expert")}}
       <p class="stage-effect-text">
-        ✅ <strong>Perito:</strong> Ativação automática de energia + proficiência em CON (Controle de Energia).
+        ✅ <strong>Perito:</strong> Ativação automática de energia + proficiência em Esp (Nen).
       </p>
     {{else}}
       <p class="stage-effect-text">
-        ⭐ <strong>Mestre:</strong> +4 dados de energia em descanso longo + maestria em CON (Controle de Energia).
+        ⭐ <strong>Mestre:</strong> +4 dados de aura em descanso longo + maestria em Esp (Nen).
       </p>
     {{/if}}
   </div>
@@ -102,13 +102,13 @@
         {{/if}}
       </div>
 
-      {{!-- Pontos de Maldição --}}
+      {{!-- Pontos de Nen --}}
       <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.cursePoints}}has-training{{/if}}">
         <div class="evo-counter-icon">
           <i class="fas fa-skull"></i>
         </div>
         <div class="evo-counter-info">
-          <span class="evo-counter-label">Pontos de Maldição</span>
+          <span class="evo-counter-label">Pontos de Nen</span>
           <span class="evo-counter-desc">+4 PM por treino</span>
         </div>
         <div class="evo-counter-badge">

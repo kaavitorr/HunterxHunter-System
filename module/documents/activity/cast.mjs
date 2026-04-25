@@ -33,7 +33,7 @@ export default class CastActivity extends ActivityMixin(BaseCastActivityData) {
   static metadata = Object.freeze(
     foundry.utils.mergeObject(super.metadata, {
       type: "cast",
-      img: "systems/jujutsu-system/icons/svg/activity/cast.svg",
+      img: "systems/hunter-system/icons/svg/activity/cast.svg",
       title: "DND5E.CAST.Title",
       hint: "DND5E.CAST.Hint",
       sheetClass: CastSheet
@@ -50,7 +50,7 @@ export default class CastActivity extends ActivityMixin(BaseCastActivityData) {
    */
   get cachedSpell() {
     return this.actor?.sourcedItems.get(this.spell.uuid)
-      ?.find(i => i.getFlag("jujutsu-system", "cachedFor") === this.relativeUUID);
+      ?.find(i => i.getFlag("hunter-system", "cachedFor") === this.relativeUUID);
   }
 
   /* -------------------------------------------- */
@@ -125,7 +125,7 @@ export default class CastActivity extends ActivityMixin(BaseCastActivityData) {
           _id: this.constructor.ENCHANTMENT_ID,
           type: "enchantment",
           name: game.i18n.localize("DND5E.CAST.Enchantment.Name"),
-          img: "systems/jujutsu-system/icons/svg/activity/cast.svg",
+          img: "systems/hunter-system/icons/svg/activity/cast.svg",
           origin: this.uuid,
           changes: this.getSpellChanges()
         }

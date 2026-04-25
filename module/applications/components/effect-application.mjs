@@ -238,7 +238,7 @@ export default class EffectApplicationElement extends TargetedApplicationMixin(C
         Hooks.onError("EffectApplicationElement._applyEffectToToken", err, { notify: "warn", log: "warn" });
       }
     }
-    if ( game.settings.get("jujutsu-system", "autoCollapseChatTrays") !== "manual" ) {
+    if ( game.settings.get("hunter-system", "autoCollapseChatTrays") !== "manual" ) {
       this.querySelector(".collapsible").dispatchEvent(new PointerEvent("click", { bubbles: true, cancelable: true }));
     }
   }

@@ -20,7 +20,7 @@ export default class Bastion {
    */
   async advanceAllBastions() {
     // TODO: Should this advance game.time?
-    const { duration } = game.settings.get("jujutsu-system", "bastionConfiguration");
+    const { duration } = game.settings.get("hunter-system", "bastionConfiguration");
     const haveBastions = game.actors.filter(a => a.system.isCharacter && a.itemTypes.facility.length);
     for ( const actor of haveBastions ) await this.advanceAllFacilities(actor, { duration });
   }
@@ -265,7 +265,7 @@ export default class Bastion {
    */
   initializeUI() {
     const turnButton = document.getElementById("bastion-turn");
-    const { button, enabled } = game.settings.get("jujutsu-system", "bastionConfiguration");
+    const { button, enabled } = game.settings.get("hunter-system", "bastionConfiguration");
 
     if ( !enabled || !button || !game.user.isGM) {
       turnButton?.remove();

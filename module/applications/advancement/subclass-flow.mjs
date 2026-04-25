@@ -21,7 +21,7 @@ export default class SubclassFlow extends AdvancementFlow {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/advancement/subclass-flow.hbs"
+      template: "systems/hunter-system/templates/advancement/subclass-flow.hbs"
     }
   };
 
@@ -31,7 +31,7 @@ export default class SubclassFlow extends AdvancementFlow {
 
   /** @inheritDoc */
   async _prepareContext(options) {
-    const uuid = foundry.utils.getProperty(this.retainedData ?? {}, "flags.JujutsuLegacy.sourceId");
+    const uuid = foundry.utils.getProperty(this.retainedData ?? {}, "flags.HunterLegacy.sourceId");
     if ( uuid ) await this.advancement.apply(this.level, { retainedData: this.retainedData, uuid });
     return super._prepareContext(options);
   }

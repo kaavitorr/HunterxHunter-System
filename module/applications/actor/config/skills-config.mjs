@@ -19,7 +19,7 @@ export default class SkillsConfig extends TraitsConfig {
   /** @override */
   static PARTS = {
     traits: {
-      template: "systems/jujutsu-system/templates/actors/config/skills-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/skills-config.hbs"
     }
   };
 

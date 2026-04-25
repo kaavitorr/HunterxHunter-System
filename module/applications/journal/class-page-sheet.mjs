@@ -36,7 +36,7 @@ export default class JournalClassPageSheet extends JournalEntryPageHandlebarsShe
     header: super.EDIT_PARTS.header,
     config: {
       classes: ["standard-form"],
-      template: "systems/jujutsu-system/templates/journal/page-{type}-edit.hbs"
+      template: "systems/hunter-system/templates/journal/page-{type}-edit.hbs"
     }
   };
 
@@ -46,7 +46,7 @@ export default class JournalClassPageSheet extends JournalEntryPageHandlebarsShe
   static VIEW_PARTS = {
     content: {
       root: true,
-      template: "systems/jujutsu-system/templates/journal/page-{type}-view.hbs"
+      template: "systems/hunter-system/templates/journal/page-{type}-view.hbs"
     }
   };
 

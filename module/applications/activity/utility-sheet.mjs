@@ -16,7 +16,7 @@ export default class UtilitySheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     effect: {
-      template: "systems/jujutsu-system/templates/activity/utility-effect.hbs",
+      template: "systems/hunter-system/templates/activity/utility-effect.hbs",
       templates: super.PARTS.effect.templates
     }
   };

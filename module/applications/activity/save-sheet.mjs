@@ -16,14 +16,14 @@ export default class SaveSheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     effect: {
-      template: "systems/jujutsu-system/templates/activity/save-effect.hbs",
+      template: "systems/hunter-system/templates/activity/save-effect.hbs",
       templates: [
         ...super.PARTS.effect.templates,
-        "systems/jujutsu-system/templates/activity/parts/damage-part.hbs",
-        "systems/jujutsu-system/templates/activity/parts/damage-parts.hbs",
-        "systems/jujutsu-system/templates/activity/parts/save-damage.hbs",
-        "systems/jujutsu-system/templates/activity/parts/save-details.hbs",
-        "systems/jujutsu-system/templates/activity/parts/save-effect-settings.hbs"
+        "systems/hunter-system/templates/activity/parts/damage-part.hbs",
+        "systems/hunter-system/templates/activity/parts/damage-parts.hbs",
+        "systems/hunter-system/templates/activity/parts/save-damage.hbs",
+        "systems/hunter-system/templates/activity/parts/save-details.hbs",
+        "systems/hunter-system/templates/activity/parts/save-effect-settings.hbs"
       ]
     }
   };
@@ -34,7 +34,7 @@ export default class SaveSheet extends ActivitySheet {
 
   /** @override */
   _prepareAppliedEffectContext(context, effect) {
-    effect.additionalSettings = "systems/jujutsu-system/templates/activity/parts/save-effect-settings.hbs";
+    effect.additionalSettings = "systems/hunter-system/templates/activity/parts/save-effect-settings.hbs";
     return effect;
   }
 

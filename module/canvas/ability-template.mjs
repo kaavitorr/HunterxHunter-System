@@ -84,7 +84,7 @@ export default class AbilityTemplate extends foundry.canvas.placeables.MeasuredT
         break;
       case "rect": // 5e rectangular AoEs are always cubes
         templateData.width = target.size;
-        if ( game.settings.get("jujutsu-system", "gridAlignedSquareTemplates") ) {
+        if ( game.settings.get("hunter-system", "gridAlignedSquareTemplates") ) {
           templateData.distance = Math.hypot(target.size, target.size);
           templateData.direction = 45;
         } else {
@@ -218,8 +218,8 @@ export default class AbilityTemplate extends foundry.canvas.placeables.MeasuredT
     const updates = this.getSnappedPosition(center);
 
     // Adjust template size to take hovered token into account if `adjustedSize` is set
-    const baseDistance = this.document.flags.JujutsuLegacy?.dimensions?.size;
-    if ( this.document.flags.JujutsuLegacy?.dimensions?.adjustedSize && baseDistance ) {
+    const baseDistance = this.document.flags.HunterLegacy?.dimensions?.size;
+    if ( this.document.flags.HunterLegacy?.dimensions?.adjustedSize && baseDistance ) {
       const rectangle = new PIXI.Rectangle(center.x, center.y, 1, 1);
       const hoveredToken = canvas.tokens.quadtree.getObjects(rectangle, {
         collisionTest: ({ t }) => t.visible && !t.document.isSecret }).first();

@@ -16,13 +16,13 @@ export default class ForwardSheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     activation: {
-      template: "systems/jujutsu-system/templates/activity/forward-activation.hbs",
+      template: "systems/hunter-system/templates/activity/forward-activation.hbs",
       templates: [
-        "systems/jujutsu-system/templates/activity/parts/activity-consumption.hbs"
+        "systems/hunter-system/templates/activity/parts/activity-consumption.hbs"
       ]
     },
     effect: {
-      template: "systems/jujutsu-system/templates/activity/forward-effect.hbs"
+      template: "systems/hunter-system/templates/activity/forward-effect.hbs"
     }
   };
 

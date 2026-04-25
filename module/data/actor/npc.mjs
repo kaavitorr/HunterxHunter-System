@@ -568,10 +568,10 @@ export default class NPCData extends CreatureTemplate {
    */
   async resistSave(message) {
     if ( this.resources.legres.value === 0 ) throw new Error("No legendary resistances remaining.");
-    if ( message.flags.JujutsuLegacy?.roll?.type !== "save" ) throw new Error("Chat message must contain a save roll.");
-    if ( message.flags.JujutsuLegacy?.roll?.forceSuccess ) throw new Error("Save has already been resisted.");
+    if ( message.flags.HunterLegacy?.roll?.type !== "save" ) throw new Error("Chat message must contain a save roll.");
+    if ( message.flags.HunterLegacy?.roll?.forceSuccess ) throw new Error("Save has already been resisted.");
     await this.parent.update({ "system.resources.legres.spent": this.resources.legres.spent + 1 });
-    await message.setFlag("jujutsu-system", "roll.forceSuccess", true);
+    await message.setFlag("hunter-system", "roll.forceSuccess", true);
   }
 
   /* -------------------------------------------- */
@@ -592,7 +592,7 @@ export default class NPCData extends CreatureTemplate {
     }
     const template = document.createElement("template");
     template.innerHTML = await foundry.applications.handlebars.renderTemplate(
-      "systems/jujutsu-system/templates/actors/embeds/npc-embed.hbs", context
+      "systems/hunter-system/templates/actors/embeds/npc-embed.hbs", context
     );
 
     /**
@@ -625,7 +625,7 @@ export default class NPCData extends CreatureTemplate {
       ...Array.from(value).map(t => Trait.keyLabel(t, { trait })).filter(_ => _),
       ...splitSemicolons(custom ?? "")
     ].sort((lhs, rhs) => lhs.localeCompare(rhs, game.i18n.lang)));
-    const o = this.parent.flags.JujutsuLegacy?.statBlockOverride ?? {};
+    const o = this.parent.flags.HunterLegacy?.statBlockOverride ?? {};
 
     const prepareSpeed = () => {
       const standard = formatter.format([

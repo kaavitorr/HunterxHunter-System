@@ -1485,7 +1485,7 @@ export function createRollLabel(config) {
     switch ( config.type ) {
       case "check":
       case "skill":
-        label = `<i class="dnd5e-icon" data-src="systems/jujutsu-system/icons/svg/ability-score-improvement.svg"></i>${label}`;
+        label = `<i class="dnd5e-icon" data-src="systems/hunter-system/icons/svg/ability-score-improvement.svg"></i>${label}`;
         break;
       case "tool":
         label = `<i class="fas fa-hammer"></i>${label}`;
@@ -1644,7 +1644,7 @@ async function handlePostRequest(event, target) {
   const chatData = {
     user: game.user.id,
     content: await foundry.applications.handlebars.renderTemplate(
-      "systems/jujutsu-system/templates/chat/roll-request-card.hbs", { buttons }
+      "systems/hunter-system/templates/chat/roll-request-card.hbs", { buttons }
     ),
     flavor: game.i18n.localize("EDITOR.DND5E.Inline.RollRequest"),
     speaker: MessageClass.getSpeaker({ user: game.user })
@@ -1738,6 +1738,6 @@ function _addListeners(buttons, handler) {
 async function _fetchActivity(uuid, scaling) {
   const activity = await fromUuid(uuid);
   if ( !activity || !scaling ) return activity;
-  const item = activity.item.clone({ "flags.JujutsuLegacy.scaling": scaling }, { keepId: true });
+  const item = activity.item.clone({ "flags.HunterLegacy.scaling": scaling }, { keepId: true });
   return item.system.activities.get(activity.id);
 }

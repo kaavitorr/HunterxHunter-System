@@ -26,7 +26,7 @@ export default class TransformActivity extends ActivityMixin(BaseTransformActivi
   static metadata = Object.freeze(
     foundry.utils.mergeObject(super.metadata, {
       type: "transform",
-      img: "systems/jujutsu-system/icons/svg/activity/transform.svg",
+      img: "systems/hunter-system/icons/svg/activity/transform.svg",
       title: "DND5E.TRANSFORM.Title",
       hint: "DND5E.TRANSFORM.Hint",
       sheetClass: TransformSheet,
@@ -48,7 +48,7 @@ export default class TransformActivity extends ActivityMixin(BaseTransformActivi
    * @type {boolean}
    */
   get canTransform() {
-    return game.user.can("ACTOR_CREATE") && (game.user.isGM || game.settings.get("jujutsu-system", "allowPolymorphing"));
+    return game.user.can("ACTOR_CREATE") && (game.user.isGM || game.settings.get("hunter-system", "allowPolymorphing"));
   }
 
   /* -------------------------------------------- */
@@ -76,7 +76,7 @@ export default class TransformActivity extends ActivityMixin(BaseTransformActivi
   async _finalizeMessageConfig(usageConfig, messageConfig, results) {
     await super._finalizeMessageConfig(usageConfig, messageConfig, results);
     if ( usageConfig.transform?.profile ) {
-      foundry.utils.setProperty(messageConfig.data, "flags.JujutsuLegacy.transform.profile", usageConfig.transform.profile);
+      foundry.utils.setProperty(messageConfig.data, "flags.HunterLegacy.transform.profile", usageConfig.transform.profile);
     }
   }
 
@@ -110,8 +110,8 @@ export default class TransformActivity extends ActivityMixin(BaseTransformActivi
     if ( profile ) {
       const uuid = !this.transform.mode ? profile.uuid : await this.queryActor(profile);
       if ( uuid ) {
-        if ( results.message instanceof ChatMessage ) results.message.setFlag("jujutsu-system", "transform.uuid", uuid);
-        else foundry.utils.setProperty(results.message, "flags.JujutsuLegacy.transform.uuid", uuid);
+        if ( results.message instanceof ChatMessage ) results.message.setFlag("hunter-system", "transform.uuid", uuid);
+        else foundry.utils.setProperty(results.message, "flags.HunterLegacy.transform.uuid", uuid);
       }
     }
     await super._finalizeUsage(config, results);
@@ -158,9 +158,9 @@ export default class TransformActivity extends ActivityMixin(BaseTransformActivi
       return;
     }
 
-    const profileId = message.getFlag("jujutsu-system", "transform.profile");
+    const profileId = message.getFlag("hunter-system", "transform.profile");
     const profile = this.profiles.find(p => p._id === profileId) || this.profiles[0];
-    const uuid = message.getFlag("jujutsu-system", "transform.uuid") ?? await this.queryActor(profile);
+    const uuid = message.getFlag("hunter-system", "transform.uuid") ?? await this.queryActor(profile);
     const source = await fromUuid(uuid);
     if ( !source ) {
       ui.notifications.warn("DND5E.TRANSFORM.Warning.SourceActor", { localize: true });

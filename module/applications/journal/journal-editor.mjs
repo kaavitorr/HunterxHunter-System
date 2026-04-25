@@ -34,7 +34,7 @@ export default class JournalEditor extends DocumentSheet5e {
   /** @override */
   static PARTS = {
     editor: {
-      template: "systems/jujutsu-system/templates/journal/journal-editor.hbs"
+      template: "systems/hunter-system/templates/journal/journal-editor.hbs"
     }
   };
 

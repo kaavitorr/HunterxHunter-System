@@ -20,11 +20,11 @@ export default class SummonSheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     effect: {
-      template: "systems/jujutsu-system/templates/activity/summon-effect.hbs",
+      template: "systems/hunter-system/templates/activity/summon-effect.hbs",
       templates: [
         ...super.PARTS.effect.templates,
-        "systems/jujutsu-system/templates/activity/parts/summon-changes.hbs",
-        "systems/jujutsu-system/templates/activity/parts/summon-profiles.hbs"
+        "systems/hunter-system/templates/activity/parts/summon-changes.hbs",
+        "systems/hunter-system/templates/activity/parts/summon-profiles.hbs"
       ]
     }
   };

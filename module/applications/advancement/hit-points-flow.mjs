@@ -20,7 +20,7 @@ export default class HitPointsFlow extends AdvancementFlow {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/advancement/hit-points-flow.hbs"
+      template: "systems/hunter-system/templates/advancement/hit-points-flow.hbs"
     }
   };
 

@@ -151,7 +151,7 @@ Hooks.once("init", function() {
   CONFIG.Token.movement.TerrainData = dataModels.TerrainData5e;
   CONFIG.User.documentClass = documents.User5e;
   CONFIG.time.roundTime = 6;
-  Roll.TOOLTIP_TEMPLATE = "systems/jujutsu-system/templates/chat/roll-breakdown.hbs";
+  Roll.TOOLTIP_TEMPLATE = "systems/hunter-system/templates/chat/roll-breakdown.hbs";
   CONFIG.Dice.BasicDie = CONFIG.Dice.terms.d = dice.BasicDie;
   CONFIG.Dice.BasicRoll = dice.BasicRoll;
   CONFIG.Dice.DamageRoll = dice.DamageRoll;
@@ -181,8 +181,8 @@ Hooks.once("init", function() {
   game.dnd5e.tooltips = new Tooltips5e();
 
   // Remove honor & sanity from configuration if they aren't enabled
-  if ( !game.settings.get("jujutsu-system", "honorScore") ) delete DND5E.abilities.hon;
-  if ( !game.settings.get("jujutsu-system", "sanityScore") ) delete DND5E.abilities.san;
+  if ( !game.settings.get("hunter-system", "honorScore") ) delete DND5E.abilities.hon;
+  if ( !game.settings.get("hunter-system", "sanityScore") ) delete DND5E.abilities.san;
 
   // Legacy rules.
   if ( dnd5e.settings.rulesVersion === "legacy" ) applyLegacyRules();
@@ -212,67 +212,67 @@ Hooks.once("init", function() {
   // Register sheet application classes
   const DocumentSheetConfig = foundry.applications.apps.DocumentSheetConfig;
   DocumentSheetConfig.unregisterSheet(Actor, "core", foundry.appv1.sheets.ActorSheet);
-  DocumentSheetConfig.registerSheet(Actor, "jujutsu-system", applications.actor.CharacterActorSheet, {
+  DocumentSheetConfig.registerSheet(Actor, "hunter-system", applications.actor.CharacterActorSheet, {
     types: ["character"],
     makeDefault: true,
     label: "DND5E.SheetClass.Character"
   });
-  DocumentSheetConfig.registerSheet(Actor, "jujutsu-system", applications.actor.NPCActorSheet, {
+  DocumentSheetConfig.registerSheet(Actor, "hunter-system", applications.actor.NPCActorSheet, {
     types: ["npc"],
     makeDefault: true,
     label: "DND5E.SheetClass.NPC"
   });
-  DocumentSheetConfig.registerSheet(Actor, "jujutsu-system", applications.actor.VehicleActorSheet, {
+  DocumentSheetConfig.registerSheet(Actor, "hunter-system", applications.actor.VehicleActorSheet, {
     types: ["vehicle"],
     makeDefault: true,
     label: "DND5E.SheetClass.Vehicle"
   });
-  DocumentSheetConfig.registerSheet(Actor, "jujutsu-system", applications.actor.GroupActorSheet, {
+  DocumentSheetConfig.registerSheet(Actor, "hunter-system", applications.actor.GroupActorSheet, {
     types: ["group"],
     makeDefault: true,
     label: "DND5E.SheetClass.Group"
   });
-  DocumentSheetConfig.registerSheet(Actor, "jujutsu-system", applications.actor.EncounterActorSheet, {
+  DocumentSheetConfig.registerSheet(Actor, "hunter-system", applications.actor.EncounterActorSheet, {
     types: ["encounter"],
     makeDefault: true,
     label: "DND5E.SheetClass.Encounter"
   });
 
   DocumentSheetConfig.unregisterSheet(Item, "core", foundry.appv1.sheets.ItemSheet);
-  DocumentSheetConfig.registerSheet(Item, "jujutsu-system", applications.item.ItemSheet5e, {
+  DocumentSheetConfig.registerSheet(Item, "hunter-system", applications.item.ItemSheet5e, {
     makeDefault: true,
     label: "DND5E.SheetClass.Item"
   });
-  DocumentSheetConfig.unregisterSheet(Item, "jujutsu-system", applications.item.ItemSheet5e, { types: ["container"] });
-  DocumentSheetConfig.registerSheet(Item, "jujutsu-system", applications.item.ContainerSheet, {
+  DocumentSheetConfig.unregisterSheet(Item, "hunter-system", applications.item.ItemSheet5e, { types: ["container"] });
+  DocumentSheetConfig.registerSheet(Item, "hunter-system", applications.item.ContainerSheet, {
     makeDefault: true,
     types: ["container"],
     label: "DND5E.SheetClass.Container"
   });
 
-  DocumentSheetConfig.registerSheet(JournalEntry, "jujutsu-system", applications.journal.JournalEntrySheet5e, {
+  DocumentSheetConfig.registerSheet(JournalEntry, "hunter-system", applications.journal.JournalEntrySheet5e, {
     makeDefault: true,
     label: "DND5E.SheetClass.JournalEntry"
   });
-  DocumentSheetConfig.registerSheet(JournalEntry, "jujutsu-system", applications.journal.JournalSheet5e, {
+  DocumentSheetConfig.registerSheet(JournalEntry, "hunter-system", applications.journal.JournalSheet5e, {
     makeDefault: false,
     canConfigure: false,
     canBeDefault: false,
     label: "DND5E.SheetClass.JournalEntrySheetLegacy"
   });
-  DocumentSheetConfig.registerSheet(JournalEntryPage, "jujutsu-system", applications.journal.JournalClassPageSheet, {
+  DocumentSheetConfig.registerSheet(JournalEntryPage, "hunter-system", applications.journal.JournalClassPageSheet, {
     label: "DND5E.SheetClass.ClassSummary",
     types: ["class", "subclass"]
   });
-  DocumentSheetConfig.registerSheet(JournalEntryPage, "jujutsu-system", applications.journal.JournalMapLocationPageSheet, {
+  DocumentSheetConfig.registerSheet(JournalEntryPage, "hunter-system", applications.journal.JournalMapLocationPageSheet, {
     label: "DND5E.SheetClass.MapLocation",
     types: ["map"]
   });
-  DocumentSheetConfig.registerSheet(JournalEntryPage, "jujutsu-system", applications.journal.JournalRulePageSheet, {
+  DocumentSheetConfig.registerSheet(JournalEntryPage, "hunter-system", applications.journal.JournalRulePageSheet, {
     label: "DND5E.SheetClass.Rule",
     types: ["rule"]
   });
-  DocumentSheetConfig.registerSheet(JournalEntryPage, "jujutsu-system", applications.journal.JournalSpellListPageSheet, {
+  DocumentSheetConfig.registerSheet(JournalEntryPage, "hunter-system", applications.journal.JournalSpellListPageSheet, {
     label: "DND5E.SheetClass.SpellList",
     types: ["spells"]
   });
@@ -280,23 +280,23 @@ Hooks.once("init", function() {
   DocumentSheetConfig.unregisterSheet(RegionBehavior, "core", foundry.applications.sheets.RegionBehaviorConfig, {
     types: ["dnd5e.difficultTerrain", "dnd5e.rotateArea"]
   });
-  DocumentSheetConfig.registerSheet(RegionBehavior, "jujutsu-system", applications.regionBehavior.DifficultTerrainConfig, {
+  DocumentSheetConfig.registerSheet(RegionBehavior, "hunter-system", applications.regionBehavior.DifficultTerrainConfig, {
     label: "DND5E.SheetClass.DifficultTerrain",
     types: ["dnd5e.difficultTerrain"]
   });
-  DocumentSheetConfig.registerSheet(RegionBehavior, "jujutsu-system", applications.regionBehavior.RotateAreaConfig, {
+  DocumentSheetConfig.registerSheet(RegionBehavior, "hunter-system", applications.regionBehavior.RotateAreaConfig, {
     label: "DND5E.SheetClass.RotateArea",
     types: ["dnd5e.rotateArea"]
   });
 
-  DocumentSheetConfig.registerSheet(RollTable, "jujutsu-system", applications.RollTableSheet5e, {
+  DocumentSheetConfig.registerSheet(RollTable, "hunter-system", applications.RollTableSheet5e, {
     makeDefault: true,
     label: "DND5E.SheetClass.RollTable"
   });
 
   CONFIG.Token.prototypeSheetClass = applications.PrototypeTokenConfig5e;
   DocumentSheetConfig.unregisterSheet(TokenDocument, "core", foundry.applications.sheets.TokenConfig);
-  DocumentSheetConfig.registerSheet(TokenDocument, "jujutsu-system", applications.TokenConfig5e, {
+  DocumentSheetConfig.registerSheet(TokenDocument, "hunter-system", applications.TokenConfig5e, {
     label: "DND5E.SheetClass.Token"
   });
 
@@ -340,7 +340,7 @@ function _configureCalendar() {
    */
   if ( Hooks.call("dnd5e.setupCalendar") === false ) return;
 
-  const calendar = game.settings.get("jujutsu-system", "calendar");
+  const calendar = game.settings.get("hunter-system", "calendar");
   const calendarConfig = CONFIG.DND5E.calendar.calendars.find(c => c.value === calendar);
   if ( calendarConfig ) {
     CONFIG.time.worldCalendarConfig = calendarConfig.config;
@@ -447,20 +447,20 @@ function _configureFonts() {
     Roboto: {
       editor: true,
       fonts: [
-        { urls: ["systems/jujutsu-system/fonts/roboto/Roboto-Regular.woff2"] },
-        { urls: ["systems/jujutsu-system/fonts/roboto/Roboto-Bold.woff2"], weight: "bold" },
-        { urls: ["systems/jujutsu-system/fonts/roboto/Roboto-Italic.woff2"], style: "italic" },
-        { urls: ["systems/jujutsu-system/fonts/roboto/Roboto-BoldItalic.woff2"], weight: "bold", style: "italic" }
+        { urls: ["systems/hunter-system/fonts/roboto/Roboto-Regular.woff2"] },
+        { urls: ["systems/hunter-system/fonts/roboto/Roboto-Bold.woff2"], weight: "bold" },
+        { urls: ["systems/hunter-system/fonts/roboto/Roboto-Italic.woff2"], style: "italic" },
+        { urls: ["systems/hunter-system/fonts/roboto/Roboto-BoldItalic.woff2"], weight: "bold", style: "italic" }
       ]
     },
     "Roboto Condensed": {
       editor: true,
       fonts: [
-        { urls: ["systems/jujutsu-system/fonts/roboto-condensed/RobotoCondensed-Regular.woff2"] },
-        { urls: ["systems/jujutsu-system/fonts/roboto-condensed/RobotoCondensed-Bold.woff2"], weight: "bold" },
-        { urls: ["systems/jujutsu-system/fonts/roboto-condensed/RobotoCondensed-Italic.woff2"], style: "italic" },
+        { urls: ["systems/hunter-system/fonts/roboto-condensed/RobotoCondensed-Regular.woff2"] },
+        { urls: ["systems/hunter-system/fonts/roboto-condensed/RobotoCondensed-Bold.woff2"], weight: "bold" },
+        { urls: ["systems/hunter-system/fonts/roboto-condensed/RobotoCondensed-Italic.woff2"], style: "italic" },
         {
-          urls: ["systems/jujutsu-system/fonts/roboto-condensed/RobotoCondensed-BoldItalic.woff2"], weight: "bold",
+          urls: ["systems/hunter-system/fonts/roboto-condensed/RobotoCondensed-BoldItalic.woff2"], weight: "bold",
           style: "italic"
         }
       ]
@@ -468,8 +468,8 @@ function _configureFonts() {
     "Roboto Slab": {
       editor: true,
       fonts: [
-        { urls: ["systems/jujutsu-system/fonts/roboto-slab/RobotoSlab-Regular.ttf"] },
-        { urls: ["systems/jujutsu-system/fonts/roboto-slab/RobotoSlab-Bold.ttf"], weight: "bold" }
+        { urls: ["systems/hunter-system/fonts/roboto-slab/RobotoSlab-Regular.ttf"] },
+        { urls: ["systems/hunter-system/fonts/roboto-slab/RobotoSlab-Bold.ttf"], weight: "bold" }
       ]
     }
   });
@@ -644,9 +644,9 @@ Hooks.once("ready", function() {
 
   // Determine whether a system migration is required and feasible
   if ( !game.user.isGM ) return;
-  const cv = game.settings.get("jujutsu-system", "systemMigrationVersion") || game.world.flags.JujutsuLegacy?.version;
+  const cv = game.settings.get("hunter-system", "systemMigrationVersion") || game.world.flags.HunterLegacy?.version;
   const totalDocuments = game.actors.size + game.scenes.size + game.items.size;
-  if ( !cv && totalDocuments === 0 ) return game.settings.set("jujutsu-system", "systemMigrationVersion", game.system.version);
+  if ( !cv && totalDocuments === 0 ) return game.settings.set("hunter-system", "systemMigrationVersion", game.system.version);
   if ( cv && !foundry.utils.isNewerVersion(game.system.flags.needsMigrationVersion, cv) ) return;
 
   // Compendium pack folder migration.
@@ -673,7 +673,7 @@ Hooks.on("renderGamePause", (app, html) => {
   container.append(...html.children);
   html.append(container);
   const img = html.querySelector("img");
-  img.src = "systems/jujutsu-system/ui/official/ampersand.png";  img.style.width = "200px";
+  img.src = "systems/hunter-system/ui/official/ampersand.png";  img.style.width = "200px";
   img.style.height = "200px";
   img.style.objectFit = "contain";
   img.className = "";

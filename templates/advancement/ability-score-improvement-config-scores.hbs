@@ -1,12 +1,12 @@
 <fieldset>
     <ul class="ability-scores unlist">
-        {{> "systems/jujutsu-system/templates/advancement/parts/advancement-ability-score-control.hbs" points
+        {{> "systems/hunter-system/templates/advancement/parts/advancement-ability-score-control.hbs" points
             canAdjust=true }}
         <li class="hint">
             {{ localize "DND5E.ADVANCEMENT.AbilityScoreImprovement.FIELDS.points.hint" }}
         </li>
         {{#each abilities}}
-        {{> "systems/jujutsu-system/templates/advancement/parts/advancement-ability-score-control.hbs" this canAdjust=true
+        {{> "systems/hunter-system/templates/advancement/parts/advancement-ability-score-control.hbs" this canAdjust=true
             canLock=true }}
         {{/each}}
     </ul>

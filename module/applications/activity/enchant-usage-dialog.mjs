@@ -11,7 +11,7 @@ export default class EnchantUsageDialog extends ActivityUsageDialog {
   static PARTS = {
     ...super.PARTS,
     creation: {
-      template: "systems/jujutsu-system/templates/activity/enchant-usage-creation.hbs"
+      template: "systems/hunter-system/templates/activity/enchant-usage-creation.hbs"
     }
   };
 
@@ -25,7 +25,7 @@ export default class EnchantUsageDialog extends ActivityUsageDialog {
 
     const enchantments = this.activity.availableEnchantments;
     if ( (enchantments.length > 1) && this._shouldDisplay("create.enchantment") ) {
-      const existingProfile = this.activity.existingEnchantment?.flags.JujutsuLegacy?.enchantmentProfile;
+      const existingProfile = this.activity.existingEnchantment?.flags.HunterLegacy?.enchantmentProfile;
       context.hasCreation = true;
       context.enchantment = {
         field: new StringField({ required: true, blank: false, label: game.i18n.localize("DND5E.ENCHANTMENT.Label") }),

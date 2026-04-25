@@ -176,7 +176,7 @@ export default class BaseActivityData extends foundry.abstract.DataModel {
    * @type {boolean}
    */
   get isRider() {
-    return !!this.item.getFlag("jujutsu-system", "riders.activity")?.includes(this.id);
+    return !!this.item.getFlag("hunter-system", "riders.activity")?.includes(this.id);
   }
 
   /* -------------------------------------------- */
@@ -186,7 +186,7 @@ export default class BaseActivityData extends foundry.abstract.DataModel {
    * @type {boolean}
    */
   get isScaledScroll() {
-    return !!this.item.getFlag("jujutsu-system", "spellLevel");
+    return !!this.item.getFlag("hunter-system", "spellLevel");
   }
 
   /* -------------------------------------------- */
@@ -277,7 +277,7 @@ export default class BaseActivityData extends foundry.abstract.DataModel {
       uses: this.transformUsesData(source, options)
     }, options);
     foundry.utils.setProperty(source, `system.activities.${activityData._id}`, activityData);
-    foundry.utils.setProperty(source, "flags.JujutsuLegacy.persistSourceMigration", true);
+    foundry.utils.setProperty(source, "flags.HunterLegacy.persistSourceMigration", true);
   }
 
   /* -------------------------------------------- */
@@ -777,7 +777,7 @@ export default class BaseActivityData extends foundry.abstract.DataModel {
       if ( this.item.system.damageBonus ) parts.push(String(this.item.system.damageBonus));
     }
 
-    const lastType = this.item.getFlag("jujutsu-system", `last.${this.id}.damageType.${index}`);
+    const lastType = this.item.getFlag("hunter-system", `last.${this.id}.damageType.${index}`);
 
     return {
       data, parts,

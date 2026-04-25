@@ -27,59 +27,59 @@ export default class NPCActorSheet extends BaseActorSheet {
   /** @override */
   static PARTS = {
     header: {
-      template: "systems/jujutsu-system/templates/actors/npc-header.hbs"
+      template: "systems/hunter-system/templates/actors/npc-header.hbs"
     },
     sidebarCollapser: {
       container: { classes: ["main-content"], id: "main" },
-      template: "systems/jujutsu-system/templates/actors/parts/sidebar-collapser.hbs"
+      template: "systems/hunter-system/templates/actors/parts/sidebar-collapser.hbs"
     },
     sidebar: {
       container: { classes: ["main-content"], id: "main" },
-      template: "systems/jujutsu-system/templates/actors/npc-sidebar.hbs"
+      template: "systems/hunter-system/templates/actors/npc-sidebar.hbs"
     },
     features: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-features.hbs",
-      templates: ["systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs"],
+      template: "systems/hunter-system/templates/actors/tabs/actor-features.hbs",
+      templates: ["systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs"],
       scrollable: [""]
     },
     inventory: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-inventory.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/actor-inventory.hbs",
       templates: [
-        "systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs",
-        "systems/jujutsu-system/templates/inventory/encumbrance.hbs"
+        "systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs",
+        "systems/hunter-system/templates/inventory/encumbrance.hbs"
       ],
       scrollable: [""]
     },
     spells: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/creature-spells.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/creature-spells.hbs",
       scrollable: [""]
     },
     effects: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-effects.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/actor-effects.hbs",
       scrollable: [""]
     },
     biography: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/npc-biography.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/npc-biography.hbs",
       scrollable: [""]
     },
     specialTraits: {
       classes: ["flexcol"],
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/creature-special-traits.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/creature-special-traits.hbs",
       scrollable: [""]
     },
     warnings: {
-      template: "systems/jujutsu-system/templates/actors/parts/actor-warnings-dialog.hbs"
+      template: "systems/hunter-system/templates/actors/parts/actor-warnings-dialog.hbs"
     },
     tabs: {
       id: "tabs",
       classes: ["tabs-right"],
-      template: "systems/jujutsu-system/templates/shared/sidebar-tabs.hbs"
+      template: "systems/hunter-system/templates/shared/sidebar-tabs.hbs"
     }
   };
 
@@ -88,7 +88,7 @@ export default class NPCActorSheet extends BaseActorSheet {
   /** @override */
   static TABS = [
     { tab: "features", label: "DND5E.Features", icon: "fas fa-list" },
-    { tab: "inventory", label: "DND5E.Inventory", svg: "systems/jujutsu-system/icons/svg/backpack.svg" },
+    { tab: "inventory", label: "DND5E.Inventory", svg: "systems/hunter-system/icons/svg/backpack.svg" },
     { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
     { tab: "effects", label: "DND5E.Effects", icon: "fas fa-bolt" },
     { tab: "biography", label: "DND5E.Biography", icon: "fas fa-feather" },
@@ -294,8 +294,8 @@ export default class NPCActorSheet extends BaseActorSheet {
       context.showDeathSaves = context.important && !context.system.attributes.hp.value;
       context.showInitiativeScore = dnd5e.settings.rulesVersion === "modern";
     }
-    context.showLoyalty = context.important && game.settings.get("jujutsu-system", "loyaltyScore") && game.user.isGM;
-    context.showRests = game.user.isGM || (this.actor.isOwner && game.settings.get("jujutsu-system", "allowRests"));
+    context.showLoyalty = context.important && game.settings.get("hunter-system", "loyaltyScore") && game.user.isGM;
+    context.showRests = game.user.isGM || (this.actor.isOwner && game.settings.get("hunter-system", "allowRests"));
 
     return context;
   }
@@ -364,7 +364,7 @@ export default class NPCActorSheet extends BaseActorSheet {
     });
 
     // Skills & Tools
-    const skillSetting = game.settings.get("jujutsu-system", "defaultSkills");
+    const skillSetting = game.settings.get("hunter-system", "defaultSkills");
     context.skills = this._prepareSkillsTools(context, "skills")
       .filter(v => v.prof.multiplier || skillSetting.has(v.key) || v.bonuses.check || v.bonuses.passive);
     context.tools = this._prepareSkillsTools(context, "tools");
@@ -717,7 +717,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
       await _npcApplyEnergyGeneration(actor, result.nd, result.multiplicador);
     } else {
       // Jogador envia as escolhas para o GM processar
-      game.socket.emit("system.jujutsu-system", {
+      game.socket.emit("system.hunter-system", {
         action: "npcEnergyChoices",
         actorId: actor.id,
         nd: result.nd,
@@ -727,7 +727,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
   }
   // GM emite socket para o dono se não for ele
   else if ( game.user.isGM ) {
-    game.socket.emit("system.jujutsu-system", {
+    game.socket.emit("system.hunter-system", {
       action: "npcEnergyDialog",
       actorId: actor.id,
       userId: owner.id
@@ -737,7 +737,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 
 // Explosão Defensiva do NPC — mesmo comportamento do jogador
 async function _npcExplosaoDefensiva(actor) {
-  const flagData     = actor.getFlag("jujutsu-system", "explosaoDefensivaPendente") ?? null;
+  const flagData     = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
   const pendente     = flagData?.reducao ?? 0;
   const pendenteCusto = flagData?.paCusto ?? 0;
 
@@ -749,7 +749,7 @@ async function _npcExplosaoDefensiva(actor) {
       no:  { label: "Manter" }
     });
     if ( !cancel ) return;
-    await actor.unsetFlag("jujutsu-system", "explosaoDefensivaPendente");
+    await actor.unsetFlag("hunter-system", "explosaoDefensivaPendente");
     const paAtual = actor.system?.energy?.generated ?? 0;
     await actor.update({ "system.energy.generated": paAtual + pendenteCusto });
     ui.notifications.info("Explosão Defensiva cancelada. PA devolvida.");
@@ -797,7 +797,7 @@ async function _npcExplosaoDefensiva(actor) {
   const roll = await new Roll(`${paGasto}d4`).evaluate();
   if ( game.dice3d ) game.dice3d.showForRoll(roll, game.user, true);
 
-  await actor.setFlag("jujutsu-system", "explosaoDefensivaPendente", { reducao: roll.total, paCusto: paGasto });
+  await actor.setFlag("hunter-system", "explosaoDefensivaPendente", { reducao: roll.total, paCusto: paGasto });
   await actor.update({ "system.energy.generated": Math.max(0, paDisp - paGasto) });
 
   await roll.toMessage({

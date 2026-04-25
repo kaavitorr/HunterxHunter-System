@@ -3,7 +3,7 @@
     <section class="sidebar">
         {{#each members}}
         <div class="encumbrance card" data-uuid="{{ uuid }}">
-            {{> "systems/jujutsu-system/templates/inventory/encumbrance.hbs" hidden=hiddenStats}}
+            {{> "systems/hunter-system/templates/inventory/encumbrance.hbs" hidden=hiddenStats}}
             <div class="stats">
                 <div class="portrait">
                     <img src="{{ img }}" alt="{{ name }}">
@@ -31,6 +31,6 @@
     </section>
 
     <section class="body">
-        {{> "systems/jujutsu-system/templates/inventory/inventory.hbs" }}
+        {{> "systems/hunter-system/templates/inventory/inventory.hbs" }}
     </section>
 </section>

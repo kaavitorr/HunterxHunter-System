@@ -28,7 +28,7 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
   static metadata = Object.freeze(
     foundry.utils.mergeObject(super.metadata, {
       type: "attack",
-      img: "systems/jujutsu-system/icons/svg/activity/attack.svg",
+      img: "systems/hunter-system/icons/svg/activity/attack.svg",
       title: "DND5E.ATTACK.Title.one",
       hint: "DND5E.ATTACK.Hint",
       sheetClass: AttackSheet,
@@ -49,7 +49,7 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
   _usageChatButtons(message) {
     const buttons = [{
       label: game.i18n.localize("DND5E.Attack"),
-      icon: '<i class="dnd5e-icon" data-src="systems/jujutsu-system/icons/svg/trait-weapon-proficiencies.svg" inert></i>',
+      icon: '<i class="dnd5e-icon" data-src="systems/hunter-system/icons/svg/trait-weapon-proficiencies.svg" inert></i>',
       dataset: {
         action: "rollAttack"
       }
@@ -68,7 +68,7 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
 
   /** @override */
   async _triggerSubsequentActions(config, results) {
-    this.rollAttack({ event: config.event }, {}, { data: { "flags.JujutsuLegacy.originatingMessage": results.message?.id } });
+    this.rollAttack({ event: config.event }, {}, { data: { "flags.HunterLegacy.originatingMessage": results.message?.id } });
   }
 
   /* -------------------------------------------- */
@@ -92,12 +92,12 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
     const buildConfig = this._buildAttackConfig.bind(this);
 
     const rollConfig = foundry.utils.mergeObject({
-      ammunition: this.item.getFlag("jujutsu-system", `last.${this.id}.ammunition`),
-      attackMode: this.item.getFlag("jujutsu-system", `last.${this.id}.attackMode`),
-      elvenAccuracy: this.actor?.getFlag("jujutsu-system", "elvenAccuracy")
+      ammunition: this.item.getFlag("hunter-system", `last.${this.id}.ammunition`),
+      attackMode: this.item.getFlag("hunter-system", `last.${this.id}.attackMode`),
+      elvenAccuracy: this.actor?.getFlag("hunter-system", "elvenAccuracy")
         && CONFIG.DND5E.characterFlags.elvenAccuracy.abilities.includes(this.ability),
-      halflingLucky: this.actor?.getFlag("jujutsu-system", "halflingLucky"),
-      mastery: this.item.getFlag("jujutsu-system", `last.${this.id}.mastery`),
+      halflingLucky: this.actor?.getFlag("hunter-system", "halflingLucky"),
+      mastery: this.item.getFlag("hunter-system", `last.${this.id}.mastery`),
       target: targets.length === 1 ? targets[0].ac : undefined
     }, config);
 
@@ -166,7 +166,7 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
     if ( !rolls.length ) return null;
     for ( const key of ["ammunition", "attackMode", "mastery"] ) {
       if ( !rolls[0].options[key] ) continue;
-      foundry.utils.setProperty(messageConfig.data, `flags.JujutsuLegacy.roll.${key}`, rolls[0].options[key]);
+      foundry.utils.setProperty(messageConfig.data, `flags.HunterLegacy.roll.${key}`, rolls[0].options[key]);
     }
     await CONFIG.Dice.D20Roll.buildPost(rolls, rollConfig, messageConfig);
 
@@ -192,7 +192,7 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
     else if ( rollConfig.attackMode ) rolls[0].options.attackMode = rollConfig.attackMode;
     if ( rolls[0].options.mastery ) flags.mastery = rolls[0].options.mastery;
     if ( canUpdate && !foundry.utils.isEmpty(flags) && (this.actor && this.actor.items.has(this.item.id)) ) {
-      await this.item.setFlag("jujutsu-system", `last.${this.id}`, flags);
+      await this.item.setFlag("hunter-system", `last.${this.id}`, flags);
     }
 
     /**
@@ -214,7 +214,7 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
       const messageId = messageConfig.data?.flags?.dnd5e?.originatingMessage
         ?? rollConfig.event?.target.closest("[data-message-id]")?.dataset.messageId;
       const attackMessage = dnd5e.registry.messages.get(messageId, "attack")?.pop();
-      await attackMessage?.setFlag("jujutsu-system", "roll.ammunitionData", data);
+      await attackMessage?.setFlag("hunter-system", "roll.ammunitionData", data);
       await this.actor.deleteEmbeddedDocuments("Item", [ammoUpdate.id]);
     }
     else if ( canUpdate && ammoUpdate ) await this.actor?.updateEmbeddedDocuments("Item", [
@@ -286,16 +286,16 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
    */
   static #rollDamage(event, target, message) {
     const lastAttack = message.getAssociatedRolls("attack").pop();
-    const attackMode = lastAttack?.getFlag("jujutsu-system", "roll.attackMode");
+    const attackMode = lastAttack?.getFlag("hunter-system", "roll.attackMode");
 
     // Fetch the ammunition used with the last attack roll
     let ammunition;
     const actor = lastAttack?.getAssociatedActor();
     if ( actor ) {
-      const storedData = lastAttack.getFlag("jujutsu-system", "roll.ammunitionData");
+      const storedData = lastAttack.getFlag("hunter-system", "roll.ammunitionData");
       ammunition = storedData
         ? new Item.implementation(storedData, { parent: actor })
-        : actor.items.get(lastAttack.getFlag("jujutsu-system", "roll.ammunition"));
+        : actor.items.get(lastAttack.getFlag("hunter-system", "roll.ammunition"));
     }
 
     const isCritical = lastAttack?.rolls[0]?.isCritical;

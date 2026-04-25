@@ -34,23 +34,23 @@ export default class TraitConfig extends AdvancementConfig {
   static PARTS = {
     config: {
       container: { classes: ["column-container"], id: "column-left" },
-      template: "systems/jujutsu-system/templates/advancement/advancement-controls-section.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-controls-section.hbs"
     },
     details: {
       container: { classes: ["column-container"], id: "column-left" },
-      template: "systems/jujutsu-system/templates/advancement/trait-config-details.hbs"
+      template: "systems/hunter-system/templates/advancement/trait-config-details.hbs"
     },
     guaranteed: {
       container: { classes: ["column-container"], id: "column-left" },
-      template: "systems/jujutsu-system/templates/advancement/trait-config-guaranteed.hbs"
+      template: "systems/hunter-system/templates/advancement/trait-config-guaranteed.hbs"
     },
     choices: {
       container: { classes: ["column-container"], id: "column-left" },
-      template: "systems/jujutsu-system/templates/advancement/trait-config-choices.hbs"
+      template: "systems/hunter-system/templates/advancement/trait-config-choices.hbs"
     },
     traits: {
       container: { classes: ["column-container"], id: "column-right" },
-      template: "systems/jujutsu-system/templates/advancement/trait-config-traits.hbs"
+      template: "systems/hunter-system/templates/advancement/trait-config-traits.hbs"
     }
   };
 

@@ -71,7 +71,7 @@ export default class AdvancementMigrationDialog extends Dialog5e {
         }
       ],
       content: await foundry.applications.handlebars.renderTemplate(
-        "systems/jujutsu-system/templates/advancement/advancement-migration-dialog.hbs",
+        "systems/hunter-system/templates/advancement/advancement-migration-dialog.hbs",
         { item, advancements: advancementContext }
       ),
       rejectClose: false,

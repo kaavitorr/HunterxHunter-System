@@ -43,7 +43,7 @@ export default class RequestMessageData extends ChatMessageDataModel {
     actions: {
       handleRequest: RequestMessageData.#handleRequest
     },
-    template: "systems/jujutsu-system/templates/chat/request-card.hbs"
+    template: "systems/hunter-system/templates/chat/request-card.hbs"
   }, { inplace: false }));
 
   /* -------------------------------------------- */
@@ -114,8 +114,8 @@ export default class RequestMessageData extends ChatMessageDataModel {
   static async #handleRequest(event, target) {
     const actor = fromUuidSync(target.closest("[data-uuid]").dataset.uuid);
     const result = await CONFIG.DND5E.requests[this.handler](actor, this.parent, this.data, { event });
-    if ( (result instanceof ChatMessage) && !result.getFlag("jujutsu-system", "requestResult") ) {
-      return result.setFlag("jujutsu-system", "requestResult", { actorUuid: actor.uuid, requestId: this.parent.id });
+    if ( (result instanceof ChatMessage) && !result.getFlag("hunter-system", "requestResult") ) {
+      return result.setFlag("hunter-system", "requestResult", { actorUuid: actor.uuid, requestId: this.parent.id });
     }
   }
 
@@ -126,7 +126,7 @@ export default class RequestMessageData extends ChatMessageDataModel {
    * @param {ChatMessage5e} message  The created chat message.
    */
   static onCreateMessage(message) {
-    const flag = message.getFlag("jujutsu-system", "requestResult");
+    const flag = message.getFlag("hunter-system", "requestResult");
     if ( flag && (game.users.activeGM === game.user) ) RequestMessageData.#updateRequestTargets(message, flag);
   }
 
@@ -140,7 +140,7 @@ export default class RequestMessageData extends ChatMessageDataModel {
    * @param {string} userId
    */
   static onUpdateResultMessage(message, changes, options, userId) {
-    const flag = foundry.utils.getProperty(changes, "flags.JujutsuLegacy.requestResult");
+    const flag = foundry.utils.getProperty(changes, "flags.HunterLegacy.requestResult");
     if ( flag && (game.users.activeGM === game.user) ) RequestMessageData.#updateRequestTargets(message, flag);
   }
 

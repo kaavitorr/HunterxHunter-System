@@ -19,23 +19,23 @@ export default class ItemChoiceConfig extends AdvancementConfig {
   static PARTS = {
     config: {
       container: { classes: ["column-container"], id: "column-left" },
-      template: "systems/jujutsu-system/templates/advancement/advancement-controls-section.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-controls-section.hbs"
     },
     details: {
       container: { classes: ["column-container"], id: "column-left" },
-      template: "systems/jujutsu-system/templates/advancement/item-choice-config-details.hbs"
+      template: "systems/hunter-system/templates/advancement/item-choice-config-details.hbs"
     },
     spellConfig: {
       container: { classes: ["column-container"], id: "column-left" },
-      template: "systems/jujutsu-system/templates/advancement/advancement-spell-config-section.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-spell-config-section.hbs"
     },
     items: {
       container: { classes: ["column-container"], id: "column-center" },
-      template: "systems/jujutsu-system/templates/advancement/item-choice-config-items.hbs"
+      template: "systems/hunter-system/templates/advancement/item-choice-config-items.hbs"
     },
     levels: {
       container: { classes: ["column-container"], id: "column-right" },
-      template: "systems/jujutsu-system/templates/advancement/item-choice-config-levels.hbs"
+      template: "systems/hunter-system/templates/advancement/item-choice-config-levels.hbs"
     }
   };
 

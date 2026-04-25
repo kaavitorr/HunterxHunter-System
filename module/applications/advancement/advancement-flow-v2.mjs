@@ -42,10 +42,10 @@ export default class AdvancementFlow extends Application5e {
   /** @override */
   static PARTS = {
     header: {
-      template: "systems/jujutsu-system/templates/advancement/advancement-flow-header.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-flow-header.hbs"
     },
     content: {
-      template: "systems/jujutsu-system/templates/advancement/advancement-flow-summary.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-flow-summary.hbs"
     }
   };
 

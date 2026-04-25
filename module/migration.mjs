@@ -191,7 +191,7 @@ export async function migrateWorld({ bypassVersionCheck=false }={}) {
   if ( legacyFolder ) legacyFolder.update({ name: "D&D Legacy Content" });
 
   // Set the migration as complete
-  game.settings.set("jujutsu-system", "systemMigrationVersion", game.system.version);
+  game.settings.set("hunter-system", "systemMigrationVersion", game.system.version);
   progress.element?.classList.add(hasErrors ? "warning" : "success");
   progress.update({ message: "MIGRATION.5eComplete", format: { version }, pct: 1 });
 }
@@ -446,7 +446,7 @@ export async function migrateSettings() {
     ?.find(s => s.key === "dnd5e.disableExperienceTracking")?.value;
   const levelingMode = game.settings.storage.get("world")?.find(s => s.key === "dnd5e.levelingMode")?.value;
   if ( (disableExperienceTracking !== undefined) && (levelingMode === undefined) ) {
-    await game.settings.set("jujutsu-system", "levelingMode", "noxp");
+    await game.settings.set("hunter-system", "levelingMode", "noxp");
   }
   // Migrate Disable Movement Automation to Movement Automation
   const disableMovementAutomation = game.settings.storage.get("world")
@@ -454,7 +454,7 @@ export async function migrateSettings() {
   const movementAutomation = game.settings.storage.get("world")
     ?.find(s => s.key === "dnd5e.movementAutomation")?.value;
   if ( (disableMovementAutomation !== undefined) && (movementAutomation === undefined) ) {
-    await game.settings.set("jujutsu-system", "movementAutomation", disableMovementAutomation ? "none" : "full");
+    await game.settings.set("hunter-system", "movementAutomation", disableMovementAutomation ? "none" : "full");
   }
 }
 
@@ -566,11 +566,11 @@ export function migrateItemData(item, itemData, migrationData, flags={}) {
 
   // Migrate embedded effects
   if ( itemData.effects ) {
-    const riders = foundry.utils.getProperty(itemData, "flags.JujutsuLegacy.riders.effect");
-    if ( riders?.length ) updateData["flags.JujutsuLegacy.riders.effect"] = riders;
+    const riders = foundry.utils.getProperty(itemData, "flags.HunterLegacy.riders.effect");
+    if ( riders?.length ) updateData["flags.HunterLegacy.riders.effect"] = riders;
     const effects = migrateEffects(itemData, migrationData, updateData, flags);
-    if ( riders?.length === updateData["flags.JujutsuLegacy.riders.effect"]?.length ) {
-      delete updateData["flags.JujutsuLegacy.riders.effect"];
+    if ( riders?.length === updateData["flags.HunterLegacy.riders.effect"]?.length ) {
+      delete updateData["flags.HunterLegacy.riders.effect"];
     }
     if ( effects.length > 0 ) updateData.effects = effects;
   }
@@ -590,13 +590,13 @@ export function migrateItemData(item, itemData, migrationData, flags={}) {
   }
 
   // Migrate properties
-  const migratedProperties = foundry.utils.getProperty(itemData, "flags.JujutsuLegacy.migratedProperties");
+  const migratedProperties = foundry.utils.getProperty(itemData, "flags.HunterLegacy.migratedProperties");
   if ( migratedProperties?.length ) {
     flags.persistSourceMigration = true;
     const properties = new Set(foundry.utils.getProperty(itemData, "system.properties") ?? [])
       .union(new Set(migratedProperties));
     updateData["system.properties"] = Array.from(properties);
-    updateData["flags.JujutsuLegacy.-=migratedProperties"] = null;
+    updateData["flags.HunterLegacy.-=migratedProperties"] = null;
   }
 
   // Migrate gear property
@@ -615,13 +615,13 @@ export function migrateItemData(item, itemData, migrationData, flags={}) {
   if ( (itemData.type === "spell") && !itemData.system?.sourceItem && flags.actorData?.items ) {
     // Try to identify the granting item from advancement or cast-activity flags.
     let grantingItemData;
-    const advancementOrigin = item.getFlag("jujutsu-system", "advancementOrigin");
+    const advancementOrigin = item.getFlag("hunter-system", "advancementOrigin");
     if ( advancementOrigin ) {
       const [itemId] = advancementOrigin.split(".");
       grantingItemData = flags.actorData.items.find(i => i._id === itemId);
     }
     if ( !grantingItemData ) {
-      const cachedFor = item.getFlag("jujutsu-system", "cachedFor");
+      const cachedFor = item.getFlag("hunter-system", "cachedFor");
       if ( cachedFor ) {
         const { embedded } = foundry.utils.parseUuid(cachedFor, { relative: item.parent }) ?? {};
         const [, itemId] = embedded ?? [];
@@ -634,9 +634,9 @@ export function migrateItemData(item, itemData, migrationData, flags={}) {
     }
   }
 
-  if ( foundry.utils.getProperty(itemData, "flags.JujutsuLegacy.persistSourceMigration") ) {
+  if ( foundry.utils.getProperty(itemData, "flags.HunterLegacy.persistSourceMigration") ) {
     flags.persistSourceMigration = true;
-    updateData["flags.JujutsuLegacy.-=persistSourceMigration"] = null;
+    updateData["flags.HunterLegacy.-=persistSourceMigration"] = null;
   }
 
   return updateData;
@@ -658,13 +658,13 @@ export function migrateEffects(parent, migrationData, itemUpdateData, flags={}) 
     const effectData = e instanceof CONFIG.ActiveEffect.documentClass ? e.toObject() : e;
     let effectUpdate = migrateEffectData(effectData, migrationData, { parent });
     if ( effectData.flags?.dnd5e?.rider ) {
-      itemUpdateData["flags.JujutsuLegacy.riders.effect"] ??= [];
-      itemUpdateData["flags.JujutsuLegacy.riders.effect"].push(effectData._id);
-      effectUpdate["flags.JujutsuLegacy.-=rider"] = null;
+      itemUpdateData["flags.HunterLegacy.riders.effect"] ??= [];
+      itemUpdateData["flags.HunterLegacy.riders.effect"].push(effectData._id);
+      effectUpdate["flags.HunterLegacy.-=rider"] = null;
     }
     if ( effectData.flags?.dnd5e?.persistSourceMigration ) {
       flags.persistSourceMigration = true;
-      effectUpdate["flags.JujutsuLegacy.-=persistSourceMigration"] = null;
+      effectUpdate["flags.HunterLegacy.-=persistSourceMigration"] = null;
     }
     if ( !foundry.utils.isEmpty(effectUpdate) ) {
       effectUpdate._id = effectData._id;
@@ -748,7 +748,7 @@ export function migrateMessageData(messageData) {
   const { flags } = messageData;
 
   if ( (flags?.dnd5e?.messageType === "usage") && (messageData.type !== "usage") ) {
-    const use = flags.JujutsuLegacy.use;
+    const use = flags.HunterLegacy.use;
     updateData.type = "usage";
     updateData["==system"] = {
       cause: use?.cause,
@@ -758,20 +758,20 @@ export function migrateMessageData(messageData) {
       scaling: use?.scaling,
       spellLevel: use?.spellLevel
     };
-    updateData["flags.JujutsuLegacy.-=messageType"] = null;
-    updateData["flags.JujutsuLegacy.-=scaling"] = null;
-    updateData["flags.JujutsuLegacy.use.-=cause"] = null;
-    updateData["flags.JujutsuLegacy.use.-=concentrationId"] = null;
-    updateData["flags.JujutsuLegacy.use.-=consumed"] = null;
-    updateData["flags.JujutsuLegacy.use.-=effects"] = null;
-    updateData["flags.JujutsuLegacy.use.-=spellLevel"] = null;
+    updateData["flags.HunterLegacy.-=messageType"] = null;
+    updateData["flags.HunterLegacy.-=scaling"] = null;
+    updateData["flags.HunterLegacy.use.-=cause"] = null;
+    updateData["flags.HunterLegacy.use.-=concentrationId"] = null;
+    updateData["flags.HunterLegacy.use.-=consumed"] = null;
+    updateData["flags.HunterLegacy.use.-=effects"] = null;
+    updateData["flags.HunterLegacy.use.-=spellLevel"] = null;
   }
 
   else if ( flags?.dnd5e?.bastion && (messageData.type === "base") ) {
-    const bastion = flags.JujutsuLegacy.bastion;
+    const bastion = flags.HunterLegacy.bastion;
     updateData.type = "orders" in bastion ? "bastionTurn" : "bastionAttack";
     updateData["==system"] = bastion;
-    updateData["flags.JujutsuLegacy.-=bastion"] = null;
+    updateData["flags.HunterLegacy.-=bastion"] = null;
   }
 
   return updateData;
@@ -833,8 +833,8 @@ export function migrateSceneData(scene, migrationData) {
 export async function getMigrationData() {
   const data = {};
   try {
-    const icons = await fetch("systems/jujutsu-system/json/icon-migration.json");
-    const spellIcons = await fetch("systems/jujutsu-system/json/spell-icon-migration.json");
+    const icons = await fetch("systems/hunter-system/json/icon-migration.json");
+    const spellIcons = await fetch("systems/hunter-system/json/spell-icon-migration.json");
     data.iconMap = {...await icons.json(), ...await spellIcons.json()};
   } catch(err) {
     console.warn(`Failed to retrieve icon migration data: ${err.message}`);
@@ -919,11 +919,11 @@ function _migrateActorAC(actorData, updateData) {
  * @private
  */
 function _migrateActorFlags(actorData, updateData) {
-  const initiativeAdv = foundry.utils.getProperty(actorData, "flags.JujutsuLegacy.initiativeAdv");
+  const initiativeAdv = foundry.utils.getProperty(actorData, "flags.HunterLegacy.initiativeAdv");
   if ( initiativeAdv ) {
     const key = "system.attributes.init.roll.mode";
     updateData[key] = Math.min(1, (foundry.utils.getProperty(actorData, key) ?? 0) + 1);
-    updateData["flags.JujutsuLegacy.-=initiativeAdv"] = null;
+    updateData["flags.HunterLegacy.-=initiativeAdv"] = null;
   }
   return updateData;
 }
@@ -966,7 +966,7 @@ function _migrateTokenImage(actorData, updateData) {
     const v = foundry.utils.getProperty(actorData, path);
     if ( oldSystemPNG.test(v) ) {
       const [type, fileName] = v.match(oldSystemPNG).slice(1);
-      updateData[path] = `systems/jujutsu-system/tokens/${type}/${fileName}.webp`;
+      updateData[path] = `systems/hunter-system/tokens/${type}/${fileName}.webp`;
     }
   }
   return updateData;
@@ -1024,13 +1024,13 @@ function _migrateEffectArmorClass(effect, updateData) {
  * @param {object} flags       Track the needs migration flag.
  */
 function _migrateItemUses(item, itemData, updateData, flags) {
-  const value = foundry.utils.getProperty(itemData, "flags.JujutsuLegacy.migratedUses");
+  const value = foundry.utils.getProperty(itemData, "flags.HunterLegacy.migratedUses");
   const max = foundry.utils.getProperty(item, "system.uses.max");
   if ( (value !== undefined) && (max !== undefined) && Number.isNumeric(value) && Number.isNumeric(max) ) {
     foundry.utils.setProperty(updateData, "system.uses.spent", parseInt(max) - parseInt(value));
     flags.persistSourceMigration = true;
   }
-  if ( value !== undefined ) updateData["flags.JujutsuLegacy.-=migratedUses"] = null;
+  if ( value !== undefined ) updateData["flags.HunterLegacy.-=migratedUses"] = null;
 }
 
 /* -------------------------------------------- */
@@ -1081,7 +1081,7 @@ function _migrateMacroCommands(macro, updateData) {
  */
 export async function purgeFlags(pack) {
   const cleanFlags = flags => {
-    const flags5e = flags.JujutsuLegacy || null;
+    const flags5e = flags.HunterLegacy || null;
     return flags5e ? {dnd5e: flags5e} : {};
   };
   await pack.configure({locked: false});

@@ -55,13 +55,13 @@ export default class RollConfigurationDialog extends Dialog5e {
   /** @override */
   static PARTS = {
     formulas: {
-      template: "systems/jujutsu-system/templates/dice/roll-formulas.hbs"
+      template: "systems/hunter-system/templates/dice/roll-formulas.hbs"
     },
     configuration: {
-      template: "systems/jujutsu-system/templates/dice/roll-configuration.hbs"
+      template: "systems/hunter-system/templates/dice/roll-configuration.hbs"
     },
     buttons: {
-      template: "systems/jujutsu-system/templates/dice/roll-buttons.hbs"
+      template: "systems/hunter-system/templates/dice/roll-buttons.hbs"
     }
   };
 
@@ -149,7 +149,7 @@ export default class RollConfigurationDialog extends Dialog5e {
       // entirely.
       if ( !this.options.rendering.dice.denominations.has(term.denomination) ) return shouldDisplay = false;
       for ( let i = 0; i < term.number; i++ ) dice.push({
-        icon: `systems/jujutsu-system/icons/svg/dice/${term.denomination}.svg`,
+        icon: `systems/hunter-system/icons/svg/dice/${term.denomination}.svg`,
         label: term.denomination,
         denomination: term.denomination
       });

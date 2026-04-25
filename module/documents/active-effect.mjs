@@ -21,7 +21,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
    * The default icon used for newly created Active Effect documents.
    * @type {string}
    */
-  static DEFAULT_ICON = "systems/jujutsu-system/icons/svg/documents/active-effect.svg";
+  static DEFAULT_ICON = "systems/hunter-system/icons/svg/documents/active-effect.svg";
 
   /* -------------------------------------------- */
 
@@ -86,7 +86,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
    */
   get dependentOrigin() {
     if ( !(this.parent instanceof Item) ) return null;
-    return this.parent.effects.get(this.flags.JujutsuLegacy?.dependentOn) ?? null;
+    return this.parent.effects.get(this.flags.HunterLegacy?.dependentOn) ?? null;
   }
 
   /* -------------------------------------------- */
@@ -109,7 +109,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
     if ( this.target?.testUserPermission(game.user, "OBSERVER") ) return false;
 
     // Hide bloodied status effect from players unless the token is friendly
-    if ( (this.id === this.constructor.ID.BLOODIED) && (game.settings.get("jujutsu-system", "bloodied") === "player") ) {
+    if ( (this.id === this.constructor.ID.BLOODIED) && (game.settings.get("hunter-system", "bloodied") === "player") ) {
       return this.target?.token?.disposition !== foundry.CONST.TOKEN_DISPOSITIONS.FRIENDLY;
     }
 
@@ -133,7 +133,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
 
   /** @inheritDoc */
   get isTemporary() {
-    return !this.isConcealed && (super.isTemporary || this.getFlag("jujutsu-system", "isTemporary"));
+    return !this.isConcealed && (super.isTemporary || this.getFlag("hunter-system", "isTemporary"));
   }
 
   /* -------------------------------------------- */
@@ -167,8 +167,8 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
 
     if ( data.flags?.dnd5e?.type === "enchantment" ) {
       data.type = "enchantment";
-      delete data.flags.JujutsuLegacy.type;
-      foundry.utils.setProperty(data, "flags.JujutsuLegacy.persistSourceMigration", true);
+      delete data.flags.HunterLegacy.type;
+      foundry.utils.setProperty(data, "flags.HunterLegacy.persistSourceMigration", true);
     }
 
     return super._initializeSource(data, options);
@@ -180,7 +180,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
   static migrateData(data) {
     data = super.migrateData(data);
     for ( const change of data.changes ?? [] ) {
-      if ( change.key === "flags.JujutsuLegacy.initiativeAdv" ) {
+      if ( change.key === "flags.HunterLegacy.initiativeAdv" ) {
         change.key = "system.attributes.init.roll.mode";
         change.mode = CONST.ACTIVE_EFFECT_MODES.ADD;
         change.value = 1;
@@ -199,7 +199,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
     change = this._applyChangeShim(change);
 
     // Ensure changes targeting flags use the proper types
-    if ( change.key.startsWith("flags.JujutsuLegacy.") ) change = this._prepareFlagChange(doc, change);
+    if ( change.key.startsWith("flags.HunterLegacy.") ) change = this._prepareFlagChange(doc, change);
 
     // Properly handle formulas that don't exist as part of the data model
     if ( ActiveEffect5e.FORMULA_FIELDS.has(change.key) ) {
@@ -221,7 +221,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
   /** @inheritDoc */
   static applyChange(model, change, options={}) {
     change = change.effect._applyChangeShim(change);
-    if ( change.key.startsWith("flags.JujutsuLegacy.") ) change = change.effect._prepareFlagChange(model, change);
+    if ( change.key.startsWith("flags.HunterLegacy.") ) change = change.effect._prepareFlagChange(model, change);
     if ( ActiveEffect5e.FORMULA_FIELDS.has(change.key) ) {
       const field = new FormulaField({ deterministic: change.key !== "system.damageBonus" });
       return { [change.key]: this.applyChangeField(model, change, { field }) };
@@ -378,7 +378,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
    */
   _prepareFlagChange(actor, change) {
     const { key, value } = change;
-    const data = CONFIG.DND5E.characterFlags[key.replace("flags.JujutsuLegacy.", "")];
+    const data = CONFIG.DND5E.characterFlags[key.replace("flags.HunterLegacy.", "")];
     if ( !data ) return change;
 
     // Set flag to initial value if it isn't present
@@ -426,7 +426,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
    */
   _prepareExhaustionLevel() {
     const config = CONFIG.DND5E.conditionTypes.exhaustion;
-    let level = this.getFlag("jujutsu-system", "exhaustionLevel");
+    let level = this.getFlag("hunter-system", "exhaustionLevel");
     if ( !Number.isFinite(level) ) level = 1;
     this.img = this.constructor._getExhaustionImage(level);
     this.name = `${game.i18n.localize("DND5E.Exhaustion")} ${level}`;
@@ -461,7 +461,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
   async createRiderConditions() {
     const riders = new Set();
 
-    for ( const status of this.getFlag("jujutsu-system", "riders.statuses") ?? [] ) {
+    for ( const status of this.getFlag("hunter-system", "riders.statuses") ?? [] ) {
       riders.add(status);
     }
 
@@ -499,7 +499,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
       const message = game.messages.get(options?.chatMessageOrigin);
       item = message?.getAssociatedItem();
       const activity = message?.getAssociatedActivity();
-      profile = activity?.effects.find(e => e._id === message?.getFlag("jujutsu-system", "use.enchantmentProfile"));
+      profile = activity?.effects.find(e => e._id === message?.getFlag("hunter-system", "use.enchantmentProfile"));
     } else if ( enchantmentProfile && activityId ) {
       let activity;
       const origin = await fromUuid(this.origin);
@@ -522,7 +522,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
       const activityData = item.system.activities.get(id)?.toObject();
       if ( !activityData ) continue;
       activityData._id = foundry.utils.randomID();
-      foundry.utils.setProperty(activityData, "flags.JujutsuLegacy.dependentOn", this.id);
+      foundry.utils.setProperty(activityData, "flags.HunterLegacy.dependentOn", this.id);
       riderActivities[activityData._id] = activityData;
     }
     let createdActivities = [];
@@ -545,7 +545,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
       return effectData;
     }));
     riderEffects = riderEffects.filter(_ => _);
-    riderEffects.forEach(e => foundry.utils.setProperty(e, "flags.JujutsuLegacy.dependentOn", this.id));
+    riderEffects.forEach(e => foundry.utils.setProperty(e, "flags.HunterLegacy.dependentOn", this.id));
     await this.parent.createEmbeddedDocuments("ActiveEffect", riderEffects, { keepId: true });
 
     // Create Items
@@ -554,8 +554,8 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
         (await Promise.all(profile.riders.item.map(uuid => fromUuid(uuid)))).filter(_ => _), {
           transformAll: item => {
             const itemData = item.clone({}, { keepId: true }).toObject();
-            foundry.utils.setProperty(itemData, "flags.JujutsuLegacy.dependentOn", this.uuid);
-            foundry.utils.setProperty(itemData, "flags.JujutsuLegacy.enchantment.origin", this.uuid);
+            foundry.utils.setProperty(itemData, "flags.HunterLegacy.dependentOn", this.uuid);
+            foundry.utils.setProperty(itemData, "flags.HunterLegacy.enchantment.origin", this.uuid);
             return itemData;
           }
         }
@@ -623,7 +623,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
   _onUpdate(data, options, userId) {
     super._onUpdate(data, options, userId);
     const originalLevel = foundry.utils.getProperty(options, "dnd5e.originalExhaustion");
-    const newLevel = foundry.utils.getProperty(data, "flags.JujutsuLegacy.exhaustionLevel");
+    const newLevel = foundry.utils.getProperty(data, "flags.HunterLegacy.exhaustionLevel");
     const originalEncumbrance = foundry.utils.getProperty(options, "dnd5e.originalEncumbrance");
     const newEncumbrance = data.statuses?.[0];
     const name = this.name;
@@ -705,7 +705,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
         type: game.i18n.localize(`TYPES.Item.${item.type}`)
       })}</p><hr><p>@Embed[${item.uuid} inline]</p>`,
       duration: activity.duration.getEffectData(),
-      "flags.JujutsuLegacy": {
+      "flags.HunterLegacy": {
         activity: {
           type: activity.type, id: activity.id, uuid: activity.uuid
         },
@@ -718,7 +718,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
       statuses: [statusEffect.id].concat(statusEffect.statuses ?? [])
     }, data, {inplace: false});
     delete effectData.id;
-    if ( item.type === "spell" ) effectData["flags.JujutsuLegacy.spellLevel"] = item.system.level;
+    if ( item.type === "spell" ) effectData["flags.HunterLegacy.spellLevel"] = item.system.level;
 
     return effectData;
   }
@@ -747,8 +747,8 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
       label: game.i18n.localize("DND5E.CONDITIONS.RiderConditions.label"),
       hint: game.i18n.localize("DND5E.CONDITIONS.RiderConditions.hint")
     }, {
-      name: "flags.JujutsuLegacy.riders.statuses",
-      value: app.document.getFlag("jujutsu-system", "riders.statuses") ?? [],
+      name: "flags.HunterLegacy.riders.statuses",
+      value: app.document.getFlag("hunter-system", "riders.statuses") ?? [],
       options: CONFIG.statusEffects.map(se => ({ value: se.id, label: se.name })),
       disabled: !context.editable
     });
@@ -855,7 +855,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
       return;
     }
     const choices = effects.reduce((acc, effect) => {
-      const data = effect.getFlag("jujutsu-system", "item");
+      const data = effect.getFlag("hunter-system", "item");
       acc[effect.id] = data?.name ?? actor.items.get(data?.id)?.name ?? game.i18n.localize("DND5E.ConcentratingItemless");
       return acc;
     }, {});
@@ -893,7 +893,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
       "Dependent documents are now tracked using the `dependentOn` flag on the document itself.",
       { since: "DnD5e 5.2", until: "DnD5e 6.0", once: true }
     );
-    return Promise.all(dependent.map(d => d.setFlag("jujutsu-system", "dependentOn", this.uuid))).then(() => this);
+    return Promise.all(dependent.map(d => d.setFlag("hunter-system", "dependentOn", this.uuid))).then(() => this);
   }
 
   /* -------------------------------------------- */
@@ -905,7 +905,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
   getDependents() {
     const actor = this.parent instanceof Actor ? this.parent : this.parent?.parent;
     const item = this.parent instanceof Item ? this.parent : null;
-    return (this.getFlag("jujutsu-system", "dependents") || []).reduce((arr, { uuid }) => {
+    return (this.getFlag("hunter-system", "dependents") || []).reduce((arr, { uuid }) => {
       let doc;
       // TODO: Remove this special casing once https://github.com/foundryvtt/foundryvtt/issues/11214 is resolved
       if ( this.parent.pack && uuid.includes(this.parent.uuid) ) {
@@ -995,7 +995,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
 
     return {
       content: await foundry.applications.handlebars.renderTemplate(
-        "systems/jujutsu-system/templates/effects/parts/effect-tooltip.hbs", {
+        "systems/hunter-system/templates/effects/parts/effect-tooltip.hbs", {
           effect: this,
           description: await TextEditor.enrichHTML(this.description ?? "", { relativeTo: this, ...enrichmentOptions }),
           durationParts: this.duration.remaining ? this.duration.label.split(", ") : [],

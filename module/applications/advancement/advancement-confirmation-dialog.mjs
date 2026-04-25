@@ -23,7 +23,7 @@ export default class AdvancementConfirmationDialog extends Dialog5e {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/advancement/advancement-confirmation-dialog.hbs"
+      template: "systems/hunter-system/templates/advancement/advancement-confirmation-dialog.hbs"
     }
   };
 

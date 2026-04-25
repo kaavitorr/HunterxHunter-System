@@ -14,7 +14,7 @@ export default class JournalRulePageSheet extends foundry.applications.sheets.jo
     header: super.EDIT_PARTS.header,
     content: super.EDIT_PARTS.content,
     tooltip: {
-      template: "systems/jujutsu-system/templates/journal/page-rule-edit.hbs"
+      template: "systems/hunter-system/templates/journal/page-rule-edit.hbs"
     },
     footer: super.EDIT_PARTS.footer
   };

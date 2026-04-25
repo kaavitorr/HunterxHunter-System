@@ -38,7 +38,7 @@ export default class BastionAttackDialog extends Dialog5e {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/apps/bastion-attack-dialog.hbs"
+      template: "systems/hunter-system/templates/apps/bastion-attack-dialog.hbs"
     }
   };
 

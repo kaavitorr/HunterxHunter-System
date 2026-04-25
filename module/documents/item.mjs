@@ -35,7 +35,7 @@ const TextEditor = foundry.applications.ux.TextEditor.implementation;
 export default class Item5e extends SystemDocumentMixin(Item) {
 
   /** @override */
-  static DEFAULT_ICON = "systems/jujutsu-system/icons/svg/documents/item.svg";
+  static DEFAULT_ICON = "systems/hunter-system/icons/svg/documents/item.svg";
 
   /* -------------------------------------------- */
 
@@ -97,7 +97,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
     // Migrate backpack -> container.
     if ( data.type === "backpack" ) {
       data.type = "container";
-      foundry.utils.setProperty(data, "flags.JujutsuLegacy.persistSourceMigration", true);
+      foundry.utils.setProperty(data, "flags.HunterLegacy.persistSourceMigration", true);
     }
 
     /**
@@ -149,7 +149,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
    * @type {boolean}
    */
   get canDelete() {
-    return !this.flags.JujutsuLegacy?.cachedFor;
+    return !this.flags.HunterLegacy?.cachedFor;
   }
 
   /* -------------------------------------------- */
@@ -160,7 +160,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
    */
   get canDuplicate() {
     return !this.system.metadata?.singleton && !["class", "subclass"].includes(this.type)
-      && !this.flags.JujutsuLegacy?.cachedFor;
+      && !this.flags.HunterLegacy?.cachedFor;
   }
 
   /* --------------------------------------------- */
@@ -195,7 +195,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
    * @type {ActiveEffect5e|null}
    */
   get dependentOrigin() {
-    return fromUuidSync(this.flags.JujutsuLegacy?.dependentOn, { relative: this, strict: false }) ?? null;
+    return fromUuidSync(this.flags.HunterLegacy?.dependentOn, { relative: this, strict: false }) ?? null;
   }
 
   /* -------------------------------------------- */
@@ -403,7 +403,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
    * @type {number}
    */
   get scalingIncrease() {
-    return this.system?.scalingIncrease ?? this.getFlag("jujutsu-system", "scaling") ?? 0;
+    return this.system?.scalingIncrease ?? this.getFlag("hunter-system", "scaling") ?? 0;
   }
 
   /* -------------------------------------------- */
@@ -749,7 +749,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
       create: message?.createMessage ?? true,
       data: {
         content: await foundry.applications.handlebars.renderTemplate(
-          "systems/jujutsu-system/templates/chat/item-card.hbs", context
+          "systems/hunter-system/templates/chat/item-card.hbs", context
         ),
         flags: {
           "dnd5e.item": { id: this.id, uuid: this.uuid, type: this.type }
@@ -1168,7 +1168,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
   /** @inheritDoc */
   async deleteDialog({ sheet, ...dialogOptions }={}, operation={}) {
     // If item has advancement, handle it separately
-    if ( this.actor?.system.metadata?.supportsAdvancement && !game.settings.get("jujutsu-system", "disableAdvancements") ) {
+    if ( this.actor?.system.metadata?.supportsAdvancement && !game.settings.get("hunter-system", "disableAdvancements") ) {
       const manager = AdvancementManager.forDeletedItem(this.actor, this.id);
       if ( manager.steps.length ) {
         try {
@@ -1334,7 +1334,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
     }
 
     config = foundry.utils.mergeObject({
-      explanation: game.user.getFlag("jujutsu-system", "creation.scrollExplanation") ?? "reference",
+      explanation: game.user.getFlag("hunter-system", "creation.scrollExplanation") ?? "reference",
       level: spell.system.level,
       values
     }, config);
@@ -1343,16 +1343,16 @@ export default class Item5e extends SystemDocumentMixin(Item) {
       const result = await CreateScrollDialog.create(spell, config);
       if ( !result ) return;
       foundry.utils.mergeObject(config, result);
-      await game.user.setFlag("jujutsu-system", "creation.scrollExplanation", config.explanation);
+      await game.user.setFlag("hunter-system", "creation.scrollExplanation", config.explanation);
     }
 
     // Get spell data
     const itemData = (spell instanceof Item5e) ? spell.toObject() : spell;
     const flags = itemData.flags ?? {};
     if ( Number.isNumeric(config.level) ) {
-      flags.JujutsuLegacy ??= {};
-      flags.JujutsuLegacy.scaling = Math.max(0, config.level - spell.system.level);
-      flags.JujutsuLegacy.spellLevel = {
+      flags.HunterLegacy ??= {};
+      flags.HunterLegacy.scaling = Math.max(0, config.level - spell.system.level);
+      flags.HunterLegacy.spellLevel = {
         value: config.level,
         base: spell.system.level
       };
@@ -1457,7 +1457,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
     const values = {};
 
     config = foundry.utils.mergeObject({
-      explanation: game.user.getFlag("jujutsu-system", "creation.scrollExplanation") ?? "reference",
+      explanation: game.user.getFlag("hunter-system", "creation.scrollExplanation") ?? "reference",
       level: spell.system.level,
       values
     }, config);
@@ -1466,7 +1466,7 @@ export default class Item5e extends SystemDocumentMixin(Item) {
       const result = await CreateScrollDialog.create(spell, config);
       if ( !result ) return;
       foundry.utils.mergeObject(config, result);
-      await game.user.setFlag("jujutsu-system", "creation.scrollExplanation", config.explanation);
+      await game.user.setFlag("hunter-system", "creation.scrollExplanation", config.explanation);
     }
 
     /**

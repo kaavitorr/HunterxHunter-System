@@ -21,7 +21,7 @@ export default class ItemChoiceFlow extends ItemGrantFlow {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/advancement/item-choice-flow.hbs"
+      template: "systems/hunter-system/templates/advancement/item-choice-flow.hbs"
     }
   };
 
@@ -148,7 +148,7 @@ export default class ItemChoiceFlow extends ItemGrantFlow {
       isCurrentLevel: true,
       items: [...this.pool, ...dropped].reduce((arr, item) => {
         const { id, name, img } = item;
-        const uuid = item.flags.JujutsuLegacy?.sourceId ?? item.uuid;
+        const uuid = item.flags.HunterLegacy?.sourceId ?? item.uuid;
         const validFeature = !item.system.validatePrerequisites || (item.system.validatePrerequisites(
           this.advancement.actor, { added, removed, level: this.featureLevel }
         ) === true);

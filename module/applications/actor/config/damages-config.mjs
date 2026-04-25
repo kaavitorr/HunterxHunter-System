@@ -17,7 +17,7 @@ export default class DamagesConfig extends TraitsConfig {
   /** @override */
   static PARTS = {
     traits: {
-      template: "systems/jujutsu-system/templates/actors/config/damages-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/damages-config.hbs"
     }
   };
 

@@ -16,13 +16,13 @@ export default class CombatSettingsConfig extends BaseSettingsConfig {
   /** @override */
   static PARTS = {
     initiative: {
-      template: "systems/jujutsu-system/templates/settings/base-config.hbs"
+      template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
     criticals: {
-      template: "systems/jujutsu-system/templates/settings/base-config.hbs"
+      template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
     npcs: {
-      template: "systems/jujutsu-system/templates/settings/base-config.hbs"
+      template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
     footer: {
       template: "templates/generic/form-footer.hbs"

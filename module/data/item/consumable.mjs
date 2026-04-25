@@ -158,7 +158,7 @@ export default class ConsumableData extends ItemDataModel.mixin(
    * @returns {number}
    */
   get proficiencyMultiplier() {
-    const isProficient = this.parent?.actor?.getFlag("jujutsu-system", "tavernBrawlerFeat");
+    const isProficient = this.parent?.actor?.getFlag("hunter-system", "tavernBrawlerFeat");
     return isProficient ? 1 : 0;
   }
 
@@ -319,7 +319,7 @@ export default class ConsumableData extends ItemDataModel.mixin(
   /** @inheritDoc */
   getRollData(...options) {
     const data = super.getRollData(...options);
-    const spellLevel = this.parent.getFlag("jujutsu-system", "spellLevel");
+    const spellLevel = this.parent.getFlag("hunter-system", "spellLevel");
     if ( spellLevel ) data.item.level = spellLevel.value ?? spellLevel.base;
     return data;
   }

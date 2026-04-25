@@ -36,7 +36,7 @@ export default class TurnMessageData extends ChatMessageDataModel {
 
   /** @inheritDoc */
   static metadata = Object.freeze(foundry.utils.mergeObject(super.metadata, {
-    template: "systems/jujutsu-system/templates/chat/turn-card.hbs"
+    template: "systems/hunter-system/templates/chat/turn-card.hbs"
   }, { inplace: false }));
 
   /* -------------------------------------------- */

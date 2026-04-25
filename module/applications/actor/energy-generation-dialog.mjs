@@ -19,7 +19,7 @@ export default class EnergyGenerationDialog extends Dialog5e {
   static PARTS = {
     ...super.PARTS,
     content: {
-      template: "systems/jujutsu-system/templates/actors/energy-generation-dialog.hbs"
+      template: "systems/hunter-system/templates/actors/energy-generation-dialog.hbs"
     }
   };
 
@@ -30,7 +30,7 @@ export default class EnergyGenerationDialog extends Dialog5e {
 
   /** @override */
   get title() {
-    return `Geração de Energia — ${this.actor?.name ?? ""}`;
+    return `Geração de Aura — ${this.actor?.name ?? ""}`;
   }
 
   /** @inheritDoc */

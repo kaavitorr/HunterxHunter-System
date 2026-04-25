@@ -17,7 +17,7 @@ static DEFAULT_OPTIONS = {
   /** @override */
   static PARTS = {
     config: {
-      template: "systems/jujutsu-system/templates/actors/config/cursed-energy-dice-config.hbs"
+      template: "systems/hunter-system/templates/actors/config/cursed-energy-dice-config.hbs"
     }
   };
 

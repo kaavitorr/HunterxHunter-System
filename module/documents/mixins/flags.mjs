@@ -21,8 +21,8 @@ export default function SystemFlagsMixin(Base) {
     /** @inheritDoc */
     prepareData() {
       super.prepareData();
-      if ( ("jujutsu-system" in this.flags) && this._systemFlagsDataModel ) {
-        this.flags.JujutsuLegacy = new this._systemFlagsDataModel(this._source.flags.JujutsuLegacy, { parent: this });
+      if ( ("hunter-system" in this.flags) && this._systemFlagsDataModel ) {
+        this.flags.HunterLegacy = new this._systemFlagsDataModel(this._source.flags.HunterLegacy, { parent: this });
       }
     }
 
@@ -30,10 +30,10 @@ export default function SystemFlagsMixin(Base) {
 
     /** @inheritDoc */
     async setFlag(scope, key, value) {
-      if ( (scope === "jujutsu-system") && this._systemFlagsDataModel ) {
+      if ( (scope === "hunter-system") && this._systemFlagsDataModel ) {
         let diff;
         const changes = foundry.utils.expandObject({ [key]: value });
-        if ( this.flags.JujutsuLegacy ) diff = this.flags.JujutsuLegacy.updateSource(changes, { dryRun: true });
+        if ( this.flags.HunterLegacy ) diff = this.flags.HunterLegacy.updateSource(changes, { dryRun: true });
         else diff = new this._systemFlagsDataModel(changes, { parent: this }).toObject();
         return this.update({ flags: { dnd5e: diff } });
       }

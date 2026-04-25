@@ -16,11 +16,11 @@ export default class HealSheet extends ActivitySheet {
   static PARTS = {
     ...super.PARTS,
     effect: {
-      template: "systems/jujutsu-system/templates/activity/heal-effect.hbs",
+      template: "systems/hunter-system/templates/activity/heal-effect.hbs",
       templates: [
         ...super.PARTS.effect.templates,
-        "systems/jujutsu-system/templates/activity/parts/damage-part.hbs",
-        "systems/jujutsu-system/templates/activity/parts/heal-healing.hbs"
+        "systems/hunter-system/templates/activity/parts/damage-part.hbs",
+        "systems/hunter-system/templates/activity/parts/heal-healing.hbs"
       ]
     }
   };

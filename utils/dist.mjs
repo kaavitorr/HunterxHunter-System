@@ -76,7 +76,7 @@ function compileManifest() {
   const systemManifest = JSON.parse(fs.readFileSync(path.join(paths.dist, "system.json"), "utf8"));
 
   // Merge changes.
-  Object.assign(systemManifest.flags.JujutsuLegacy.sourceBooks, freeManifest.flags?.dnd5e?.sourceBooks ?? {});
+  Object.assign(systemManifest.flags.HunterLegacy.sourceBooks, freeManifest.flags?.dnd5e?.sourceBooks ?? {});
 
   // Remove flags.
   delete systemManifest.flags.hotReload;
@@ -111,7 +111,7 @@ function copyCompendiumContent() {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
 
     let data = fs.readFileSync(src, "utf8");
-    data = data.replaceAll("modules/dnd-free-rules/icons/", "systems/jujutsu-system/icons/");
+    data = data.replaceAll("modules/dnd-free-rules/icons/", "systems/hunter-system/icons/");
     console.info(`Writing ${dest}...`);
     fs.writeFileSync(dest, data, { mode: 0o644 });
   }
