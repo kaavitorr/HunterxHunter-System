@@ -222,27 +222,41 @@ export default class CharacterData extends CreatureTemplate {
         }), { label: "JUJUTSU.Manipulation.Abilities" })
       }, { label: "JUJUTSU.Manipulation.Label" }),
 
-      // Categorias Nen (HxH) — nível 0-10 por categoria
+      // Categorias Nen (HxH) — habilidades desbloqueadas por categoria
       nenCategories: new SchemaField({
         aprimorador: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
           dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
         }),
         emissor: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
           dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
         }),
         transmutador: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
           dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
         }),
         conjurador: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
           dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
         }),
         manipulador: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
           dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
         }),
         especialista: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
           dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
         })
       }),
+      // Contador de habilidades principais desbloqueadas
+      nenMajorCount: new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
       energyDice: new SchemaField({
         value: new NumberField({
           required: true, nullable: false, integer: true, min: 0, initial: 0,

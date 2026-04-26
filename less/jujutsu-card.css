@@ -1817,9 +1817,9 @@
 }
 
 .nen-hexagon-svg {
-  width: 260px;
-  height: 260px;
-  filter: drop-shadow(0 0 12px rgba(180, 140, 30, 0.2));
+  width: 320px;
+  height: 320px;
+  filter: drop-shadow(0 0 16px rgba(180, 140, 30, 0.3));
 }
 
 /* ── GRID DE CATEGORIAS ─────────────────────────────── */
@@ -1900,4 +1900,243 @@
 
 .nen-pip.filled {
   color: rgba(180, 140, 30, 0.85);
+}
+
+
+/* ── CONTADOR DE HABILIDADES PRINCIPAIS ─────────────── */
+.nen-major-counter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 10px;
+}
+
+.nen-major-counter-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nen-major-counter-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(220,180,60,0.9);
+}
+
+/* ── LISTA DE CATEGORIAS (coluna única) ─────────────── */
+.nen-categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 10px 16px;
+}
+
+/* ── SEÇÃO DE HABILIDADES ───────────────────────────── */
+.nen-abilities-section {
+  margin-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 6px;
+}
+
+.nen-abilities-title {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.nen-abilities-title.minor { color: rgba(180,220,180,0.6); }
+.nen-abilities-title.major { color: rgba(220,180,60,0.7); }
+
+/* ── CARD DE HABILIDADE ─────────────────────────────── */
+.nen-ability-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+}
+
+.nen-ability-card.minor { border-left: 2px solid rgba(180,220,180,0.4); }
+.nen-ability-card.major { border-left: 2px solid rgba(220,180,60,0.4); }
+.nen-ability-card.unlocked { border-left-color: rgba(100,220,100,0.7); }
+.nen-ability-card.exclusive { border-left-color: rgba(180,100,220,0.7); }
+
+.nen-ability-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.nen-ability-name {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+}
+
+.nen-ability-desc {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.4;
+}
+
+/* ── BADGES ─────────────────────────────────────────── */
+.nen-ability-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nen-ability-badge.minor { background: rgba(180,220,180,0.15); color: rgba(180,220,180,0.8); }
+.nen-ability-badge.unlocked { background: rgba(100,220,100,0.15); color: rgba(100,220,100,0.9); }
+.nen-ability-badge.exclusive { background: rgba(180,100,220,0.15); color: rgba(180,100,220,0.9); }
+.nen-ability-badge.locked { background: rgba(255,100,100,0.1); color: rgba(255,100,100,0.6); }
+
+/* ── BOTÃO DESBLOQUEAR ──────────────────────────────── */
+.nen-unlock-btn {
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(220,180,60,0.15);
+  border: 1px solid rgba(220,180,60,0.4);
+  color: rgba(220,180,60,0.9);
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.nen-unlock-btn:hover {
+  background: rgba(220,180,60,0.3);
+}
+
+/* ── AJUSTE GRID -> LISTA ───────────────────────────── */
+.nen-categories-grid { display: none; }
+
+
+/* ── PT BAR ─────────────────────────────────────────── */
+.nen-pt-bar {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px 6px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 4px;
+}
+
+.nen-pt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.nen-pt-field label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: rgba(255,255,255,0.4);
+}
+
+.nen-pt-field input {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  padding: 3px 0;
+}
+
+.nen-pt-field.readonly {
+  align-items: center;
+}
+
+.nen-major-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(220,180,60,0.9);
+}
+
+/* ── CUSTOS DO PRÓXIMO NÍVEL ────────────────────────── */
+.nen-cat-costs {
+  display: flex;
+  gap: 8px;
+  margin: 3px 0 5px;
+}
+
+.nen-cat-costs span {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.04);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+/* ── BOTÃO TREINAR ──────────────────────────────────── */
+.nen-train-btn {
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: rgba(220,180,60,0.12);
+  border: 1px solid rgba(220,180,60,0.35);
+  color: rgba(220,180,60,0.9);
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.nen-train-btn:hover {
+  background: rgba(220,180,60,0.25);
+}
+
+/* ── MAX BADGE ──────────────────────────────────────── */
+.nen-max-badge {
+  font-size: 10px;
+  color: rgba(220,180,60,0.6);
+  margin-left: auto;
+}
+
+/* ── ESTADOS DAS HABILIDADES ────────────────────────── */
+.nen-ability-card.reached,
+.nen-ability-card.available { opacity: 1; }
+
+.nen-ability-card.locked-preview {
+  opacity: 0.45;
+}
+
+.nen-ability-name.muted,
+.nen-ability-desc.muted {
+  color: rgba(255,255,255,0.3);
+}
+
+.nen-max-badge.blocked {
+  color: rgba(255, 100, 100, 0.7);
+  font-size: 10px;
+  margin-left: auto;
+}
+
+/* ── BOTÃO DESFAZER HABILIDADE PRINCIPAL ────────────── */
+.nen-undo-btn {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(255, 100, 100, 0.1);
+  border: 1px solid rgba(255, 100, 100, 0.3);
+  color: rgba(255, 100, 100, 0.7);
+  cursor: pointer;
+  margin-left: 4px;
+  transition: background 0.2s;
+}
+
+.nen-undo-btn:hover {
+  background: rgba(255, 100, 100, 0.25);
 }

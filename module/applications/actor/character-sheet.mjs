@@ -5,7 +5,8 @@ import { EnergySystem } from "../../systems/energy.mjs";
 import CompendiumBrowser from "../compendium-browser.mjs";
 import ContextMenu5e from "../context-menu.mjs";
 import BaseActorSheet from "./api/base-actor-sheet.mjs";
-import { prepareManipulationAbilities, prepareTrainings } from "../../systems/manipulation-data.mjs";
+import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, prepareTrainings, canUnlockAbility, MANIPULATION_ABILITIES } from "../../systems/manipulation-data.mjs";
+import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory, getUnlockedMinorAbilities, getAvailableMajorAbilities } from "../../systems/nen-categories-data.mjs";
 import Item5e from "../../documents/item.mjs";
 import * as Trait from "../../documents/actor/trait.mjs";
 
@@ -1030,6 +1031,24 @@ new foundry.applications.ux.ContextMenu.implementation(
       }
     }, 100);
 
+    // Listeners da aba de treinamentos — usa data-bound para evitar duplicatas
+    setTimeout(() => {
+      const actions = [
+        { selector: '[data-action="trainNenCategory"]:not([data-bound])',
+          handler: btn => this._onTrainNenCategory(btn.dataset.category) },
+        { selector: '[data-action="unlockNenMajor"]:not([data-bound])',
+          handler: btn => this._onUnlockNenMajor(btn.dataset.category, btn.dataset.ability) },
+        { selector: '[data-action="undoNenMajor"]:not([data-bound])',
+          handler: btn => this._onUndoNenMajor(btn.dataset.category, btn.dataset.ability) }
+      ];
+      for ( const { selector, handler } of actions ) {
+        this.element.querySelectorAll(selector).forEach(btn => {
+          btn.dataset.bound = "1";
+          btn.addEventListener('click', (e) => { e.stopPropagation(); handler(btn); });
+        });
+      }
+    }, 150);
+
     // Injetar seção de condições Jujutsu na aba Effects
     _injectJJConditions(this.element, this.actor);
 
@@ -1517,14 +1536,392 @@ new foundry.applications.ux.ContextMenu.implementation(
    */
   async _prepareManipulationContext(context, options) {
     try {
-      const result = prepareManipulationAbilities(this.actor);
-      console.log("JujutsuLegacy | abilities prepared:", JSON.stringify(Object.keys(result)));
-      context.abilities = result;
+      // Prepara habilidades e princípios com estado de desbloqueio
+      const abilitiesResult = prepareManipulationAbilities(this.actor);
+      const principlesResult = preparePrinciples(this.actor);
+
+      // Monta sections usando TREE_DATA (estrutura estática com ordem correta)
+      const sections = TREE_DATA.map(treeSection => ({
+        label: treeSection.section,
+        principles: treeSection.principles.map(pr => {
+          const prStatus = principlesResult[pr.id] ?? {};
+          const abilities = (pr.abilities ?? []).map(ab => {
+            const abStatus = abilitiesResult[pr.id]?.[ab.id] ?? {};
+            return {
+              id: ab.id,
+              label: ab.label,
+              cost: ab.cost,
+              unlocked: abStatus.unlocked ?? false,
+              canUnlock: abStatus.canUnlock ?? false
+            };
+          });
+          const isMasterGrant = prStatus.isMasterGrant ?? false;
+          const unlocked = prStatus.unlocked ?? false;
+          // Fundamentais (isMasterGrant) podem ser desbloqueados livremente pelo jogador
+          const canUnlock = !unlocked && (isMasterGrant ? true : prStatus.canUnlock ?? false);
+          const canUnlockFree = !unlocked && isMasterGrant;
+          return {
+            id: pr.id,
+            label: pr.label,
+            cost: pr.cost ?? 0,
+            unlocked,
+            canUnlock,
+            canUnlockFree,
+            isMasterGrant,
+            abilities
+          };
+        })
+      }));
+
+      context.manipulation = { sections };
     } catch(err) {
-      console.error("JujutsuLegacy | Erro Manipulacao:", err);
-      context.abilities = { basic: {}, advanced: {}, extreme: {}, barrier: {} };
+      console.error("Hunter | Erro Manipulacao:", err);
+      context.manipulation = { sections: [] };
     }
     return context;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Tenta avançar um nível em uma categoria Nen.
+   * Rola Teste de Espírito vs CD do nível — sucesso avança, falha reduz CD em 1.
+   */
+  async _onTrainNenCategory(categoryId) {
+    const cat = NEN_CATEGORIES_DATA[categoryId];
+    if ( !cat ) return;
+
+    // Level salvo diretamente no nenCategories
+    const currentLevel = this.actor.system.nenCategories?.[categoryId]?.level ?? 0;
+    const nextLevel = currentLevel + 1;
+
+    // Verificar limite de afinidade
+    const maxAllowed = getMaxLevelForCategory(this.actor, categoryId);
+    if ( maxAllowed === 0 ) {
+      ui.notifications.warn(`Sua categoria principal não tem afinidade com ${cat.label}.`);
+      return;
+    }
+    if ( nextLevel > maxAllowed ) {
+      ui.notifications.warn(`Você só pode treinar ${cat.label} até o nível ${maxAllowed} com sua categoria atual.`);
+      return;
+    }
+    if ( nextLevel > 10 ) {
+      ui.notifications.info(`${cat.label} já está no nível máximo!`);
+      return;
+    }
+
+    const costs = NEN_LEVEL_COSTS[nextLevel];
+    if ( !costs ) return;
+
+    // Verificar PT disponíveis
+    const trainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
+    if ( trainingPoints < costs.pt ) {
+      ui.notifications.warn(`PT insuficientes! Precisa de ${costs.pt} PT para o nível ${nextLevel} de ${cat.label}.`);
+      return;
+    }
+
+    // Verificar PA disponíveis
+    const energyTotal = this.actor.system.energy?.total ?? 0;
+    if ( energyTotal < costs.pa ) {
+      ui.notifications.warn(`PA insuficientes! Precisa de ${costs.pa} PA para o nível ${nextLevel} de ${cat.label}.`);
+      return;
+    }
+
+    // Calcular CD com reduções salvas
+    const dcReductions = this.actor.system.nenCategories?.[categoryId]?.dcReductions?.[nextLevel] ?? 0;
+    const currentDC = Math.max(1, costs.cd - dcReductions);
+
+    // Deduzir custos
+    await this.actor.update({
+      "system.curseResources.trainingPoints": trainingPoints - costs.pt,
+      "system.energy.total": Math.max(0, energyTotal - costs.pa)
+    });
+
+    // Rolar Teste de Espírito (Nen)
+    // Perícia Nen = "Cont" (INT base) — usa o total já calculado pelo sistema
+    const nenSkill = this.actor.system.skills?.Cont;
+    const intMod = this.actor.system.abilities?.int?.mod ?? 0;
+    const profBonus = this.actor.system.attributes?.prof ?? 2;
+    const skillBonus = nenSkill
+      ? nenSkill.total ?? (intMod + Math.floor(profBonus * (nenSkill.value ?? 0)))
+      : intMod;
+
+    const roll = await new Roll("1d20 + @bonus", { bonus: skillBonus }).evaluate();
+    if ( game.dice3d ) game.dice3d.showForRoll(roll, game.user, true);
+
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      flavor: `Teste de Espírito (Nen) — ${cat.label} Nível ${nextLevel} (CD ${currentDC})`
+    });
+
+    if ( roll.total >= currentDC ) {
+      // Sucesso — busca a classe pelo nome ou identifier
+      const catLabel = cat.label.toLowerCase();
+      const clsItem = this.actor.items.find(i =>
+        i.type === "class" && (
+          i.identifier === categoryId ||
+          i.system?.identifier === categoryId ||
+          i.name?.toLowerCase() === catLabel ||
+          i.name?.toLowerCase().includes(catLabel)
+        )
+      );
+      // Salva o nível diretamente no nenCategories
+      await this.actor.update({
+        [`system.nenCategories.${categoryId}.level`]: nextLevel
+      });
+      // Aplicar efeito menor automático se atingiu nível 2, 5 ou 8
+      await this._applyNenMinorEffect(categoryId, nextLevel);
+      console.log(`Hunter | Avançou ${cat.label} para nível ${nextLevel}`);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `✅ <strong>${this.actor.name}</strong> avançou para o <strong>Nível ${nextLevel}</strong> em <strong>${cat.label}</strong>!`
+      });
+    } else {
+      // Falha — reduz CD em 1 para próxima tentativa
+      const currentReduction = this.actor.system.nenCategories?.[categoryId]?.dcReductions?.[nextLevel] ?? 0;
+      await this.actor.update({
+        [`system.nenCategories.${categoryId}.dcReductions.${nextLevel}`]: currentReduction + 1,
+        "system.curseResources.lostTrainingPoints": (this.actor.system.curseResources?.lostTrainingPoints ?? 0) + costs.pt
+      });
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `❌ <strong>${this.actor.name}</strong> falhou no treino de <strong>${cat.label}</strong> Nível ${nextLevel}. CD reduzida para ${currentDC - 1} (próxima tentativa).`
+      });
+    }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Desbloqueia um princípio Nen (Ten, Zetsu, Ren, etc.)
+   */
+  async _onUnlockNenPrinciple(principleId) {
+    // Usa o preparePrinciples já importado estaticamente
+    const principles = preparePrinciples(this.actor);
+    const pr = principles[principleId];
+    if ( !pr ) return;
+
+    if ( pr.unlocked ) {
+      ui.notifications.warn("Princípio já desbloqueado.");
+      return;
+    }
+
+    const cost = pr.cost ?? 0;
+    if ( cost > 0 ) {
+      const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
+      if ( cursePoints < cost ) {
+        ui.notifications.warn(`PM insuficientes! Precisa de ${cost} PM.`);
+        return;
+      }
+      await this.actor.update({
+        [`system.manipulation.principles.${principleId}.unlocked`]: true,
+        "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + cost,
+        "system.curseResources.cursePoints": cursePoints - cost
+      });
+    } else {
+      // Fundamentais — custo 0
+      await this.actor.update({
+        [`system.manipulation.principles.${principleId}.unlocked`]: true
+      });
+    }
+
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `🔓 <strong>${this.actor.name}</strong> desbloqueou o princípio: <strong>${pr.label}</strong>!`
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Desbloqueia uma habilidade de princípio Nen
+   */
+  async _onUnlockNenAbility(abilityId) {
+    // Usa as funções já importadas estaticamente
+    const def = MANIPULATION_ABILITIES[abilityId];
+    if ( !def ) return;
+
+    const { can, reason } = canUnlockAbility(abilityId, this.actor);
+    if ( !can ) {
+      ui.notifications.warn(`Não é possível desbloquear: ${reason}`);
+      return;
+    }
+
+    const cost = def.cost ?? 0;
+    const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
+
+    await this.actor.update({
+      [`system.manipulation.abilities.${abilityId}.unlocked`]: true,
+      "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + cost,
+      "system.curseResources.cursePoints": Math.max(0, cursePoints - cost)
+    });
+
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `🔓 <strong>${this.actor.name}</strong> desbloqueou: <strong>${def.label}</strong>!`
+    });
+
+    // Concessão de técnicas vinculadas
+    if ( def.techniques?.length ) {
+      await this._grantLinkedTechniques(def.techniques);
+    }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Aplica/atualiza o ActiveEffect de habilidade menor ao treinar uma categoria.
+   * Chamado após avançar de nível com sucesso.
+   */
+  async _applyNenMinorEffect(categoryId, newLevel) {
+    // Mapa: qual efeito menor cada categoria ganha nos níveis 2, 5, 8
+    const MINOR_EFFECTS = {
+      aprimorador: {
+        label: "Robusto",
+        icon: "icons/svg/heart.svg",
+        flagId: "nen-robusto",
+        getRank: lvl => lvl >= 8 ? 3 : lvl >= 5 ? 2 : lvl >= 2 ? 1 : 0,
+        getChanges: rank => [
+          { key: "system.attributes.hp.bonuses.overall", mode: 2, value: `${rank} * @details.level`, priority: 20 }
+        ]
+      },
+      emissor: {
+        label: "Agilidade Avançada",
+        icon: "icons/svg/wing.svg",
+        flagId: "nen-agilidade",
+        getRank: lvl => lvl >= 8 ? 3 : lvl >= 5 ? 2 : lvl >= 2 ? 1 : 0,
+        getChanges: rank => {
+          const bonus = rank === 1 ? 5 : rank === 2 ? 10 : 20;
+          return [{ key: "system.attributes.movement.walk", mode: 2, value: String(bonus), priority: 20 }];
+        }
+      },
+      transmutador: {
+        label: "Aumentar Densidade",
+        icon: "icons/svg/shield.svg",
+        flagId: "nen-densidade",
+        getRank: lvl => lvl >= 8 ? 3 : lvl >= 5 ? 2 : lvl >= 2 ? 1 : 0,
+        getChanges: rank => [
+          { key: "system.attributes.ac.bonus", mode: 2, value: String(rank), priority: 20 }
+        ]
+      },
+      conjurador: {
+        label: "Aura Adaptável",
+        icon: "icons/svg/aura.svg",
+        flagId: "nen-adaptavel",
+        getRank: lvl => lvl >= 8 ? 3 : lvl >= 5 ? 2 : lvl >= 2 ? 1 : 0,
+        getChanges: rank => {
+          const mult = rank + 2; // 1→3, 2→4, 3→5
+          return [{ key: "system.attributes.hp.bonuses.overall", mode: 2, value: `${mult} * @abilities.wis.mod`, priority: 20 }];
+        }
+      }
+    };
+
+    const def = MINOR_EFFECTS[categoryId];
+    if ( !def ) return; // Categoria sem efeito menor automático
+
+    const rank = def.getRank(newLevel);
+    const existing = this.actor.effects.find(e => e.getFlag("hunter-system", "nenMinor") === def.flagId);
+
+    if ( rank === 0 ) {
+      if ( existing ) await existing.delete();
+      return;
+    }
+
+    const effectData = {
+      name: `${def.label} (${"★".repeat(rank)})`,
+      icon: def.icon,
+      origin: this.actor.uuid,
+      disabled: false,
+      flags: { "hunter-system": { nenMinor: def.flagId } },
+      changes: def.getChanges(rank)
+    };
+
+    if ( existing ) {
+      await existing.update(effectData);
+    } else {
+      await ActiveEffect.create(effectData, { parent: this.actor });
+    }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Desfaz o desbloqueio de uma habilidade principal, liberando o slot.
+   */
+  async _onUndoNenMajor(categoryId, abilityId) {
+    const alreadyUnlocked = this.actor.system.nenCategories?.[categoryId]?.unlockedMajor?.[abilityId] ?? false;
+    if ( !alreadyUnlocked ) return;
+
+    const { NEN_CATEGORIES_DATA: catData } = await Promise.resolve({ NEN_CATEGORIES_DATA });
+    const cat = catData[categoryId];
+    const ability = Object.values(cat?.major ?? {}).find(ab => ab.id === abilityId);
+
+    await this.actor.update({
+      [`system.nenCategories.${categoryId}.unlockedMajor.${abilityId}`]: false,
+      "system.nenMajorCount": Math.max(0, (this.actor.system.nenMajorCount ?? 0) - (ability?.exclusive ? 0 : 1))
+    });
+
+    ui.notifications.info(`Habilidade "${ability?.label ?? abilityId}" removida. Slot liberado.`);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `↩️ <strong>${this.actor.name}</strong> desfez a habilidade principal: <strong>${ability?.label ?? abilityId}</strong>.`
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Retorna o máximo de habilidades principais que o personagem pode ter.
+   * Base: 4. Sobe para 6 se tiver atingido nível 10 em todas as categorias possíveis.
+   */
+  _getNenMajorMax() {
+    const CATEGORIES = ["aprimorador", "emissor", "transmutador", "conjurador", "manipulador", "especialista"];
+    const allMax = CATEGORIES.every(id => (this.actor.classes?.[id]?.system?.levels ?? 0) >= 10);
+    return allMax ? 6 : 4;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Desbloqueia uma habilidade principal de categoria Nen.
+   */
+  async _onUnlockNenMajor(categoryId, abilityId) {
+    const cat = NEN_CATEGORIES_DATA[categoryId];
+    if ( !cat ) return;
+
+    const level = this.actor.system.nenCategories?.[categoryId]?.level ?? 0;
+    const abilityEntry = Object.entries(cat.major).find(([, ab]) => ab.id === abilityId);
+    if ( !abilityEntry ) return;
+
+    const [requiredLvl, ability] = abilityEntry;
+    if ( level < parseInt(requiredLvl) ) {
+      ui.notifications.warn(`Nível insuficiente! Precisa de nível ${requiredLvl} em ${cat.label}.`);
+      return;
+    }
+
+    const nenMajorCount = this.actor.system.nenMajorCount ?? 0;
+    const nenMajorMax = this._getNenMajorMax();
+    const alreadyUnlocked = this.actor.system.nenCategories?.[categoryId]?.unlockedMajor?.[abilityId] ?? false;
+
+    if ( alreadyUnlocked ) {
+      ui.notifications.warn("Essa habilidade já está desbloqueada.");
+      return;
+    }
+
+    if ( !ability.exclusive && nenMajorCount >= nenMajorMax ) {
+      ui.notifications.warn(`Limite de habilidades principais atingido (${nenMajorMax}/${nenMajorMax}).`);
+      return;
+    }
+
+    await this.actor.update({
+      [`system.nenCategories.${categoryId}.unlockedMajor.${abilityId}`]: true,
+      "system.nenMajorCount": ability.exclusive ? nenMajorCount : nenMajorCount + 1
+    });
+
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `🔓 <strong>${this.actor.name}</strong> desbloqueou a habilidade principal: <strong>${ability.label}</strong>!`
+    });
   }
 
   /* -------------------------------------------- */
@@ -1548,19 +1945,19 @@ new foundry.applications.ux.ContextMenu.implementation(
       especialista: "ESP"
     };
     const COLORS = {
-      aprimorador: "#C8960C",
-      emissor: "#8B6914",
-      transmutador: "#6B3FA0",
-      conjurador: "#2E8B6E",
-      manipulador: "#2E7A4E",
-      especialista: "#1a1a1a"
+      aprimorador: "#E8A800",
+      emissor: "#B8860B",
+      transmutador: "#9B59D0",
+      conjurador: "#3A8FD4",
+      manipulador: "#2ECC71",
+      especialista: "#AAAAAA"
     };
 
     const nenCategories = [];
     for ( const id of CATEGORIES ) {
       // Lê o nível da classe correspondente no actor
-      const cls = this.actor.classes?.[id];
-      const level = cls?.system?.levels ?? 0;
+      // Level salvo diretamente no nenCategories (não depende de classe na ficha)
+      const level = this.actor.system.nenCategories?.[id]?.level ?? 0;
       const pct = Math.round((level / 10) * 100);
       const dcReductions = this.actor.system.nenCategories?.[id]?.dcReductions ?? {};
 
@@ -1578,7 +1975,7 @@ new foundry.applications.ux.ContextMenu.implementation(
     // Calcular pontos do polígono SVG para o hexágono
     // As 6 categorias na ordem dos vértices (topo, direita-topo, direita-baixo, baixo, esquerda-baixo, esquerda-topo)
     const ORDER = ["aprimorador", "transmutador", "conjurador", "especialista", "manipulador", "emissor"];
-    const CX = 150, CY = 150, MAX_R = 110;
+    const CX = 160, CY = 160, MAX_R = 125;
     const hexPts = ORDER.map((id, i) => {
       const cat = nenCategories.find(c => c.id === id);
       const r = MAX_R * ((cat?.level ?? 0) / 10);
@@ -1605,7 +2002,7 @@ new foundry.applications.ux.ContextMenu.implementation(
     });
 
     // Labels posicionados fora dos vértices
-    const LABEL_R = 128;
+    const LABEL_R = 145;
     const labels = ORDER.map((id, i) => {
       const cat = nenCategories.find(c => c.id === id);
       const angle = (Math.PI / 180) * (60 * i - 90);
@@ -1623,8 +2020,63 @@ new foundry.applications.ux.ContextMenu.implementation(
       cat.pips = Array.from({length: 10}, (_, i) => ({ filled: i < cat.level, n: i + 1 }));
     }
 
+    // Adicionar habilidades menores e principais ao contexto
+    const nenMajorCount = this.actor.system.nenMajorCount ?? 0;
+    const nenMajorMax = this._getNenMajorMax();
+
+    for ( const cat of nenCategories ) {
+      const unlockedMajorMap = this.actor.system.nenCategories?.[cat.id]?.unlockedMajor ?? {};
+
+      // Próximo nível, custos e limite de afinidade
+      const maxAllowed = getMaxLevelForCategory(this.actor, cat.id);
+      const nextLevel = cat.level + 1;
+      cat.maxAllowed = maxAllowed;
+      cat.affinityPct = maxAllowed >= 10 ? 100 : maxAllowed >= 8 ? 80 : maxAllowed >= 6 ? 60 : maxAllowed >= 4 ? 40 : maxAllowed >= 1 ? 1 : 0;
+
+      if ( nextLevel <= 10 && nextLevel <= maxAllowed ) {
+        const costs = NEN_LEVEL_COSTS[nextLevel];
+        const dcReduction = this.actor.system.nenCategories?.[cat.id]?.dcReductions?.[nextLevel] ?? 0;
+        cat.nextLevel = nextLevel;
+        cat.nextPt = costs.pt;
+        cat.nextPa = costs.pa;
+        cat.currentDC = Math.max(1, costs.cd - dcReduction);
+        cat.canTrain = true;
+      } else if ( maxAllowed === 0 ) {
+        cat.canTrain = false;
+        cat.blockedReason = "Sem afinidade";
+      } else if ( cat.level >= maxAllowed ) {
+        cat.canTrain = false;
+        cat.blockedReason = `Máx. ${maxAllowed} (${cat.affinityPct}%)`;
+      } else {
+        cat.canTrain = false;
+      }
+
+      // Menores: slots fixos nos níveis 2, 5, 8 — acesos se nível atingido
+      const catData = NEN_CATEGORIES_DATA[cat.id];
+      cat.minorSlots = [2, 5, 8].map(lvl => {
+        const ab = catData?.minor?.[lvl];
+        const reached = cat.level >= lvl;
+        return ab ? { ...ab, reached, level: lvl } : { reached: false, level: lvl, empty: true };
+      });
+
+      // Principais: slots fixos nos níveis 3, 6, 10
+      cat.majorSlots = [3, 6, 10].map(lvl => {
+        const ab = catData?.major?.[lvl];
+        const reached = cat.level >= lvl;
+        if ( !ab ) return { reached: false, level: lvl, empty: true, categoryId: cat.id };
+        const unlocked = unlockedMajorMap[ab.id] ?? false;
+        const canUnlock = reached && !unlocked && (nenMajorCount < nenMajorMax || ab.exclusive);
+        // categoryId pré-calculado para evitar {{../cat.id}} no HBS
+        return { ...ab, reached, unlocked, canUnlock, level: lvl, categoryId: cat.id };
+      });
+    }
+
     context.nenCategories = nenCategories;
+    context.nenMajorCount = nenMajorCount;
+    context.nenMajorMax = nenMajorMax;
     context.nenHexPoints = hexPts;
+    context.nenTrainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
+    context.nenLostTrainingPoints = this.actor.system.curseResources?.lostTrainingPoints ?? 0;
     context.nenGridRings = gridRings;
     context.nenAxes = axes;
     context.nenLabels = labels;
@@ -1648,8 +2100,23 @@ new foundry.applications.ux.ContextMenu.implementation(
     return this._onUndoIntensiveTraining(target.dataset.field);
   }
   if ( action === "toggleSection" ) {
-  return this._onToggleSection(target.dataset.section);
-}
+    return this._onToggleSection(target.dataset.section);
+  }
+  if ( action === "unlockNenMajor" ) {
+    return this._onUnlockNenMajor(target.dataset.category, target.dataset.ability);
+  }
+  if ( action === "undoNenMajor" ) {
+    return this._onUndoNenMajor(target.dataset.category, target.dataset.ability);
+  }
+  if ( action === "unlockNenPrinciple" ) {
+    return this._onUnlockNenPrinciple(target.dataset.id);
+  }
+  if ( action === "unlockNenAbility" ) {
+    return this._onUnlockNenAbility(target.dataset.id);
+  }
+  if ( action === "trainNenCategory" ) {
+    return this._onTrainNenCategory(target.dataset.category);
+  }
 
   return super._onClickAction(event, target);
 }
