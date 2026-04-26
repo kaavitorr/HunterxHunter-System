@@ -204,13 +204,17 @@ export default class CharacterData extends CreatureTemplate {
         })
       }, { label: "JUJUTSU.EnergyAbilities" }),
 
-      // Habilidades de Manipulação de Energia (Skill Tree — Cap. 6)
+      // Princípios de Nen (Skill Tree — Cap. 7.5)
       manipulation: new SchemaField({
         // Pontos investidos em habilidades de manipulação (determina estágio)
         pointsInvested: new NumberField({
           required: true, nullable: false, integer: true, min: 0, initial: 0,
           label: "JUJUTSU.Manipulation.PointsInvested"
         }),
+        // Princípios desbloqueados: { [id]: { unlocked } }
+        principles: new MappingField(new SchemaField({
+          unlocked: new BooleanField({ initial: false })
+        }), { label: "JUJUTSU.Manipulation.Abilities" }),
         // Habilidades desbloqueadas: { [id]: { unlocked, dcReduction } }
         abilities: new MappingField(new SchemaField({
           unlocked: new BooleanField({ initial: false }),
@@ -298,7 +302,7 @@ export default class CharacterData extends CreatureTemplate {
       const required = xp.max - xp.min;
       const pct = Math.round((xp.value - xp.min) * 100 / required);
       xp.pct = Math.clamp(pct, 0, 100);
-    } else if ( game.settings.get("hunter-system", "levelingMode") === "xpBoons" ) {
+    } else if ( game.settings.get("jujutsu-system", "levelingMode") === "xpBoons" ) {
       const overflow = xp.value - this.parent.getLevelExp(CONFIG.DND5E.maxLevel);
       xp.boonsEarned = Math.max(0, Math.floor(overflow / CONFIG.DND5E.epicBoonInterval));
       const progress = overflow - (CONFIG.DND5E.epicBoonInterval * xp.boonsEarned);
@@ -373,8 +377,8 @@ export default class CharacterData extends CreatureTemplate {
 
     // Estágio de Manipulação (baseado em PM investidos em habilidades de manipulação)
     const invested = this.manipulation?.pointsInvested ?? 0;
-    if ( invested >= 46 ) this.manipulation.stage = "master";
-    else if ( invested >= 15 ) this.manipulation.stage = "expert";
+    if ( invested >= 61 ) this.manipulation.stage = "master";
+    else if ( invested >= 21 ) this.manipulation.stage = "expert";
     else this.manipulation.stage = "beginner";
 
     // Nível de Maestria (baseado em Pontos de Treinamento investidos)

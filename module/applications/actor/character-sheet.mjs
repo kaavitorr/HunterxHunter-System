@@ -5,7 +5,7 @@ import { EnergySystem } from "../../systems/energy.mjs";
 import CompendiumBrowser from "../compendium-browser.mjs";
 import ContextMenu5e from "../context-menu.mjs";
 import BaseActorSheet from "./api/base-actor-sheet.mjs";
-import { prepareManipulationAbilities, prepareTrainings } from "../../systems/manipulation-data.mjs";
+import { prepareManipulationAbilities, prepareTrainings, TREE_DATA } from "../../systems/manipulation-data.mjs";
 import Item5e from "../../documents/item.mjs";
 import * as Trait from "../../documents/actor/trait.mjs";
 
@@ -473,8 +473,8 @@ context.skills = skillsSorted;
         columns, id: "background", label: "DND5E.FeaturesBackground", order: 2000, groups: { origin: "background" }
       } : null,
       { columns, id: "other", label: "DND5E.FeaturesOther",      order: 3000, groups: { origin: "other" } },
-      { columns, id: "jj-origin",  label: "",     order: 4000, groups: { origin: "jj-origin"  }, items: [] },
-      { columns, id: "jj-combat",  label: "Categoria",   order: 5000, groups: { origin: "jj-combat"  }, items: [] },
+      { columns, id: "jj-origin",  label: "Classe Hunter",       order: 4000, groups: { origin: "jj-origin"  }, items: [] },
+      { columns, id: "jj-combat",  label: "Categoria",           order: 5000, groups: { origin: "jj-combat"  }, items: [] },
       { columns, id: "jj-path",    label: "Caminho",             order: 6000, groups: { origin: "jj-path"    }, items: [] },
       { columns, id: "jj-basic",   label: "Habilidades Básicas", order: 7000, groups: { origin: "jj-basic"   }, items: [] },
       { columns, id: "jj-talents", label: "Talentos",            order: 8000, groups: { origin: "jj-talents" }, items: [] },
@@ -1026,6 +1026,9 @@ new foundry.applications.ux.ContextMenu.implementation(
 );
   }
 
+  // ── NEN SKILL TREE — tooltip, context menu, undo
+  this._setupNenTreeInteractions();
+
 
     // Colapso de seções das abas Features, Spells e Inventory
     setTimeout(() => {
@@ -1536,12 +1539,32 @@ new foundry.applications.ux.ContextMenu.implementation(
    */
   async _prepareManipulationContext(context, options) {
     try {
-      const result = prepareManipulationAbilities(this.actor);
-      console.log("HunterLegacy | abilities prepared:", JSON.stringify(Object.keys(result)));
-      context.abilities = result;
+      const sections = TREE_DATA.map(sec => ({
+        label: sec.section,
+        principles: sec.principles.map(p => {
+          const prUnlocked = this.actor.system.manipulation?.principles?.[p.id]?.unlocked ?? false;
+          return {
+            ...p,
+            unlocked:      prUnlocked,
+            isMasterGrant: p.type === "fundamental",
+            canUnlock:     !prUnlocked && this._canUnlockNenPrinciple(p),
+            canUnlockFree: !prUnlocked && p.type === "fundamental",
+            abilities: p.abilities.map(a => {
+              const abUnlocked = this.actor.system.manipulation?.abilities?.[a.id]?.unlocked ?? false;
+              return {
+                ...a,
+                unlocked:  abUnlocked,
+                canUnlock: !abUnlocked && this._canUnlockNenAbility(a, p.id)
+              };
+            })
+          };
+        })
+      }));
+      context.manipulation = { sections };
+      console.log("HunterLegacy | manipulation prepared:", sections.length, "seções");
     } catch(err) {
       console.error("HunterLegacy | Erro Manipulacao:", err);
-      context.abilities = { basic: {}, advanced: {}, extreme: {}, barrier: {} };
+      context.manipulation = { sections: [] };
     }
     return context;
   }
@@ -1568,6 +1591,15 @@ new foundry.applications.ux.ContextMenu.implementation(
 
   if ( action === "unlockManipulation" ) {
     return this._onUnlockManipulationAbility(target.dataset.ability, parseInt(target.dataset.cost ?? 0));
+  }
+  if ( action === "unlockNenPrinciple" ) {
+    return this._onUnlockNenPrinciple(target.dataset.id);
+  }
+  if ( action === "unlockNenAbility" ) {
+    return this._onUnlockNenAbility(target.dataset.id);
+  }
+  if ( action === "grantNenPrinciple" ) {
+    return this._onGrantNenPrinciple(target.dataset.id);
   }
   if ( action === "trainAbility" ) {
     return this._onTrainAbility(target.dataset.training, false);
@@ -1677,6 +1709,359 @@ new foundry.applications.ux.ContextMenu.implementation(
 
   /* -------------------------------------------- */
 
+  // ── NEN SKILL TREE — HELPERS ─────────────────────────────────────────────
+
+  _getNenStage() {
+    const inv = this.actor.system.manipulation?.pointsInvested ?? 0;
+    if ( inv >= 61 ) return "master";
+    if ( inv >= 21 ) return "expert";
+    return "beginner";
+  }
+
+  _stageOrder(stage) {
+    return { beginner: 0, expert: 1, master: 2 }[stage] ?? 0;
+  }
+
+  _canUnlockNenPrinciple(p) {
+    if ( p.type === "fundamental" ) return true; // fundamentais sempre desbloqueáveis, custo 0
+    const pr = this.actor.system.manipulation?.principles ?? {};
+    const ab = this.actor.system.manipulation?.abilities ?? {};
+    const pm = this.actor.system.curseResources?.cursePoints ?? 0;
+    const r = p.req ?? {};
+    if ( r.pr && !r.pr.every(x => pr[x]?.unlocked) ) return false;
+    if ( r.ab && !r.ab.every(x => ab[x]?.unlocked) ) return false;
+    return pm >= (p.cost ?? 0);
+  }
+
+  _canUnlockNenAbility(a, prId) {
+    const pr = this.actor.system.manipulation?.principles ?? {};
+    const ab = this.actor.system.manipulation?.abilities ?? {};
+    const pm = this.actor.system.curseResources?.cursePoints ?? 0;
+    if ( !pr[prId]?.unlocked ) return false;
+    if ( !(a.req ?? []).every(x => ab[x]?.unlocked) ) return false;
+    if ( this._stageOrder(this._getNenStage()) < this._stageOrder(a.stage) ) return false;
+    return pm >= a.cost;
+  }
+
+  // ── NEN SKILL TREE — ACTION HANDLERS ─────────────────────────────────────
+
+  _onClickNenNode(target) {
+    const nodeId   = target.dataset.nodeId;
+    const nodeType = target.dataset.nodeType;
+    const panel = this.element.querySelector(`#nen-info-${this.actor.id}`);
+    if ( !panel ) return;
+
+    // Busca o nó no TREE_DATA
+    let node = null;
+    let prId = null;
+    for ( const sec of TREE_DATA ) {
+      for ( const p of sec.principles ) {
+        if ( nodeType === "pr" && p.id === nodeId ) { node = p; break; }
+        if ( nodeType === "ab" ) {
+          const a = p.abilities.find(x => x.id === nodeId);
+          if ( a ) { node = a; prId = p.id; break; }
+        }
+      }
+      if ( node ) break;
+    }
+    if ( !node ) return;
+
+    const pr = this.actor.system.manipulation?.principles ?? {};
+    const ab = this.actor.system.manipulation?.abilities ?? {};
+    const isUnlocked = nodeType === "pr" ? !!pr[nodeId]?.unlocked : !!ab[nodeId]?.unlocked;
+
+    let actionHTML = "";
+    if ( isUnlocked ) {
+      actionHTML = `<span class="nen-unlocked-badge">✓ Desbloqueado</span>`;
+    } else if ( nodeType === "pr" ) {
+      if ( node.type === "fundamental" && game.user.isGM ) {
+        actionHTML = `<button class="jujutsu-btn" data-action="grantNenPrinciple" data-id="${nodeId}">👑 Conceder (GM)</button>`;
+      } else if ( node.type === "fundamental" ) {
+        actionHTML = `<span class="nen-lock-msg">⏳ Aguardando o Mestre</span>`;
+      } else if ( this._canUnlockNenPrinciple(node) ) {
+        actionHTML = `<button class="jujutsu-btn primary" data-action="unlockNenPrinciple" data-id="${nodeId}">Desbloquear · ${node.cost} PM</button>`;
+      } else {
+        const r = node.req ?? {};
+        const mp = (r.pr ?? []).filter(x => !pr[x]?.unlocked).map(x => PR_LABELS[x] ?? x);
+        const ma = (r.ab ?? []).filter(x => !ab[x]?.unlocked).map(x => x);
+        const why = [...mp, ...ma].length
+          ? `Requer: ${[...mp, ...ma].join(", ")}`
+          : `Faltam ${node.cost - (this.actor.system.curseResources?.cursePoints ?? 0)} PM`;
+        actionHTML = `<span class="nen-lock-msg">🔒 ${why}</span>`;
+      }
+    } else {
+      if ( !pr[prId]?.unlocked ) {
+        actionHTML = `<span class="nen-lock-msg">🔒 Requer princípio desbloqueado</span>`;
+      } else if ( this._canUnlockNenAbility(node, prId) ) {
+        actionHTML = `<button class="jujutsu-btn primary" data-action="unlockNenAbility" data-id="${nodeId}">Desbloquear · ${node.cost} PM</button>`;
+      } else {
+        const miss = (node.req ?? []).filter(x => !ab[x]?.unlocked);
+        const stage = this._getNenStage();
+        const why = miss.length
+          ? `Requer: ${miss.join(", ")}`
+          : this._stageOrder(stage) < this._stageOrder(node.stage)
+            ? `Requer estágio ${{ beginner:"Iniciante", expert:"Perito", master:"Mestre" }[node.stage]}`
+            : `Faltam ${node.cost - (this.actor.system.curseResources?.cursePoints ?? 0)} PM`;
+        actionHTML = `<span class="nen-lock-msg">🔒 ${why}</span>`;
+      }
+    }
+
+    const passiveHTML = node.passive && node.passive !== "Nenhuma." && node.passive !== "Nenhum."
+      ? `<div class="nen-info-passive"><strong>⚡ Passiva</strong><span>${node.passive}</span></div>` : "";
+
+    const meta = nodeType === "pr"
+      ? (node.type === "fundamental" ? "Princípio Fundamental" : `Princípio Avançado · ${node.cost} PM`)
+      : `${{ beginner:"Iniciante", expert:"Perito", master:"Mestre" }[node.stage] ?? node.stage} · ${node.cost} PM`;
+
+    panel.innerHTML = `
+      <div class="nen-info-name">${node.label}</div>
+      <div class="nen-info-meta">${meta}</div>
+      <div class="nen-info-desc">${(node.desc ?? "").replace(/\n/g, "<br>")}</div>
+      ${passiveHTML}
+      <div class="nen-info-actions">${actionHTML}</div>
+    `;
+  }
+
+  async _onUnlockNenPrinciple(id) {
+    let node = null;
+    for ( const sec of TREE_DATA ) {
+      node = sec.principles.find(p => p.id === id);
+      if ( node ) break;
+    }
+    if ( !node ) return;
+
+    const isFundamental = node.type === "fundamental";
+    const cost = isFundamental ? 0 : (node.cost ?? 0);
+
+    if ( !isFundamental ) {
+      const pm = this.actor.system.curseResources?.cursePoints ?? 0;
+      if ( pm < cost ) {
+        ui.notifications.warn(`PM insuficientes! Você tem ${pm} PM, precisa de ${cost}.`);
+        return;
+      }
+    }
+
+    const updates = {
+      [`system.manipulation.principles.${id}.unlocked`]: true,
+    };
+
+    if ( cost > 0 ) {
+      const pm = this.actor.system.curseResources?.cursePoints ?? 0;
+      updates["system.curseResources.cursePoints"] = pm - cost;
+      updates["system.manipulation.pointsInvested"] = (this.actor.system.manipulation?.pointsInvested ?? 0) + cost;
+    }
+
+    await this.actor.update(updates);
+    console.log(`HunterLegacy | Princípio desbloqueado: ${id} (custo: ${cost} PM)`);
+  }
+
+  async _onUnlockNenAbility(id) {
+    let node = null;
+    let prId = null;
+    for ( const sec of TREE_DATA ) {
+      for ( const p of sec.principles ) {
+        const a = p.abilities.find(x => x.id === id);
+        if ( a ) { node = a; prId = p.id; break; }
+      }
+      if ( node ) break;
+    }
+    if ( !node ) return;
+    const pm = this.actor.system.curseResources?.cursePoints ?? 0;
+    if ( pm < node.cost ) {
+      ui.notifications.warn(`PM insuficientes! Você tem ${pm} PM, precisa de ${node.cost}.`);
+      return;
+    }
+    // Conceder técnicas vinculadas se houver
+    if ( node.techniques?.length ) {
+      await this._grantLinkedTechniques(node.techniques);
+    }
+    await this.actor.update({
+      [`system.manipulation.abilities.${id}.unlocked`]: true,
+      "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + node.cost,
+      "system.curseResources.cursePoints": pm - node.cost
+    });
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `<strong>${this.actor.name}</strong> desbloqueou: <strong>${node.label}</strong>!`
+    });
+    console.log(`HunterLegacy | Habilidade desbloqueada: ${id}`);
+  }
+
+  async _onGrantNenPrinciple(id) {
+    if ( !game.user.isGM ) {
+      ui.notifications.warn("Apenas o Mestre pode conceder princípios fundamentais.");
+      return;
+    }
+    let node = null;
+    for ( const sec of TREE_DATA ) {
+      node = sec.principles.find(p => p.id === id);
+      if ( node ) break;
+    }
+    await this.actor.update({
+      [`system.manipulation.principles.${id}.unlocked`]: true
+    });
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `⭐ O Mestre concedeu o princípio <strong>${node?.label ?? id}</strong> para <strong>${this.actor.name}</strong>!`
+    });
+    console.log(`HunterLegacy | Princípio fundamental concedido: ${id}`);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Desfaz o desbloqueio de um princípio ou habilidade de Nen.
+   * Disparado pelo CustomEvent "nen-undo" do HBS.
+   */
+  // ── NEN SKILL TREE — Setup completo de interações ───────────────────────
+  _setupNenTreeInteractions() {
+    const actorId = this.actor.id;
+    const tree = this.element.querySelector(`#nen-tree-${actorId}`);
+    const tt   = this.element.querySelector(`#nen-tt-${actorId}`);
+    const ctx  = this.element.querySelector(`#nen-ctx-${actorId}`);
+    if ( !tree || !tt || !ctx ) return;
+
+    const SL = { beginner:"Iniciante", expert:"Perito", master:"Mestre" };
+
+    // ── TOOLTIP ──────────────────────────────────────────────────────────
+    const showTT = (e, box) => {
+      const id   = box.dataset.nodeId;
+      const type = box.dataset.nodeType;
+      if ( !id || !type ) return;
+
+      // Busca dados no TREE_DATA
+      let node = null, prLabel = "";
+      for ( const sec of TREE_DATA ) {
+        for ( const p of sec.principles ) {
+          if ( type === "pr" && p.id === id )    { node = p; break; }
+          if ( type === "ab" ) {
+            const a = p.abilities.find(x => x.id === id);
+            if ( a ) { node = a; prLabel = p.label; break; }
+          }
+        }
+        if ( node ) break;
+      }
+      if ( !node ) return;
+
+      const isU  = box.dataset.unlocked === "true";
+      const meta = type === "pr"
+        ? (node.type === "fundamental" ? "Princípio Fundamental · Grátis" : `Princípio Avançado · ${node.cost} PM`)
+        : `${prLabel} · ${SL[node.stage] ?? node.stage} · ${node.cost} PM`;
+
+      const passiveHTML = node.passive && node.passive !== "Nenhuma." && node.passive !== "Nenhum."
+        ? `<div class="nen-tt-passive"><b>⚡ Passiva</b>${node.passive}</div>` : "";
+
+      tt.innerHTML = `
+        <div class="nen-tt-name">${node.label}</div>
+        <div class="nen-tt-meta">${meta}</div>
+        <div class="nen-tt-desc">${(node.desc ?? "").replace(/\n/g, "<br>")}</div>
+        ${passiveHTML}
+        ${isU ? '<div class="nen-tt-status">✓ Desbloqueado — botão direito para desfazer</div>' : ""}
+      `;
+      tt.style.display = "block";
+      posTT(e);
+    };
+
+    const posTT = (e) => {
+      const w = 270;
+      let x = e.clientX + 16, y = e.clientY + 10;
+      if ( x + w > window.innerWidth - 8 )  x = e.clientX - w - 14;
+      if ( y + 380 > window.innerHeight )    y = Math.max(8, window.innerHeight - 390);
+      tt.style.left = x + "px";
+      tt.style.top  = y + "px";
+    };
+
+    const hideTT = () => { tt.style.display = "none"; };
+
+    // ── CONTEXT MENU ─────────────────────────────────────────────────────
+    const showCtx = (e, box) => {
+      e.preventDefault();
+      hideCtx();
+      if ( box.dataset.unlocked !== "true" ) return;
+
+      const id   = box.dataset.nodeId;
+      const type = box.dataset.nodeType;
+      let node = null;
+      for ( const sec of TREE_DATA ) {
+        for ( const p of sec.principles ) {
+          if ( type === "pr" && p.id === id )    { node = p; break; }
+          if ( type === "ab" ) {
+            const a = p.abilities.find(x => x.id === id);
+            if ( a ) { node = a; break; }
+          }
+        }
+        if ( node ) break;
+      }
+      if ( !node ) return;
+
+      const isMG = box.dataset.masterGrant === "true";
+      ctx.innerHTML = `
+        <div class="nen-ctx-item" style="cursor:pointer">
+          <i class="fas fa-rotate-left"></i> Desfazer desbloqueio
+        </div>
+      `;
+      ctx.style.display = "block";
+
+      let x = e.clientX, y = e.clientY;
+      if ( x + 200 > window.innerWidth )  x = e.clientX - 200;
+      if ( y + 60  > window.innerHeight ) y = e.clientY - 60;
+      ctx.style.left = x + "px";
+      ctx.style.top  = y + "px";
+
+      ctx.querySelector(".nen-ctx-item").addEventListener("click", () => {
+        this._onNenUndo({ id, type, cost: parseInt(node.cost ?? 0), isMasterGrant: isMG });
+        hideCtx();
+      });
+    };
+
+    const hideCtx = () => { ctx.style.display = "none"; ctx.innerHTML = ""; };
+
+    // ── BIND ──────────────────────────────────────────────────────────────
+    tree.querySelectorAll(".nen-box").forEach(box => {
+      box.addEventListener("mouseenter", (e) => showTT(e, box));
+      box.addEventListener("mousemove",  posTT);
+      box.addEventListener("mouseleave", hideTT);
+      box.addEventListener("contextmenu", (e) => showCtx(e, box));
+    });
+
+    // Fecha context menu ao clicar fora
+    this.element.addEventListener("click", hideCtx);
+
+    // Listener do nen-undo
+    tree.addEventListener("nen-undo", (e) => this._onNenUndo(e.detail));
+  }
+
+  async _onNenUndo(detail) {
+    const { id, type, cost, isMasterGrant } = detail;
+
+    const confirm = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Desfazer Desbloqueio" },
+      content: `<p>Deseja desfazer o desbloqueio de <strong>${id}</strong>?${cost > 0 ? ` Os ${cost} PM serão devolvidos.` : ""}</p>`
+    });
+    if ( !confirm ) return;
+
+    const updates = {};
+
+    if ( type === "pr" ) {
+      updates[`system.manipulation.principles.${id}.unlocked`] = false;
+    } else {
+      updates[`system.manipulation.abilities.${id}.unlocked`] = false;
+    }
+
+    // Devolve PM se não for fundamental gratuito
+    if ( cost > 0 ) {
+      const currentPM = this.actor.system.curseResources?.cursePoints ?? 0;
+      const currentInvested = this.actor.system.manipulation?.pointsInvested ?? 0;
+      updates["system.curseResources.cursePoints"] = currentPM + cost;
+      updates["system.manipulation.pointsInvested"] = Math.max(0, currentInvested - cost);
+    }
+
+    await this.actor.update(updates);
+    console.log(`HunterLegacy | Desbloqueio desfeito: ${id} (${type})`);
+  }
+
+  /* -------------------------------------------- */
+
   /**
    * Abre o dialog de Treinamento Intenso para escolher a opção de melhoria.
    */
@@ -1728,7 +2113,7 @@ new foundry.applications.ux.ContextMenu.implementation(
                           cursor:pointer;">
               <input type="radio" name="jj-training-choice" value="cursePoints" style="flex:0 0 auto;">
               <div>
-                <strong style="color:#ffa060;">💀 Pontos de Maldição +4</strong>
+                <strong style="color:#ffa060;"> 🔥 Pontos de Nen +4</strong>
                 <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PM → ${cursePoints + 4} PM</div>
               </div>
             </label>
@@ -1783,7 +2168,7 @@ new foundry.applications.ux.ContextMenu.implementation(
       const current = actor.system.curseResources?.cursePoints ?? 0;
       updates["system.curseResources.cursePoints"] = current + 4;
       updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 4;
-      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+4 Pontos de Maldição</strong> (total: ${current + 4} PM).`;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+4 Pontos de Nen</strong> (total: ${current + 4} PM).`;
     }
 
     await actor.update(updates);
