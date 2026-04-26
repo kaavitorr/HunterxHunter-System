@@ -644,7 +644,7 @@ Hooks.once("ready", function() {
 
   // Determine whether a system migration is required and feasible
   if ( !game.user.isGM ) return;
-  const cv = game.settings.get("hunter-system", "systemMigrationVersion") || game.world.flags.HunterLegacy?.version;
+  const cv = game.settings.get("hunter-system", "systemMigrationVersion") || game.world.flags.JujutsuLegacy?.version;
   const totalDocuments = game.actors.size + game.scenes.size + game.items.size;
   if ( !cv && totalDocuments === 0 ) return game.settings.set("hunter-system", "systemMigrationVersion", game.system.version);
   if ( cv && !foundry.utils.isNewerVersion(game.system.flags.needsMigrationVersion, cv) ) return;

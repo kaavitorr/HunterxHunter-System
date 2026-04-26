@@ -236,7 +236,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     // Migrate encounter groups to their own Actor type.
     if ( (source.type === "group") && (source.system?.type?.value === "encounter") ) {
       source.type = "encounter";
-      foundry.utils.setProperty(source, "flags.HunterLegacy.persistSourceMigration", true);
+      foundry.utils.setProperty(source, "flags.JujutsuLegacy.persistSourceMigration", true);
     }
 
     source = super._initializeSource(source, options);
@@ -412,12 +412,12 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     if ( actor.pack ) {
       // Template actor resides only in a compendium, import the actor into the world.
       return game.actors.importFromCompendium(game.packs.get(actor.pack), actor.id, {
-        "flags.HunterLegacy.isAutoImported": true
+        "flags.JujutsuLegacy.isAutoImported": true
       });
     } else {
       // A linked world actor was found. Create a copy to avoid affecting the original.
       return actor.clone({
-        "flags.HunterLegacy.isAutoImported": true,
+        "flags.JujutsuLegacy.isAutoImported": true,
         "_stats.compendiumSource": actor._stats.compendiumSource,
         "_stats.duplicateSource": actor.uuid
       }, { save: true });
@@ -806,7 +806,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
 
     const multiplier = options.multiplier ?? 1;
     const treatAs = options.originatingMessage?.flags?.dnd5e?.roll?.type
-      ? options.originatingMessage.flags.HunterLegacy.roll.type === "healing" ? "healing" : "damage"
+      ? options.originatingMessage.flags.JujutsuLegacy.roll.type === "healing" ? "healing" : "damage"
       : options.only ?? "damage";
 
     const skipped = type => {
@@ -1193,7 +1193,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
    */
   static async handleSkillCheckRequest(actor, request, config, { event }={}) {
     const data = {};
-    foundry.utils.setProperty(data, "flags.HunterLegacy.requestResult", { actorUuid: actor.uuid, requestId: request.id });
+    foundry.utils.setProperty(data, "flags.JujutsuLegacy.requestResult", { actorUuid: actor.uuid, requestId: request.id });
     const [roll] = (await actor.rollSkill({ ...config, event }, {}, { data })) ?? [];
     return roll?.parent ?? null;
   }
@@ -1272,7 +1272,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     const abilityId = config.ability ?? relevant?.ability ?? (type === "skill" ? skillConfig.ability : toolConfig.ability);
     const ability = this.system.abilities?.[abilityId];
     const hostActor = this.isPolymorphed && this.flags?.dnd5e?.transformOptions?.mergeSkills && (type === "skill")
-      ? game.actors.get(this.flags.HunterLegacy?.originalActor) : null;
+      ? game.actors.get(this.flags.JujutsuLegacy?.originalActor) : null;
     const buildConfig = this._buildSkillToolConfig.bind(this, type, hostActor);
     const doubleProf = !!relevant?.prof.hasProficiency && !!alternate?.prof.hasProficiency;
     const pace = TravelField.getTravelPaceMode(config.pace, config.skill);
@@ -1794,7 +1794,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
    */
   getInitiativeRollConfig(options={}) {
     const init = this.system.attributes?.init;
-    const flags = this.flags.HunterLegacy ?? {};
+    const flags = this.flags.JujutsuLegacy ?? {};
     const abilityId = init?.ability || CONFIG.DND5E.defaultAbilities.initiative;
     const ability = this.system.abilities?.[abilityId];
 
@@ -1985,7 +1985,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
         speaker: ChatMessage.implementation.getSpeaker({actor: this}),
         flavor,
         title: `${flavor}: ${this.name}`,
-        "flags.HunterLegacy.roll": {type: "hitDie"}
+        "flags.JujutsuLegacy.roll": {type: "hitDie"}
       }
     }, message);
 
@@ -2060,7 +2060,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
       title: `${flavor}: ${this.name}`,
       flavor,
       speaker: ChatMessage.implementation.getSpeaker({ actor: this }),
-      "flags.HunterLegacy.roll": { type: "hitPoints" }
+      "flags.JujutsuLegacy.roll": { type: "hitPoints" }
     };
 
     /**
@@ -2113,7 +2113,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
       title: `${flavor}: ${this.name}`,
       flavor,
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      "flags.HunterLegacy.roll": { type: "hitPoints" }
+      "flags.JujutsuLegacy.roll": { type: "hitPoints" }
     };
 
     /**
@@ -2381,7 +2381,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     // Linha extra de energia (descanso curto)
     let energyLine = "";
     if ( config.type === "short" && result.energyRecovered > 0 ) {
-      energyLine = ` Recuperou também <strong>${result.energyRecovered} PA</strong> de Aura (${result.energyDiceSpent}× ${result.energyDenomination}).`;
+      energyLine = ` Recuperou também <strong>${result.energyRecovered} PA</strong> de Energia Amaldiçoada (${result.energyDiceSpent}× ${result.energyDenomination}).`;
     }
 
     let chatData = {
@@ -2403,7 +2403,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
         type: result.type
       }
     };
-    if ( config.request ) foundry.utils.setProperty(chatData, "flags.HunterLegacy.requestResult", {
+    if ( config.request ) foundry.utils.setProperty(chatData, "flags.JujutsuLegacy.requestResult", {
       actorUuid: this.uuid, requestId: config.request.id
     });
     ChatMessage.applyRollMode(chatData, game.settings.get("core", "rollMode"));
@@ -2475,7 +2475,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
       for ( const roll of rolls ) {
         await roll.toMessage({
           speaker: ChatMessage.getSpeaker({ actor: this, alias: this.name }),
-          flavor: `${this.name} recupera PA de Aura (${ed.denomination} + mod. CON)`
+          flavor: `${this.name} recupera PA de Energia Amaldiçoada (${ed.denomination} + mod. CON)`
         });
       }
     }
@@ -2826,8 +2826,8 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     let originalSaves = null;
     let originalSkills = null;
     if ( this.isPolymorphed ) {
-      const transformOptions = this.flags.HunterLegacy?.transformOptions;
-      const original = game.actors?.get(this.flags.HunterLegacy?.originalActor);
+      const transformOptions = this.flags.JujutsuLegacy?.transformOptions;
+      const original = game.actors?.get(this.flags.JujutsuLegacy?.originalActor);
       if ( original ) {
         if ( transformOptions.mergeSaves ) originalSaves = original.system.abilities;
         if ( transformOptions.mergeSkills ) originalSkills = original.system.skills;
@@ -3096,8 +3096,8 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     }
 
     // Set new data flags
-    if ( !this.isPolymorphed || !d.flags.HunterLegacy.originalActor ) d.flags.HunterLegacy.originalActor = this.id;
-    d.flags.HunterLegacy.isPolymorphed = true;
+    if ( !this.isPolymorphed || !d.flags.JujutsuLegacy.originalActor ) d.flags.JujutsuLegacy.originalActor = this.id;
+    d.flags.JujutsuLegacy.isPolymorphed = true;
 
     // Gather previous actor data
     const previousActorIds = this.getFlag("hunter-system", "previousActorIds") || [];
@@ -3120,7 +3120,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
         tokenData.name = `${this.token.name} (${sourceData.name})`;
       }
 
-      if ( !this.token.flags.HunterLegacy?.previousActorData ) {
+      if ( !this.token.flags.JujutsuLegacy?.previousActorData ) {
         const previousActorData = this.token.delta.toObject();
         const previousTokenData = { texture: {} };
         for ( const k of [...tokenPropsFromSource, ...tokenPropsFromSelf, "name"] ) {
@@ -3129,8 +3129,8 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
         for ( const k of tokenTexturePropsFromSource ) {
           previousTokenData.texture[k] = this.token.texture[k];
         }
-        foundry.utils.setProperty(tokenData, "flags.HunterLegacy.previousActorData", previousActorData);
-        foundry.utils.setProperty(tokenData, "flags.HunterLegacy.previousTokenData", previousTokenData);
+        foundry.utils.setProperty(tokenData, "flags.JujutsuLegacy.previousActorData", previousActorData);
+        foundry.utils.setProperty(tokenData, "flags.JujutsuLegacy.previousTokenData", previousTokenData);
       }
       await this.sheet?.close();
       const update = await this.token.update(tokenData);
@@ -3187,10 +3187,10 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
         newTokenData.name = `${t.document.name} (${sourceData.name})`;
       }
 
-      const dOriginalActor = foundry.utils.getProperty(d, "flags.HunterLegacy.originalActor");
-      foundry.utils.setProperty(newTokenData, "flags.HunterLegacy.originalActor", dOriginalActor);
-      foundry.utils.setProperty(newTokenData, "flags.HunterLegacy.isPolymorphed", true);
-      if ( !t.document.flags.HunterLegacy?.previousTokenData ) {
+      const dOriginalActor = foundry.utils.getProperty(d, "flags.JujutsuLegacy.originalActor");
+      foundry.utils.setProperty(newTokenData, "flags.JujutsuLegacy.originalActor", dOriginalActor);
+      foundry.utils.setProperty(newTokenData, "flags.JujutsuLegacy.isPolymorphed", true);
+      if ( !t.document.flags.JujutsuLegacy?.previousTokenData ) {
         const previousTokenData = { texture: {} };
         for ( const k of [...tokenPropsFromSource, ...tokenPropsFromSelf, "name"] ) {
           previousTokenData[k] = t.document[k];
@@ -3198,7 +3198,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
         for ( const k of tokenTexturePropsFromSource ) {
           previousTokenData.texture[k] = t.document.texture[k];
         }
-        foundry.utils.setProperty(newTokenData, "flags.HunterLegacy.previousTokenData", previousTokenData);
+        foundry.utils.setProperty(newTokenData, "flags.JujutsuLegacy.previousTokenData", previousTokenData);
       }
       return newTokenData;
     });
@@ -3273,8 +3273,8 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
       foundry.utils.mergeObject(tokenUpdate, this.token.getFlag("hunter-system", "previousTokenData"));
       tokenUpdate.sight = prototypeTokenData.sight;
       tokenUpdate.detectionModes = prototypeTokenData.detectionModes;
-      delete tokenUpdate.flags.HunterLegacy.previousActorData;
-      delete tokenUpdate.flags.HunterLegacy.previousTokenData;
+      delete tokenUpdate.flags.JujutsuLegacy.previousActorData;
+      delete tokenUpdate.flags.JujutsuLegacy.previousTokenData;
 
       await this.sheet.close();
       const token = await TokenDocument.implementation.create(tokenUpdate, { parent: this.token.parent, render: true });
@@ -3318,7 +3318,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     } else {
       // Remove the flags
       const actorUpdates = polymorphedActorIds.filter(id => game.actors.get(id).isOwner).map(p => {
-        return { _id: p, "flags.HunterLegacy": { "-=isPolymorphed": null, "-=previousActorIds": null } };
+        return { _id: p, "flags.JujutsuLegacy": { "-=isPolymorphed": null, "-=previousActorIds": null } };
       });
       await Actor.implementation.updateDocuments(actorUpdates);
 
@@ -3612,10 +3612,10 @@ async _preUpdate(changed, options, user) {
     if ( level < 1 ) return effect?.delete();
     else if ( effect ) {
       const originalExhaustion = foundry.utils.getProperty(options, "dnd5e.originalExhaustion");
-      return effect.update({ "flags.HunterLegacy.exhaustionLevel": level }, { dnd5e: { originalExhaustion } });
+      return effect.update({ "flags.JujutsuLegacy.exhaustionLevel": level }, { dnd5e: { originalExhaustion } });
     } else {
       effect = await ActiveEffect.implementation.fromStatusEffect("exhaustion", { parent: this });
-      effect.updateSource({ "flags.HunterLegacy.exhaustionLevel": level });
+      effect.updateSource({ "flags.JujutsuLegacy.exhaustionLevel": level });
       return ActiveEffect.implementation.create(effect, { parent: this, keepId: true });
     }
   }

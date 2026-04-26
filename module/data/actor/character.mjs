@@ -222,18 +222,26 @@ export default class CharacterData extends CreatureTemplate {
         }), { label: "JUJUTSU.Manipulation.Abilities" })
       }, { label: "JUJUTSU.Manipulation.Label" }),
 
-      // Treinamentos de Energia (Cap. 6.5)
-      trainings: new MappingField(new SchemaField({
-        // 0 = não aprendido, 1 = Base ★, 2 = Evolução ★★, 3 = Perfeição ★★★
-        rank: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 3, initial: 0 }),
-        // CD atual (reduzida por falhas)
-        currentDC: new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 })
-      }), { label: "JUJUTSU.Trainings.Label" }),
-
-      // Pontos de Treinamento investidos (para Nível de Maestria)
-      masteryPoints: new NumberField({
-        required: true, nullable: false, integer: true, min: 0, initial: 0,
-        label: "JUJUTSU.MasteryPoints"
+      // Categorias Nen (HxH) — nível 0-10 por categoria
+      nenCategories: new SchemaField({
+        aprimorador: new SchemaField({
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        emissor: new SchemaField({
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        transmutador: new SchemaField({
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        conjurador: new SchemaField({
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        manipulador: new SchemaField({
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        especialista: new SchemaField({
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        })
       }),
       energyDice: new SchemaField({
         value: new NumberField({
@@ -302,7 +310,7 @@ export default class CharacterData extends CreatureTemplate {
       const required = xp.max - xp.min;
       const pct = Math.round((xp.value - xp.min) * 100 / required);
       xp.pct = Math.clamp(pct, 0, 100);
-    } else if ( game.settings.get("jujutsu-system", "levelingMode") === "xpBoons" ) {
+    } else if ( game.settings.get("hunter-system", "levelingMode") === "xpBoons" ) {
       const overflow = xp.value - this.parent.getLevelExp(CONFIG.DND5E.maxLevel);
       xp.boonsEarned = Math.max(0, Math.floor(overflow / CONFIG.DND5E.epicBoonInterval));
       const progress = overflow - (CONFIG.DND5E.epicBoonInterval * xp.boonsEarned);

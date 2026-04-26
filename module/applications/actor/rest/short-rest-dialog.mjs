@@ -37,7 +37,7 @@ export default class ShortRestDialog extends BaseRestDialog {
     });
     context.autoEnergyRoll = new BooleanField({
       label: "Gasto Automático de DE",
-      hint: "Gasta dados de Aura automaticamente até acabar ou a Aura ficar cheia."
+      hint: "Gasta dados de energia automaticamente até acabar ou a energia ficar cheia."
     });
 
     if ( this.actor.system.isNPC ) {
@@ -112,7 +112,7 @@ export default class ShortRestDialog extends BaseRestDialog {
     const quantity = Number(this.form.energyDenom?.value ?? 1);
 
     if ( ed.value <= 0 ) {
-      ui.notifications.warn("Sem Dados de Aura disponíveis!");
+      ui.notifications.warn("Sem Dados de Energia disponíveis!");
       return;
     }
 
@@ -142,7 +142,7 @@ export default class ShortRestDialog extends BaseRestDialog {
     // Envia o roll pro chat igual ao dado de vida
     await roll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),
-      flavor: `${actor.name} recupera Pontos de Aura (${diceSpent}× ${ed.denomination} + mod. CON)`
+      flavor: `${actor.name} recupera PA de Energia Amaldiçoada (${diceSpent}× ${ed.denomination} + mod. CON)`
     });
 
     // Aplica a recuperação (mínimo 0 por dado)

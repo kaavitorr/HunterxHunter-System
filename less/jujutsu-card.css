@@ -1803,3 +1803,101 @@
 .nen-spur-down {
   height: 14px;
 }
+
+/* ══════════════════════════════════════════════════════
+   ABA DE TREINAMENTOS — HEXÁGONO NEN (HxH)
+   ══════════════════════════════════════════════════════ */
+
+/* ── WRAPPER DO HEXÁGONO ────────────────────────────── */
+.nen-hexagon-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0 8px;
+}
+
+.nen-hexagon-svg {
+  width: 260px;
+  height: 260px;
+  filter: drop-shadow(0 0 12px rgba(180, 140, 30, 0.2));
+}
+
+/* ── GRID DE CATEGORIAS ─────────────────────────────── */
+.nen-categories-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px 10px 12px;
+}
+
+/* ── CARD DE CATEGORIA ──────────────────────────────── */
+.nen-category-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: background 0.2s;
+}
+
+.nen-category-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ── HEADER DO CARD ─────────────────────────────────── */
+.nen-cat-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.nen-cat-abbrev {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  min-width: 32px;
+}
+
+.nen-cat-name {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  flex: 1;
+}
+
+.nen-cat-level {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── BARRA DE PROGRESSO ─────────────────────────────── */
+.nen-cat-bar-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.nen-cat-bar-fill {
+  height: 100%;
+  background: rgba(180, 140, 30, 0.85);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* ── PIPS ───────────────────────────────────────────── */
+.nen-cat-pips {
+  display: flex;
+  gap: 2px;
+}
+
+.nen-pip {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.15);
+  line-height: 1;
+}
+
+.nen-pip.filled {
+  color: rgba(180, 140, 30, 0.85);
+}
