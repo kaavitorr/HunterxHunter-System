@@ -1,164 +1,257 @@
 <section class="tab {{ tab.cssClass }} jujutsu-section" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
 
-{{!-- ══════════════════ HEADER ══════════════════ --}}
-<div class="manipulation-header jujutsu-card">
-  <div class="manipulation-stage">
-    <span class="stage-label">Estágio</span>
-    {{#if (eq actor.system.manipulation.stage "master")}}
-      <span class="stage-value stage-master">Mestre</span>
-      <span class="stage-desc">61+ PM investidos</span>
+  {{!-- ═══════════════════════════ HEADER ═══════════════════════════ --}}
+  <div class="manipulation-header jujutsu-card">
+
+    <div class="manipulation-stage">
+      <span class="stage-label">Estágio</span>
+      {{#if (eq actor.system.manipulation.stage "master")}}
+        <span class="stage-value stage-master">Mestre</span>
+      {{else if (eq actor.system.manipulation.stage "expert")}}
+        <span class="stage-value stage-expert">Perito</span>
+      {{else}}
+        <span class="stage-value stage-beginner">Iniciante</span>
+      {{/if}}
+      <span class="stage-pts">· {{actor.system.manipulation.pointsInvested}} PM investidos</span>
+    </div>
+
+    <div class="manipulation-resources">
+      <div class="resource-box">
+        <label>Pontos de Nen</label>
+        <input type="number"
+          name="system.curseResources.cursePoints"
+          value="{{actor.system.curseResources.cursePoints}}"
+          min="0" data-dtype="Number" />
+      </div>
+    </div>
+
+  </div>
+
+  {{!-- ══════════════════════════ EFEITO ════════════════════════════ --}}
+  <div class="stage-effects">
+    {{#if (eq actor.system.manipulation.stage "beginner")}}
+      <p class="stage-effect-text">
+        ⚠️ <strong>Iniciante:</strong> Precisa de ação bônus para ativar e desativar sua aura.
+      </p>
     {{else if (eq actor.system.manipulation.stage "expert")}}
-      <span class="stage-value stage-expert">Perito</span>
-      <span class="stage-desc">21–60 PM investidos</span>
+      <p class="stage-effect-text">
+        ✅ <strong>Perito:</strong> Ativação automática de energia + proficiência em Esp (Nen).
+      </p>
     {{else}}
-      <span class="stage-value stage-beginner">Iniciante</span>
-      <span class="stage-desc">1–20 PM investidos</span>
+      <p class="stage-effect-text">
+        ⭐ <strong>Mestre:</strong> +4 dados de aura em descanso longo + maestria em Esp (Nen).
+      </p>
     {{/if}}
   </div>
-  <div class="manipulation-resources">
-    <div class="resource-box">
-      <label>Pontos de Nen (PM)</label>
-      <input type="number" name="system.curseResources.cursePoints"
-        value="{{actor.system.curseResources.cursePoints}}" min="0" data-dtype="Number" />
-    </div>
-    <div class="resource-box">
-      <label>PM Investidos</label>
-      <input type="number" value="{{actor.system.manipulation.pointsInvested}}" readonly />
-    </div>
-  </div>
-</div>
 
-{{!-- ══════════════════ EFEITO DO ESTÁGIO ══════════════════ --}}
-<div class="stage-effect-bar">
-  {{#if (eq actor.system.manipulation.stage "beginner")}}
-    <span class="stage-effect-icon">⚠️</span>
-    <span><strong>Iniciante:</strong> Você deve usar uma ação bônus para ativar sua aura ou entrar em Zetsu.</span>
-  {{else if (eq actor.system.manipulation.stage "expert")}}
-    <span class="stage-effect-icon">✅</span>
-    <span><strong>Perito:</strong> Você pode manter sua aura ativa enquanto dorme. Dormir não desativa habilidades com longas durações. Você recebe proficiência em Testes de Atributo de Espírito (Nen).</span>
-  {{else}}
-    <span class="stage-effect-icon">⭐</span>
-    <span><strong>Mestre:</strong> Você recupera 4 dados de aura adicionais no fim de cada descanso longo. Você recebe <strong>maestria</strong> em Testes de Atributo de Espírito (Nen).</span>
-  {{/if}}
-</div>
+  {{!-- ═══════════════════ EVOLUÇÃO NA PRÁTICA ═════════════════════ --}}
+  <div class="evolution-section jujutsu-card">
 
-{{!-- ══════════════════ EVOLUÇÃO NA PRÁTICA ══════════════════ --}}
-<div class="evolution-section jujutsu-card">
-  <div class="evolution-header">
-    <h3 class="evolution-title">Evolução na Prática <span class="evolution-sub">— 10 dias de treinamento</span></h3>
-    <button class="jujutsu-btn primary" data-action="intensiveTraining">
-      <i class="fas fa-dumbbell"></i> Treinar
-    </button>
-  </div>
-  <div class="evolution-counters">
-    <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.maxEnergy}}has-training{{/if}}">
-      <div class="evo-counter-info">
-        <span class="evo-counter-label">PA Máximo</span>
-        <span class="evo-counter-desc">+5 por treino</span>
+    <div class="evolution-header">
+      <div class="evolution-title-row">
+        <span class="evolution-icon">⬡</span>
+        <h3 class="evolution-title">Evolução na Prática</h3>
+        <span class="evolution-subtitle">Treinamento Intenso — 10 dias</span>
       </div>
-      <div class="evo-counter-badge">+{{actor.system.energy.intensiveTraining.maxEnergy}}</div>
-      {{#if actor.system.energy.intensiveTraining.maxEnergy}}
-      <button class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="maxEnergy"><i class="fas fa-rotate-left"></i></button>
-      {{/if}}
+      <button class="jujutsu-btn primary btn-intensive-training"
+        data-action="intensiveTraining"
+        title="Iniciar Treinamento Intenso (10 dias)">
+        <i class="fas fa-dumbbell"></i> Treinar
+      </button>
     </div>
-    <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.generatedEnergy}}has-training{{/if}}">
-      <div class="evo-counter-info">
-        <span class="evo-counter-label">PA Gerada</span>
-        <span class="evo-counter-desc">+1 por treino (máx. 20)</span>
+
+    <div class="evolution-counters">
+
+      {{!-- PA Máximo --}}
+      <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.maxEnergy}}has-training{{/if}}">
+        <div class="evo-counter-icon">
+          <i class="fas fa-arrow-up"></i>
+        </div>
+        <div class="evo-counter-info">
+          <span class="evo-counter-label">PA Máximo</span>
+          <span class="evo-counter-desc">+5 por treino</span>
+        </div>
+        <div class="evo-counter-badge">
+          <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.maxEnergy}}</span>
+        </div>
+        {{#if actor.system.energy.intensiveTraining.maxEnergy}}
+        <button class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="maxEnergy"
+          title="Desfazer último treino de PA Máximo">
+          <i class="fas fa-rotate-left"></i>
+        </button>
+        {{/if}}
       </div>
-      <div class="evo-counter-badge">+{{actor.system.energy.intensiveTraining.generatedEnergy}}</div>
-      {{#if actor.system.energy.intensiveTraining.generatedEnergy}}
-      <button class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="generatedEnergy"><i class="fas fa-rotate-left"></i></button>
-      {{/if}}
-    </div>
-    <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.cursePoints}}has-training{{/if}}">
-      <div class="evo-counter-info">
-        <span class="evo-counter-label">Pontos de Nen</span>
-        <span class="evo-counter-desc">+4 PM por treino</span>
+
+      {{!-- PA Gerada --}}
+      <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.generatedEnergy}}has-training{{/if}}">
+        <div class="evo-counter-icon">
+          <i class="fas fa-bolt"></i>
+        </div>
+        <div class="evo-counter-info">
+          <span class="evo-counter-label">PA Gerada</span>
+          <span class="evo-counter-desc">+1 por treino (máx. 20)</span>
+        </div>
+        <div class="evo-counter-badge">
+          <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.generatedEnergy}}</span>
+        </div>
+        {{#if actor.system.energy.intensiveTraining.generatedEnergy}}
+        <button class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="generatedEnergy"
+          title="Desfazer último treino de PA Gerada">
+          <i class="fas fa-rotate-left"></i>
+        </button>
+        {{/if}}
       </div>
-      <div class="evo-counter-badge">+{{actor.system.energy.intensiveTraining.cursePoints}}</div>
-      {{#if actor.system.energy.intensiveTraining.cursePoints}}
-      <button class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="cursePoints"><i class="fas fa-rotate-left"></i></button>
-      {{/if}}
+
+      {{!-- Pontos de Nen --}}
+      <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.cursePoints}}has-training{{/if}}">
+        <div class="evo-counter-icon">
+          <i class="fas fa-skull"></i>
+        </div>
+        <div class="evo-counter-info">
+          <span class="evo-counter-label">Pontos de Nen</span>
+          <span class="evo-counter-desc">+4 PM por treino</span>
+        </div>
+        <div class="evo-counter-badge">
+          <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.cursePoints}}</span>
+        </div>
+        {{#if actor.system.energy.intensiveTraining.cursePoints}}
+        <button class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="cursePoints"
+          title="Desfazer último treino de PM">
+          <i class="fas fa-rotate-left"></i>
+        </button>
+        {{/if}}
+      </div>
+
     </div>
+
+    <p class="evolution-note">
+      💡 Gaste <strong>10 dias de treinamento</strong> para obter uma melhoria. Ao escolher <em>PA Gerada</em>, aguarde 10 dias antes de escolhê-la novamente.
+    </p>
+
   </div>
-</div>
 
-{{!-- ══════════════════ SKILL TREE ══════════════════ --}}
-<div class="nen-tree-wrapper" id="nen-tree-{{actor.id}}">
+  {{!-- ═══════════════════════ HABILIDADES ═════════════════════════ --}}
+  {{#each abilities as |group groupKey|}}
+  <div class="ability-section">
 
-  {{#each manipulation.sections as |section|}}
-  <div class="nen-section">
-    <div class="nen-section-label">{{section.label}}</div>
+    <h3 class="section-header jujutsu-title">
+      {{#if (eq groupKey "basic")}}
+        <span>◆</span> Habilidades Básicas
+      {{/if}}
+      {{#if (eq groupKey "advanced")}}
+        <span>◆</span> Habilidades Avançadas
+      {{/if}}
+      {{#if (eq groupKey "extreme")}}
+        <span>◈</span> Habilidades Extremas
+      {{/if}}
+      {{#if (eq groupKey "barrier")}}
+        <span>◇</span> Habilidades de Barreira
+      {{/if}}
+    </h3>
 
-    <div class="nen-principles-row">
-    {{#each section.principles as |principle|}}
+    <div class="ability-grid">
+      {{#each group}}
+      <div class="ability-card
+        {{#if this.unlocked}}unlocked{{else if this.canUnlock}}available{{else}}locked{{/if}}" data-ability-id="{{@key}}"
+        {{#if this.description}}data-tooltip="{{this.description}}" data-tooltip-direction="UP"{{/if}}>
 
-      {{!-- BLOCO VERTICAL: princípio em cima, habilidades abaixo --}}
-      <div class="nen-principle-block">
-
-        {{!-- CAIXA DO PRINCÍPIO (topo) --}}
-        <div class="nen-box nen-pr
-          {{#if principle.unlocked}}unlocked{{else if principle.isMasterGrant}}fundamental{{else if principle.canUnlock}}available{{else}}locked{{/if}}"
-          data-action="clickNenNode"
-          data-node-id="{{principle.id}}"
-          data-node-type="pr"
-          data-unlocked="{{principle.unlocked}}"
-          data-master-grant="{{principle.isMasterGrant}}">
-          <div class="nen-box-name">{{principle.label}}</div>
-          <div class="nen-box-cost">
-            {{#if principle.unlocked}}✓
-            {{else if principle.isMasterGrant}}Grátis
-            {{else}}{{principle.cost}} PM{{/if}}
-          </div>
-          {{!-- Botão de ação dentro do card --}}
-          {{#unless principle.unlocked}}
-            {{#if principle.canUnlockFree}}
-              <button class="nen-card-btn nen-card-btn-unlock" data-action="unlockNenPrinciple" data-id="{{principle.id}}">
-                Desbloquear (Grátis)
-              </button>
-            {{else if principle.canUnlock}}
-              <button class="nen-card-btn nen-card-btn-unlock" data-action="unlockNenPrinciple" data-id="{{principle.id}}">
-                Desbloquear
-              </button>
-            {{else}}
-              <span class="nen-card-locked">🔒 Req. não atendido</span>
+        {{!-- Header --}}
+        <div class="ability-header">
+          <span class="ability-name">{{this.label}}</span>
+          <div class="ability-header-right">
+            <span class="ability-cost">{{this.cost}} PM</span>
+            {{#if this.stageLabel}}
+              <span class="ability-stage stage-badge-{{this.stage}}">{{this.stageLabel}}</span>
             {{/if}}
-          {{/unless}}
+          </div>
         </div>
 
-        {{!-- LINHA VERTICAL DO PRINCÍPIO PARA AS HABILIDADES --}}
-        {{#if principle.abilities.length}}
-        <div class="nen-down-line {{#if principle.unlocked}}active{{/if}}"></div>
 
-        {{!-- LINHA HORIZONTAL DE DISTRIBUIÇÃO --}}
-        <div class="nen-h-spread {{#if principle.unlocked}}active{{/if}}"></div>
+        {{!-- Técnicas vinculadas --}}
+        {{#if this.techniques.length}}
+        <div class="ability-techniques">
+          <span class="techniques-label">Técnicas:</span>
+          {{#each this.techniques}}
+            <span class="technique-tag">{{this}}</span>
+          {{/each}}
+        </div>
+        {{/if}}
 
-        {{!-- HABILIDADES (em linha abaixo) --}}
+        {{!-- Ação --}}
+        <div class="ability-actions">
+          {{#if this.unlocked}}
+            <button class="jujutsu-btn unlocked-state" disabled>✓ Desbloqueado</button>
+          {{else if this.canUnlock}}
+            <button class="jujutsu-btn primary btn-unlock"
+              data-action="unlockManipulation"
+              data-ability="{{@key}}"
+              data-cost="{{this.cost}}">
+              Desbloquear · {{this.cost}} PM
+            </button>
+          {{else}}
+            <span style="font-size:10px;color:var(--jj-text-dim)">🔒 {{this.lockReason}}</span>
+          {{/if}}
+        </div>
+
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{/each}}
+
+  {{!-- ═══════════════════ PRINCÍPIOS DE NEN ═══════════════════ --}}
+  {{#each manipulation.sections as |section|}}
+  <div class="nen-tree-section">
+    <h3 class="nen-section-label">{{section.label}}</h3>
+
+    <div class="nen-principles-row">
+      {{#each section.principles as |pr|}}
+      <div class="nen-principle-block">
+
+        {{!-- Box do Princípio --}}
+        <div class="nen-box nen-pr
+          {{#if pr.unlocked}}unlocked{{else if pr.canUnlock}}available{{else if pr.isMasterGrant}}fundamental{{else}}locked{{/if}}"
+          data-action="unlockNenPrinciple"
+          data-id="{{pr.id}}"
+          {{#if pr.reference}}data-reference-tooltip="{{pr.reference}}"{{else}}data-tooltip="{{pr.description}}" data-tooltip-direction="UP"{{/if}}>
+          <span class="nen-box-name">{{pr.label}}</span>
+          <span class="nen-box-cost">
+            {{#if pr.canUnlockFree}}Grátis{{else}}{{pr.cost}} PM{{/if}}
+          </span>
+          {{#if pr.canUnlock}}
+          <button class="nen-card-btn nen-card-btn-unlock item-action"
+            data-action="unlockNenPrinciple"
+            data-id="{{pr.id}}">
+            Desbloquear{{#if pr.canUnlockFree}} (Grátis){{/if}}
+          </button>
+          {{else if pr.unlocked}}
+          <span class="nen-card-locked">✓ Desbloqueado</span>
+          {{/if}}
+        </div>
+
+        {{!-- Conectores e habilidades --}}
+        {{#if pr.abilities.length}}
+        <div class="nen-down-line {{#if pr.unlocked}}active{{/if}}"></div>
         <div class="nen-abilities-row">
-          {{#each principle.abilities as |ability|}}
+          {{#each pr.abilities as |ab|}}
           <div class="nen-ability-col">
-            {{!-- SPUR VERTICAL DESCENDO PARA A HABILIDADE --}}
-            <div class="nen-spur-down {{#if ability.unlocked}}active{{/if}}"></div>
+            <div class="nen-spur-down {{#if ../pr.unlocked}}active{{/if}}"></div>
             <div class="nen-box nen-ab
-              {{#if ability.unlocked}}unlocked{{else if ability.canUnlock}}available{{else}}locked{{/if}}"
-              data-action="clickNenNode"
-              data-node-id="{{ability.id}}"
-              data-node-type="ab"
-              data-unlocked="{{ability.unlocked}}"
-              data-pr-id="{{principle.id}}">
-              <div class="nen-box-name">{{ability.label}}</div>
-              <div class="nen-box-cost">
-                {{#if ability.unlocked}}✓{{else}}{{ability.cost}} PM{{/if}}
-              </div>
-              {{!-- Botão dentro do card --}}
-              {{#unless ability.unlocked}}
-                {{#if ability.canUnlock}}
-                <button class="nen-card-btn nen-card-btn-unlock" data-action="unlockNenAbility" data-id="{{ability.id}}">
-                  Desbloquear
-                </button>
-                {{/if}}
-              {{/unless}}
+              {{#if ab.unlocked}}unlocked{{else if ab.canUnlock}}available{{else}}locked{{/if}}"
+              data-action="unlockNenAbility"
+              data-id="{{ab.id}}"
+              {{#if ab.reference}}data-reference-tooltip="{{ab.reference}}"{{else}}data-tooltip="{{ab.description}}" data-tooltip-direction="UP"{{/if}}>
+              <span class="nen-box-name">{{ab.label}}</span>
+              <span class="nen-box-cost">{{ab.cost}} PM</span>
+              {{#if ab.canUnlock}}
+              <button class="nen-card-btn nen-card-btn-unlock item-action"
+                data-action="unlockNenAbility"
+                data-id="{{ab.id}}">
+                Desbloquear
+              </button>
+              {{else if ab.unlocked}}
+              <span class="nen-card-locked">✓ Desbloqueado</span>
+              {{/if}}
             </div>
           </div>
           {{/each}}
@@ -166,18 +259,10 @@
         {{/if}}
 
       </div>
-
-    {{/each}}
+      {{/each}}
     </div>
   </div>
   {{/each}}
 
-</div>
-
-{{!-- TOOLTIP FLUTUANTE --}}
-<div class="nen-tooltip" id="nen-tt-{{actor.id}}"></div>
-
-{{!-- CONTEXT MENU --}}
-<div class="nen-ctx-menu" id="nen-ctx-{{actor.id}}"></div>
 
 </section>

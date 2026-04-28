@@ -396,7 +396,7 @@ export default class CharacterActorSheet extends BaseActorSheet {
 const abilityOrder = ["str", "dex", "con", "int", "wis", "cha"];
 const abilityLabels = {
   str: "Força", dex: "Agilidade", con: "Constituição",
-  int: "Intelecto", wis: "Sabedoria", cha: "Presença"
+  int: "Espírito", wis: "Sabedoria", cha: "Presença"
 };
 const skillsSorted = [];
 for ( const ab of abilityOrder ) {
@@ -1550,6 +1550,8 @@ new foundry.applications.ux.ContextMenu.implementation(
             return {
               id: ab.id,
               label: ab.label,
+              description: ab.desc ?? "",
+              reference: ab.reference ?? "",
               cost: ab.cost,
               unlocked: abStatus.unlocked ?? false,
               canUnlock: abStatus.canUnlock ?? false
@@ -1563,6 +1565,8 @@ new foundry.applications.ux.ContextMenu.implementation(
           return {
             id: pr.id,
             label: pr.label,
+            description: pr.desc ?? "",
+            reference: pr.reference ?? "",
             cost: pr.cost ?? 0,
             unlocked,
             canUnlock,
@@ -1952,6 +1956,14 @@ new foundry.applications.ux.ContextMenu.implementation(
       manipulador: "#2ECC71",
       especialista: "#AAAAAA"
     };
+    const ICONS = {
+      aprimorador:  "systems/hunter-system/assets/Categorias/apri-mini.png",
+      emissor:      "systems/hunter-system/assets/Categorias/emi-mini.png",
+      transmutador: "systems/hunter-system/assets/Categorias/transmini.png",
+      conjurador:   "systems/hunter-system/assets/Categorias/conj-mini.png",
+      manipulador:  "systems/hunter-system/assets/Categorias/mani-mini.png",
+      especialista: "systems/hunter-system/assets/Categorias/esp-mini.png"
+    };
 
     const nenCategories = [];
     for ( const id of CATEGORIES ) {
@@ -1966,6 +1978,7 @@ new foundry.applications.ux.ContextMenu.implementation(
         label: LABELS[id],
         abbrev: ABBREVS[id],
         color: COLORS[id],
+        icon: ICONS[id],
         level,
         pct,
         dcReductions
@@ -2002,7 +2015,7 @@ new foundry.applications.ux.ContextMenu.implementation(
     });
 
     // Labels posicionados fora dos vértices
-    const LABEL_R = 145;
+    const LABEL_R = 128;
     const labels = ORDER.map((id, i) => {
       const cat = nenCategories.find(c => c.id === id);
       const angle = (Math.PI / 180) * (60 * i - 90);
@@ -2071,6 +2084,24 @@ new foundry.applications.ux.ContextMenu.implementation(
       });
     }
 
+    // Detectar categoria principal para colorir o fill do hexagono
+    const PRIM_CATS = ["aprimorador", "emissor", "transmutador", "conjurador", "manipulador", "especialista"];
+    let nenPrimaryCategory = null;
+    for ( const catId of PRIM_CATS ) {
+      const cls = Object.values(this.actor.classes ?? {}).find(c =>
+        c.identifier === catId || c.system?.identifier === catId || c.name?.toLowerCase() === catId
+      );
+      if ( cls ) { nenPrimaryCategory = catId; break; }
+    }
+    if ( !nenPrimaryCategory ) {
+      let maxLvl = 0;
+      for ( const catId of PRIM_CATS ) {
+        const lvl = this.actor.system?.nenCategories?.[catId]?.level ?? 0;
+        if ( lvl > maxLvl ) { maxLvl = lvl; nenPrimaryCategory = catId; }
+      }
+    }
+    const nenPrimaryColor = COLORS[nenPrimaryCategory] ?? "#c8a84b";
+
     context.nenCategories = nenCategories;
     context.nenMajorCount = nenMajorCount;
     context.nenMajorMax = nenMajorMax;
@@ -2080,6 +2111,8 @@ new foundry.applications.ux.ContextMenu.implementation(
     context.nenGridRings = gridRings;
     context.nenAxes = axes;
     context.nenLabels = labels;
+    context.nenPrimaryCategory = nenPrimaryCategory;
+    context.nenPrimaryColor = nenPrimaryColor;
     return context;
   }
 

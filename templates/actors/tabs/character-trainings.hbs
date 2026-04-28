@@ -21,24 +21,40 @@
   {{!-- ══════════════════════════ HEXÁGONO NEN ══════════════════════════ --}}
   <div class="nen-hexagon-wrapper">
     <svg class="nen-hexagon-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
-      {{#each nenGridRings as |pts|}}
-      <polygon points="{{pts}}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-      {{/each}}
-      {{#each nenAxes as |ax|}}
-      <line x1="160" y1="160" x2="{{ax.x2}}" y2="{{ax.y2}}"
-        stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-      {{/each}}
-      <polygon points="{{nenHexPoints}}"
-        fill="rgba(180,140,30,0.25)" stroke="rgba(220,180,60,0.9)" stroke-width="2.5"/>
+
+      {{!-- Grid circular tracejado --}}
+      <circle cx="160" cy="160" r="125" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4 3"/>
+      <circle cx="160" cy="160" r="100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4 3"/>
+      <circle cx="160" cy="160" r="75"  fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="4 3"/>
+      <circle cx="160" cy="160" r="50"  fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="4 3"/>
+      <circle cx="160" cy="160" r="25"  fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" stroke-dasharray="4 3"/>
+
+      {{!-- Eixos na cor de cada categoria --}}
       {{#each nenLabels as |cat|}}
-      <text x="{{cat.lx}}" y="{{cat.ly}}" text-anchor="middle" dominant-baseline="central"
-        fill="{{cat.color}}" stroke="rgba(0,0,0,0.8)" stroke-width="3" paint-order="stroke"
-        font-size="13" font-weight="800">{{cat.abbrev}}</text>
-      <text x="{{cat.lx}}" y="{{cat.ly2}}" text-anchor="middle" dominant-baseline="central"
-        fill="rgba(255,255,255,0.7)" stroke="rgba(0,0,0,0.6)" stroke-width="2" paint-order="stroke"
-        font-size="9">{{cat.pct}}%</text>
+      <line x1="160" y1="160" x2="{{cat.lx}}" y2="{{cat.ly}}"
+        stroke="{{cat.color}}" stroke-width="1" opacity="0.35"/>
       {{/each}}
-      <circle cx="160" cy="160" r="2" fill="rgba(255,255,255,0.4)"/>
+
+      {{!-- Fill do poligono na cor da categoria principal --}}
+      <polygon points="{{nenHexPoints}}"
+        fill="{{nenPrimaryColor}}" fill-opacity="0.18"
+        stroke="{{nenPrimaryColor}}" stroke-opacity="0.85" stroke-width="2"/>
+
+      {{!-- Labels e pontos coloridos por categoria --}}
+      {{#each nenLabels as |cat|}}
+      {{!-- Ponto colorido no vertice --}}
+      <circle cx="{{cat.lx}}" cy="{{cat.ly}}" r="16"
+        fill="{{cat.color}}" opacity="0.92" stroke="rgba(0,0,0,0.6)" stroke-width="1.5"/>
+      {{!-- Abreviacao --}}
+      <text x="{{cat.lx}}" y="{{cat.ly}}" text-anchor="middle" dominant-baseline="central"
+        fill="rgba(0,0,0,0.9)" font-size="11" font-weight="800">{{cat.abbrev}}</text>
+      {{!-- Nivel abaixo do ponto --}}
+      <text x="{{cat.lx}}" y="{{cat.ly2}}" text-anchor="middle" dominant-baseline="central"
+        fill="{{cat.color}}" stroke="rgba(0,0,0,0.8)" stroke-width="2.5" paint-order="stroke"
+        font-size="11" font-weight="800">{{cat.level}}</text>
+      {{/each}}
+
+      <circle cx="160" cy="160" r="3" fill="rgba(255,255,255,0.5)"/>
     </svg>
   </div>
 
@@ -47,125 +63,135 @@
     {{#each nenCategories as |cat|}}
     <div class="nen-category-card" data-category="{{cat.id}}">
 
-      {{!-- Header --}}
+      {{!-- ── HEADER COM BOTÃO DE TREINAR ── --}}
       <div class="nen-cat-header">
-        <span class="nen-cat-abbrev" style="color: {{cat.color}}">{{cat.abbrev}}</span>
-        <span class="nen-cat-name">{{cat.label}}</span>
-        <span class="nen-cat-level">Nv. {{cat.level}}/10</span>
+
+        {{!-- Botão de treinar com ícone --}}
         {{#if cat.canTrain}}
-        <button class="nen-train-btn item-action" data-action="trainNenCategory" data-category="{{cat.id}}">
-          Treinar Nv.{{cat.nextLevel}}
+        <button class="nen-train-btn item-action" data-action="trainNenCategory" data-category="{{cat.id}}"
+          style="--cat-color: {{cat.color}}" title="Treinar {{cat.label}} — Nv.{{cat.nextLevel}}">
+          <img class="nen-cat-icon" src="{{cat.icon}}" alt="{{cat.label}}" />
+          <span class="nen-train-label">
+            <span class="nen-train-name" style="color: {{cat.color}}">{{cat.label}}</span>
+            <span class="nen-train-sub">Treinar Nv.{{cat.nextLevel}}</span>
+          </span>
+          <span class="nen-train-costs">
+            <span>{{cat.nextPt}} PT</span>
+            <span>{{cat.nextPa}} PA</span>
+            <span>CD {{cat.currentDC}}</span>
+          </span>
         </button>
-        {{else if cat.blockedReason}}
-        <span class="nen-max-badge blocked">⛔ {{cat.blockedReason}}</span>
         {{else}}
-        <span class="nen-max-badge">✦ MAX</span>
+        <div class="nen-cat-header-locked" style="--cat-color: {{cat.color}}">
+          <img class="nen-cat-icon" src="{{cat.icon}}" alt="{{cat.label}}" />
+          <span class="nen-train-label">
+            <span class="nen-train-name" style="color: {{cat.color}}">{{cat.label}}</span>
+            {{#if cat.blockedReason}}
+            <span class="nen-train-sub muted">⛔ {{cat.blockedReason}}</span>
+            {{else}}
+            <span class="nen-train-sub muted">✦ Nível Máximo</span>
+            {{/if}}
+          </span>
+        </div>
         {{/if}}
+
+        {{!-- Nível e barra --}}
+        <div class="nen-cat-level-block">
+          <span class="nen-cat-level-num" style="color: {{cat.color}}">{{cat.level}}</span>
+          <span class="nen-cat-level-max">/10</span>
+          <div class="nen-cat-bar-track">
+            <div class="nen-cat-bar-fill" style="width: {{cat.pct}}%; background: {{cat.color}}"></div>
+          </div>
+          <div class="nen-cat-pips">
+            {{#each cat.pips as |pip|}}
+            <span class="nen-pip {{#if pip.filled}}filled{{/if}}"
+              style="{{#if pip.filled}}color: {{../cat.color}}{{/if}}">●</span>
+            {{/each}}
+          </div>
+        </div>
+
       </div>
 
-      {{!-- Custos --}}
-      {{#if cat.canTrain}}
-      <div class="nen-cat-costs">
-        <span title="Pontos de Treinamento">{{cat.nextPt}} PT</span>
-        <span title="Pontos de Aura">{{cat.nextPa}} PA</span>
-        <span title="Classe de Dificuldade">CD {{cat.currentDC}}</span>
+      {{!-- ── HABILIDADES MENORES ── --}}
+      {{#if cat.minorSlots.length}}
+      <div class="nen-abilities-section">
+        <div class="nen-abilities-title minor">Habilidades Menores</div>
+        <div class="nen-ability-grid">
+          {{#each cat.minorSlots as |slot|}}
+          <div class="nen-ability-card minor {{#if slot.reached}}reached{{else}}locked{{/if}}">
+            <div class="nen-ability-card-top">
+              <span class="nen-ability-lvl-badge" style="{{#if slot.reached}}background: {{../cat.color}}20; border-color: {{../cat.color}}60; color: {{../cat.color}}{{/if}}">Nv.{{slot.level}}</span>
+              <span class="nen-ability-card-name {{#unless slot.reached}}muted{{/unless}}">{{#if slot.empty}}🔒 Bloqueada{{else}}{{slot.label}}{{/if}}</span>
+            </div>
+            {{#if slot.description}}
+            <div class="nen-ability-tooltip">{{slot.description}}</div>
+            {{/if}}
+          </div>
+          {{/each}}
+        </div>
       </div>
       {{/if}}
 
-      {{!-- Barra e pips --}}
-      <div class="nen-cat-bar-track">
-        <div class="nen-cat-bar-fill" style="width: {{cat.pct}}%; background: {{cat.color}}"></div>
-      </div>
-      <div class="nen-cat-pips">
-        {{#each cat.pips as |pip|}}
-        <span class="nen-pip {{#if pip.filled}}filled{{/if}}"
-          style="{{#if pip.filled}}color: {{../cat.color}}{{/if}}">●</span>
-        {{/each}}
-      </div>
-
-      {{!-- Habilidades Menores --}}
-      <div class="nen-abilities-section">
-        <div class="nen-abilities-title minor">Habilidades Menores</div>
-        {{#each cat.minorSlots as |slot|}}
-        {{#if slot.empty}}
-        <div class="nen-ability-card minor locked-preview">
-          <div class="nen-ability-header">
-            <span class="nen-ability-name muted">Nível {{slot.level}}</span>
-            <span class="nen-ability-badge locked">🔒 Nv.{{slot.level}}</span>
-          </div>
-        </div>
-        {{else if slot.reached}}
-        <div class="nen-ability-card minor reached">
-          <div class="nen-ability-header">
-            <span class="nen-ability-name">{{slot.label}}</span>
-            <span class="nen-ability-badge minor">Nv.{{slot.level}}</span>
-          </div>
-          <div class="nen-ability-desc">{{slot.description}}</div>
-        </div>
-        {{else}}
-        <div class="nen-ability-card minor locked-preview">
-          <div class="nen-ability-header">
-            <span class="nen-ability-name muted">{{slot.label}}</span>
-            <span class="nen-ability-badge locked">🔒 Nv.{{slot.level}}</span>
-          </div>
-          <div class="nen-ability-desc muted">{{slot.description}}</div>
-        </div>
-        {{/if}}
-        {{/each}}
-      </div>
-
-      {{!-- Habilidades Principais --}}
+      {{!-- ── HABILIDADES PRINCIPAIS ── --}}
       <div class="nen-abilities-section">
         <div class="nen-abilities-title major">Habilidades Principais</div>
-        {{#each cat.majorSlots as |slot|}}
-        {{#if slot.empty}}
-        <div class="nen-ability-card major locked-preview">
-          <div class="nen-ability-header">
-            <span class="nen-ability-name muted">Nível {{slot.level}}</span>
-            <span class="nen-ability-badge locked">🔒 Nv.{{slot.level}}</span>
+        <div class="nen-ability-grid">
+          {{#each cat.majorSlots as |slot|}}
+
+          {{#if slot.unlocked}}
+          {{!-- DESBLOQUEADA --}}
+          <div class="nen-ability-card major unlocked {{#if slot.exclusive}}exclusive{{/if}}"
+            style="--cat-color: {{../cat.color}}; background: {{../cat.color}}18; border-color: {{../cat.color}}60">
+            <div class="nen-ability-card-top">
+              <span class="nen-ability-lvl-badge" style="border-color: {{../cat.color}}60; color: {{../cat.color}}">Nv.{{slot.level}}</span>
+              <span class="nen-ability-card-name">{{slot.label}}</span>
+              {{#if slot.exclusive}}<span class="nen-major-excl-badge">Exclusiva</span>{{/if}}
+              <button class="nen-undo-btn item-action"
+                data-action="undoNenMajor"
+                data-category="{{slot.categoryId}}"
+                data-ability="{{slot.id}}"
+                title="Desfazer escolha">↩</button>
+            </div>
+            <div class="nen-ability-tooltip">{{slot.description}}</div>
           </div>
-        </div>
-        {{else if slot.unlocked}}
-        <div class="nen-ability-card major unlocked {{#if slot.exclusive}}exclusive{{/if}}">
-          <div class="nen-ability-header">
-            <span class="nen-ability-name">{{slot.label}}</span>
-            <span class="nen-ability-badge unlocked">✓</span>
-            {{#if slot.exclusive}}<span class="nen-ability-badge exclusive">Exclusiva</span>{{/if}}
-            <button class="nen-undo-btn item-action"
-              data-action="undoNenMajor"
-              data-category="{{slot.categoryId}}"
-              data-ability="{{slot.id}}"
-              title="Desfazer escolha">↩</button>
+
+          {{else if slot.reached}}
+          {{!-- DISPONÍVEL --}}
+          <div class="nen-ability-card major available {{#if slot.exclusive}}exclusive{{/if}}"
+            style="--cat-color: {{../cat.color}}; background: {{../cat.color}}10; border-color: {{../cat.color}}40">
+            <div class="nen-ability-card-top">
+              <span class="nen-ability-lvl-badge" style="border-color: {{../cat.color}}50; color: {{../cat.color}}">Nv.{{slot.level}}</span>
+              <span class="nen-ability-card-name">{{slot.label}}</span>
+              {{#if slot.canUnlock}}
+              <button class="nen-unlock-btn item-action"
+                data-action="unlockNenMajor"
+                data-category="{{slot.categoryId}}"
+                data-ability="{{slot.id}}"
+                style="border-color: {{../cat.color}}80; color: {{../cat.color}}">
+                Desbloquear
+              </button>
+              {{else}}
+              <span class="nen-ability-badge locked">🔒 Limite</span>
+              {{/if}}
+            </div>
+            <div class="nen-ability-tooltip">{{slot.description}}</div>
           </div>
-          <div class="nen-ability-desc">{{slot.description}}</div>
-        </div>
-        {{else if slot.reached}}
-        <div class="nen-ability-card major available {{#if slot.exclusive}}exclusive{{/if}}">
-          <div class="nen-ability-header">
-            <span class="nen-ability-name">{{slot.label}}</span>
-            {{#if slot.canUnlock}}
-            <button class="nen-unlock-btn item-action"
-              data-action="unlockNenMajor"
-              data-category="{{slot.categoryId}}"
-              data-ability="{{slot.id}}">
-              Desbloquear
-            </button>
-            {{else}}
-            <span class="nen-ability-badge locked">🔒 Limite</span>
-            {{/if}}
+
+          {{else}}
+          {{!-- BLOQUEADA --}}
+          <div class="nen-ability-card major locked-preview">
+            <div class="nen-ability-card-top">
+              <span class="nen-ability-lvl-badge locked-badge">🔒 Nv.{{slot.level}}</span>
+              <span class="nen-ability-card-name muted">{{#if slot.empty}}???{{else}}{{slot.label}}{{/if}}</span>
+            </div>
+            {{#unless slot.empty}}
+            <div class="nen-ability-tooltip">{{slot.description}}</div>
+            {{/unless}}
           </div>
-          <div class="nen-ability-desc">{{slot.description}}</div>
+          {{/if}}
+
+          {{/each}}
         </div>
-        {{else}}
-        <div class="nen-ability-card major locked-preview">
-          <div class="nen-ability-header">
-            <span class="nen-ability-name muted">{{slot.label}}</span>
-            <span class="nen-ability-badge locked">🔒 Nv.{{slot.level}}</span>
-          </div>
-          <div class="nen-ability-desc muted">{{slot.description}}</div>
-        </div>
-        {{/if}}
-        {{/each}}
       </div>
 
     </div>

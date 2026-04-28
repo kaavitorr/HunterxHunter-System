@@ -32,7 +32,15 @@
           "types": ["spell"]
         }
       }
-    }
+    },
+{
+  "name": "conteudo",
+  "label": "Informações", 
+  "path": "packs/info",
+  "type": "JournalEntry",
+  "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" },
+  "system": "hunter-system"
+}
   ],
   "styles": [
     { "src": "dnd5e.css" },

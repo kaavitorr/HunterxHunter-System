@@ -95,10 +95,6 @@ Hooks.once("init", function() {
       label: "Corpo de Lutador (Agilidade)",
       formula: "10 + @abilities.dex.mod + min(@abilities.con.mod, @details.level)"
     },
-    corpoLutadorInt: {
-      label: "Corpo de Lutador (Intelecto)",
-      formula: "10 + @abilities.int.mod + min(@abilities.con.mod, @details.level)"
-    },
     corpoLutadorWis: {
       label: "Corpo de Lutador (Sabedoria)",
       formula: "10 + @abilities.wis.mod + min(@abilities.dex.mod, @details.level)"
@@ -116,10 +112,6 @@ Hooks.once("init", function() {
     defesaOfensivaDex: {
       label: "Defesa Ofensiva (Agilidade)",
       formula: "10 + @abilities.dex.mod + @abilities.dex.mod"
-    },
-    defesaOfensivaInt: {
-      label: "Defesa Ofensiva (Intelecto)",
-      formula: "10 + @abilities.dex.mod + @abilities.int.mod"
     },
     defesaOfensivaWis: {
       label: "Defesa Ofensiva (Sabedoria)",
@@ -615,6 +607,29 @@ Hooks.once("i18nInit", () => {
  * Once the entire VTT framework is initialized, check to see if we should perform a data migration
  */
 Hooks.once("ready", function() {
+
+  // ── HUNTER: richTooltip para JournalEntryPage do compendium de perícias ──
+  // O Tooltips5e chama doc.richTooltip() ao fazer hover em skills.
+  // JournalEntryPage de tipo "text" não tem esse método — adicionamos via patch.
+  if ( !JournalEntryPage.prototype.richTooltip ) {
+    JournalEntryPage.prototype.richTooltip = async function() {
+      // Só processa páginas do nosso compendium de conteúdo
+      if ( this.pack !== "hunter-system.conteudo" ) return {};
+      const content = this.text?.content;
+      if ( !content ) return {};
+      // Renderiza o conteúdo enriquecido
+      const enriched = await TextEditor.enrichHTML(content, { async: true, relativeTo: this });
+      return {
+        content: `<div class="dnd5e2 dnd5e-tooltip hunter-skill-tooltip">
+          <h3 class="tooltip-header">${this.name}</h3>
+          <div class="tooltip-body">${enriched}</div>
+        </div>`,
+        classes: ["themed", "theme-light"]
+      };
+    };
+    console.log("Hunter | richTooltip patch aplicado em JournalEntryPage");
+  }
+
   // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
   Hooks.on("hotbarDrop", (bar, data, slot) => {
     if ( ["ActiveEffect", "Activity", "Item"].includes(data.type) ) {

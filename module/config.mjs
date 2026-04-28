@@ -160,162 +160,180 @@ DND5E.maxAbilityScore = 20;
  * @enum {SkillConfiguration}
  */
 DND5E.skills = {
-  acr: {
-    label: "DND5E.SkillAcr",
-    ability: "dex",
-    fullKey: "acrobatics",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.AvvBLEHNl7kuwPkN",
-    icon: "icons/equipment/feet/shoes-simple-leaf-green.webp"
-  },
-  ani: {
-    label: "DND5E.SkillAni",
-    ability: "wis",
-    fullKey: "animalHandling",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.xb3MCjUvopOU4viE",
-    icon: "icons/environment/creatures/horse-brown.webp"
-  },
-  arc: {
-    label: "DND5E.SkillArc",
-    ability: "int",
-    fullKey: "arcana",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.h3bYSPge8IOqne1N",
-    icon: "icons/sundries/books/book-embossed-jewel-silver-green.webp"
-  },
+
+  /* ── FORÇA ─────────────────────────────────── */
   ath: {
     label: "DND5E.SkillAth",
     ability: "str",
     fullKey: "athletics",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.rIR7ttYDUpH3tMzv",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.E0HyftT4a8L8izrn",
     icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
   },
-  dec: {
-    label: "DND5E.SkillDec",
-    ability: "cha",
-    fullKey: "deception",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.mqVZ2fz0L7a9VeKJ",
-    icon: "icons/magic/control/mouth-smile-deception-purple.webp"
+
+  /* ── AGILIDADE ──────────────────────────────── */
+  acr: {
+    label: "DND5E.SkillAcr",
+    ability: "dex",
+    fullKey: "acrobatics",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.TBVH56FoQArmMSBs",
+    icon: "icons/equipment/feet/shoes-simple-leaf-green.webp"
+  },
+  ste: {
+    label: "DND5E.SkillSte",
+    ability: "dex",
+    fullKey: "stealth",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.rOZ9n5PYFuEbF08g",
+    icon: "icons/magic/perception/shadow-stealth-eyes-purple.webp",
+    pace: {
+      disadvantage: new Set(["normal", "fast"])
+    }
+  },
+  pil: {
+    label: "DND5E.SkillPil",
+    ability: "dex",
+    fullKey: "pilotagem",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.JdqcNM9InigMmbKK",
+    icon: "icons/skills/trades/woodcutting-logging-axe-stump.webp"
+  },
+  slt: {
+    label: "DND5E.SkillSlt",
+    ability: "dex",
+    fullKey: "sleightOfHand",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.Fe5nQhWyR8vmTdLC",
+    icon: "icons/sundries/gaming/playing-cards.webp"
+  },
+
+  /* ── SABEDORIA ──────────────────────────────── */
+  sci: {
+    label: "DND5E.SkillSci",
+    ability: "wis",
+    fullKey: "ciencia",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.tWMttxGVytG2EL1R",
+    icon: "icons/sundries/books/book-embossed-jewel-silver-green.webp"
   },
   his: {
     label: "DND5E.SkillHis",
-    ability: "int",
-    fullKey: "history",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.kRBZbdWMGW9K3wdY",
-    icon: "icons/sundries/books/book-embossed-bound-brown.webp"
-  },
-  ins: {
-    label: "DND5E.SkillIns",
     ability: "wis",
-    fullKey: "insight",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.8R5SMbAGbECNgO8z",
-    icon: "icons/magic/perception/orb-crystal-ball-scrying-blue.webp"
-  },
-  itm: {
-    label: "DND5E.SkillItm",
-    ability: "cha",
-    fullKey: "intimidation",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.4VHHI2gJ1jEsppfg",
-    icon: "icons/skills/social/intimidation-impressing.webp"
+    fullKey: "history",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.MjR2QOJE5LPKiN0F",
+    icon: "icons/sundries/books/book-embossed-bound-brown.webp"
   },
   inv: {
     label: "DND5E.SkillInv",
-    ability: "int",
+    ability: "wis",
     fullKey: "investigation",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.Y7nmbQAruWOs7WRM",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.wLE08CcH5Zj8l1eS",
     icon: "icons/tools/scribal/magnifying-glass.webp"
   },
   med: {
     label: "DND5E.SkillMed",
     ability: "wis",
     fullKey: "medicine",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.GeYmM7BVfSCAga4o",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.x9lTMRKUfHR7g9qN",
     icon: "icons/tools/cooking/mortar-herbs-yellow.webp"
   },
   nat: {
     label: "DND5E.SkillNat",
-    ability: "int",
+    ability: "wis",
     fullKey: "nature",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.ueMx3uF2PQlcye31",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.h9MaeejQSTgBF3BM",
     icon: "icons/magic/nature/plant-sprout-snow-green.webp"
+  },
+  sur: {
+    label: "DND5E.SkillSur",
+    ability: "wis",
+    fullKey: "survival",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.ZKJhD4I3Pc75BNzF",
+    icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp",
+    pace: {
+      advantage: new Set(["slow"]),
+      disadvantage: new Set(["fast"])
+    }
+  },
+  tec: {
+    label: "DND5E.SkillTec",
+    ability: "wis",
+    fullKey: "tecnologia",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.OLlGOXkPBQ5Izc5w",
+    icon: "icons/skills/trades/smithing-anvil-silver-red.webp"
+  },
+
+  /* ── ESPÍRITO ───────────────────────────────── */
+  nen: {
+    label: "DND5E.SkillNen",
+    ability: "int",
+    fullKey: "nen",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.mpq4YIaZuIwDQPiq",
+    icon: "icons/magic/symbols/rune-sigil-blue-purple.webp"
+  },
+  ins: {
+    label: "DND5E.SkillIns",
+    ability: "int",
+    fullKey: "insight",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.dJF7x8aruBfT84cz",
+    icon: "icons/magic/perception/orb-crystal-ball-scrying-blue.webp"
   },
   prc: {
     label: "DND5E.SkillPrc",
-    ability: "wis",
+    ability: "int",
     fullKey: "perception",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.zjEeHCUqfuprfzhY",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.elJZJXFWk7t0nf31",
     icon: "icons/magic/perception/eye-ringed-green.webp",
     pace: {
       advantage: new Set(["slow"]),
       disadvantage: new Set(["fast"])
     }
   },
+  sob: {
+    label: "DND5E.SkillSob",
+    ability: "int",
+    fullKey: "sobrenatural",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.04XZdF0Ntc60wj12",
+    icon: "icons/magic/holy/saint-glass-portrait-halo.webp"
+  },
+  luc: {
+    label: "DND5E.SkillLuc",
+    ability: "int",
+    fullKey: "sorte",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.mcIlW9Xizd3l3rtD",
+    icon: "icons/magic/control/buff-luck-fortune-green.webp"
+  },
+
+  /* ── PRESENÇA ───────────────────────────────── */
   prf: {
     label: "DND5E.SkillPrf",
     ability: "cha",
     fullKey: "performance",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.hYT7Z06yDNBcMtGe",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.cHdibPaupb34dyk4",
     icon: "icons/tools/instruments/lute-gold-brown.webp"
+  },
+  dec: {
+    label: "DND5E.SkillDec",
+    ability: "cha",
+    fullKey: "deception",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.6eg3JWjY8xs6DMC6",
+    icon: "icons/magic/control/mouth-smile-deception-purple.webp"
+  },
+  itm: {
+    label: "DND5E.SkillItm",
+    ability: "cha",
+    fullKey: "intimidation",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.70xBRlUnlGDapKy6",
+    icon: "icons/skills/social/intimidation-impressing.webp"
   },
   per: {
     label: "DND5E.SkillPer",
     ability: "cha",
     fullKey: "persuasion",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.4R5H8iIsdFQTsj3X",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.vmdCFLdaRG729Yg9",
     icon: "icons/skills/social/diplomacy-handshake.webp"
   },
-  rel: {
-    label: "DND5E.SkillRel",
-    ability: "int",
-    fullKey: "religion",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.CXVzERHdP4qLhJXM",
-    icon: "icons/magic/holy/saint-glass-portrait-halo.webp"
-  },
-  slt: {
-    label: "DND5E.SkillSlt",
-    ability: "dex",
-    fullKey: "sleightOfHand",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.yg6SRpGNVz9nDW0A",
-    icon: "icons/sundries/gaming/playing-cards.webp"
-  },
-   luc: {
-    label: "DND5E.SkillLuc",
+  pro: {
+    label: "DND5E.SkillPro",
     ability: "cha",
-    fullKey: "sorte",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.4MfrpERNiQXmvgCI",
-    icon: "icons/magic/perception/shadow-stealth-eyes-purple.webp",
-    pace: {
-      disadvantage: new Set(["normal", "fast"])
-    }
-  },
-  ste: {
-    label: "DND5E.SkillSte",
-    ability: "dex",
-    fullKey: "stealth",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.4MfrpERNiQXmvgCI",
-    icon: "icons/magic/perception/shadow-stealth-eyes-purple.webp",
-    pace: {
-      disadvantage: new Set(["normal", "fast"])
-    }
-  },
-   Cont: {
-    label: "DND5E.SkillNen",
-    ability: "int",
-    fullKey: "Nen",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.4MfrpERNiQXmvgCI",
-    icon: "icons/magic/perception/shadow-stealth-eyes-purple.webp",
-    pace: {
-      disadvantage: new Set(["normal", "fast"])
-    }
-  },
-  sur: {
-    label: "DND5E.SkillSur",
-    ability: "wis",
-    fullKey: "survival",
-    reference: "Compendium.dnd5e.content24.JournalEntry.phbAppendixDRule.JournalEntryPage.t3EzDU5b9BVAIEVi",
-    icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp",
-    pace: {
-      advantage: new Set(["slow"]),
-      disadvantage: new Set(["fast"])
-    }
+    fullKey: "provocacao",
+    reference: "Compendium.hunter-system.conteudo.JournalEntry.uKKV909xsw17EMmE.JournalEntryPage.xLVLvUH9S8hfD1rY",
+    icon: "icons/skills/social/intimidation-impressing.webp"
   }
 };
 preLocalize("skills", { key: "label", sort: true });

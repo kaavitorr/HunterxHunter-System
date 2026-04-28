@@ -9,7 +9,7 @@
 .nen-pt-bar {
   display: flex;
   gap: 12px;
-  padding: 10px 12px 6px;
+  padding: 10px 12px 8px;
   background: rgba(255,255,255,0.03);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   margin-bottom: 4px;
@@ -49,7 +49,7 @@
 }
 
 /* ════════════════════════════════════════
-   HEXÁGONO NEN — Radar Chart SVG
+   HEXÁGONO NEN
    ════════════════════════════════════════ */
 .nen-hexagon-wrapper {
   display: flex;
@@ -59,207 +59,394 @@
 }
 
 .nen-hexagon-svg {
-  width: 320px;
-  height: 320px;
+  width: 300px;
+  height: 300px;
   filter: drop-shadow(0 0 16px rgba(180,140,30,0.3));
 }
 
 /* ════════════════════════════════════════
-   LISTA DE CATEGORIAS NEN
+   LISTA DE CATEGORIAS
    ════════════════════════════════════════ */
 .nen-categories-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 0 10px 16px;
+  gap: 10px;
+  padding: 4px 8px 16px;
 }
 
-/* Grid desativado — usamos lista */
 .nen-categories-grid { display: none; }
 
 /* ════════════════════════════════════════
    CARD DE CATEGORIA
    ════════════════════════════════════════ */
 .nen-category-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
-  padding: 8px 10px;
-  transition: background 0.2s;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s;
 }
 
 .nen-category-card:hover {
-  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.14);
 }
 
-/* Header do card */
+/* ════════════════════════════════════════
+   HEADER — BOTÃO DE TREINAR
+   ════════════════════════════════════════ */
 .nen-cat-header {
   display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: 56px;
+}
+
+/* Botão de treinar */
+.nen-train-btn {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.nen-cat-abbrev {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  min-width: 32px;
-}
-
-.nen-cat-name {
-  font-size: 11px;
-  color: rgba(255,255,255,0.65);
+  gap: 10px;
   flex: 1;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.03);
+  border: none;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: background 0.18s;
+  text-align: left;
 }
 
-.nen-cat-level {
-  font-size: 11px;
-  color: rgba(255,255,255,0.4);
+.nen-train-btn:hover {
+  background: color-mix(in srgb, var(--cat-color) 8%, transparent);
+}
+
+/* Header locked (não pode treinar) */
+.nen-cat-header-locked {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.02);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  opacity: 0.7;
+}
+
+/* Ícone de categoria */
+.nen-cat-icon {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  padding: 3px;
+}
+
+/* Labels do botão */
+.nen-train-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nen-train-name {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.nen-train-sub {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+}
+
+.nen-train-sub.muted {
+  color: rgba(255,255,255,0.3);
+  font-style: italic;
+}
+
+/* Custos no botão */
+.nen-train-costs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.nen-train-costs span {
+  font-size: 9px;
+  color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.04);
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+/* Bloco de nível + barra + pips */
+.nen-cat-level-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 14px;
+  min-width: 70px;
+  flex-shrink: 0;
+}
+
+.nen-cat-level-num {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
-/* Custos do próximo nível */
-.nen-cat-costs {
-  display: flex;
-  gap: 8px;
-  margin: 3px 0 5px;
+.nen-cat-level-max {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  margin-top: -6px;
 }
 
-.nen-cat-costs span {
-  font-size: 10px;
-  color: rgba(255,255,255,0.45);
-  background: rgba(255,255,255,0.04);
-  border-radius: 3px;
-  padding: 1px 6px;
-}
-
-/* Barra de progresso */
 .nen-cat-bar-track {
-  height: 4px;
-  background: rgba(255,255,255,0.1);
+  width: 100%;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
   border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 6px;
 }
 
 .nen-cat-bar-fill {
   height: 100%;
   border-radius: 2px;
   transition: width 0.4s ease;
-  /* background é inline via style="background: {cat.color}" */
 }
 
-/* Pips */
 .nen-cat-pips {
   display: flex;
   gap: 2px;
-  margin-bottom: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .nen-pip {
-  font-size: 8px;
-  color: rgba(255,255,255,0.15);
+  font-size: 7px;
+  color: rgba(255,255,255,0.12);
   line-height: 1;
 }
 
 .nen-pip.filled {
-  /* color é inline via style="color: {cat.color}" */
   color: rgba(180,140,30,0.85);
 }
 
-/* Botão treinar */
-.nen-train-btn {
-  font-size: 10px;
-  padding: 3px 10px;
-  border-radius: 4px;
-  background: rgba(220,180,60,0.12);
-  border: 1px solid rgba(220,180,60,0.35);
-  color: rgba(220,180,60,0.9);
-  cursor: pointer;
-  transition: background 0.2s;
-  margin-left: auto;
-  white-space: nowrap;
-}
-
-.nen-train-btn:hover {
-  background: rgba(220,180,60,0.25);
-}
-
-/* Badge MAX / Bloqueado */
-.nen-max-badge {
-  font-size: 10px;
-  color: rgba(220,180,60,0.6);
-  margin-left: auto;
-}
-
-.nen-max-badge.blocked {
-  color: rgba(255,100,100,0.7);
-}
-
 /* ════════════════════════════════════════
-   SEÇÃO DE HABILIDADES (dentro do card de categoria)
+   SEÇÃO DE HABILIDADES
    ════════════════════════════════════════ */
 .nen-abilities-section {
-  margin-top: 8px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  padding-top: 6px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding: 8px 12px 10px;
 }
 
 .nen-abilities-title {
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 6px;
   font-weight: 700;
+  margin-bottom: 7px;
 }
 
-.nen-abilities-title.minor { color: rgba(180,220,180,0.6); }
-.nen-abilities-title.major { color: rgba(220,180,60,0.7); }
+.nen-abilities-title.minor { color: rgba(180,220,180,0.55); }
+.nen-abilities-title.major { color: rgba(220,180,60,0.65); }
 
-/* Card de habilidade individual */
+/* ════════════════════════════════════════
+   HABILIDADES — grid unificado (menor e principal)
+   ════════════════════════════════════════ */
+.nen-ability-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+/* Card base */
 .nen-ability-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.07);
   background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 6px;
-  padding: 6px 8px;
-  margin-bottom: 4px;
+  cursor: default;
+  transition: border-color 0.15s, background 0.15s;
+  overflow: visible;
 }
 
-.nen-ability-card.minor   { border-left: 2px solid rgba(180,220,180,0.4); }
-.nen-ability-card.major   { border-left: 2px solid rgba(220,180,60,0.4); }
-.nen-ability-card.unlocked   { border-left-color: rgba(100,220,100,0.7); }
-.nen-ability-card.exclusive  { border-left-color: rgba(180,100,220,0.7); }
-.nen-ability-card.reached,
-.nen-ability-card.available  { opacity: 1; }
-.nen-ability-card.locked-preview { opacity: 0.45; }
+/* Menores — desbloqueadas */
+.nen-ability-card.minor.reached {
+  border-color: rgba(180,220,180,0.25);
+  background: rgba(180,220,180,0.05);
+}
 
-.nen-ability-header {
+/* Menores — bloqueadas */
+.nen-ability-card.minor.locked {
+  opacity: 0.42;
+}
+
+/* Principais — disponível */
+.nen-ability-card.major.available {
+  transition: box-shadow 0.18s, background 0.18s;
+}
+.nen-ability-card.major.available:hover {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--cat-color, #c8a84b) 25%, transparent);
+}
+
+/* Principais — desbloqueada */
+.nen-ability-card.major.unlocked {
+  /* BORDA REAL com cor da categoria */
+  border-color: var(--cat-color);
+
+  /* glow mais visível e fiel à cor */
+  box-shadow:
+    0 0 6px color-mix(in srgb, var(--cat-color) 60%, transparent),
+    0 0 12px color-mix(in srgb, var(--cat-color) 30%, transparent);
+}
+/* Principais — exclusiva desbloqueada */
+.nen-ability-card.major.exclusive.unlocked {
+  border-color: rgba(180,100,220,0.55) !important;
+  background: rgba(180,100,220,0.08) !important;
+  box-shadow: 0 0 12px rgba(180,100,220,0.18) !important;
+}
+
+/* Principais — bloqueada */
+.nen-ability-card.major.locked-preview {
+  opacity: 0.45;
+}
+
+/* ── TOP ROW ── */
+.nen-ability-card-top {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 4px;
+  flex-wrap: wrap;
+  min-height: 28px;
 }
 
-.nen-ability-name {
+/* Badge de nível */
+.nen-ability-lvl-badge {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nen-ability-lvl-badge.locked-badge {
+  color: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.06);
+}
+
+/* Nome da habilidade */
+.nen-ability-card-name {
   flex: 1;
   font-size: 11px;
   font-weight: 700;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.92);
+  line-height: 1.25;
 }
 
-.nen-ability-name.muted,
-.nen-ability-desc.muted {
-  color: rgba(255,255,255,0.3);
+.nen-ability-card-name.muted { color: rgba(255,255,255,0.45); }
+
+/* Badge exclusiva */
+.nen-major-excl-badge {
+  font-size: 8px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(180,100,220,0.15);
+  border: 1px solid rgba(180,100,220,0.4);
+  color: rgba(200,140,255,0.9);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.nen-ability-desc {
+/* ── TOOLTIP EM HOVER ── */
+.nen-ability-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: 220px;
+  padding: 9px 11px;
+  background: #0e1420;
+  border: 1px solid rgba(200,168,75,0.3);
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.8);
   font-size: 10px;
-  color: rgba(255,255,255,0.5);
-  line-height: 1.4;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.55;
+  pointer-events: none;
 }
 
-/* Badges */
+.nen-ability-card:hover .nen-ability-tooltip {
+  display: block;
+}
+
+/* Setinha do tooltip */
+.nen-ability-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(200,168,75,0.3);
+}
+
+/* Botão desbloquear */
+.nen-unlock-btn {
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid rgba(220,180,60,0.4);
+  color: rgba(220,180,60,0.9);
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.nen-unlock-btn:hover { background: rgba(220,180,60,0.12); }
+
+/* Botão desfazer */
+.nen-undo-btn {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(255,100,100,0.08);
+  border: 1px solid rgba(255,100,100,0.25);
+  color: rgba(255,120,120,0.7);
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.nen-undo-btn:hover {
+  background: rgba(255,100,100,0.22);
+  color: rgba(255,140,140,0.9);
+}
+
+/* Badges globais */
 .nen-ability-badge {
   font-size: 9px;
   padding: 1px 5px;
@@ -267,48 +454,23 @@
   font-weight: 700;
   white-space: nowrap;
 }
-
-.nen-ability-badge.minor    { background: rgba(180,220,180,0.15); color: rgba(180,220,180,0.8); }
-.nen-ability-badge.unlocked { background: rgba(100,220,100,0.15); color: rgba(100,220,100,0.9); }
-.nen-ability-badge.exclusive{ background: rgba(180,100,220,0.15); color: rgba(180,100,220,0.9); }
-.nen-ability-badge.locked   { background: rgba(255,100,100,0.1);  color: rgba(255,100,100,0.6); }
-
-/* Botão desbloquear habilidade principal */
-.nen-unlock-btn {
-  font-size: 9px;
-  padding: 2px 8px;
-  border-radius: 3px;
-  background: rgba(220,180,60,0.15);
-  border: 1px solid rgba(220,180,60,0.4);
-  color: rgba(220,180,60,0.9);
-  cursor: pointer;
-  transition: background 0.2s;
-  white-space: nowrap;
+.nen-ability-badge.locked {
+  background: rgba(255,100,100,0.08);
+  color: rgba(255,100,100,0.55);
+  border: 1px solid rgba(255,100,100,0.15);
 }
 
-.nen-unlock-btn:hover {
-  background: rgba(220,180,60,0.3);
+/* Max badge */
+.nen-max-badge {
+  font-size: 10px;
+  color: rgba(220,180,60,0.6);
 }
-
-/* Botão desfazer */
-.nen-undo-btn {
-  font-size: 11px;
-  padding: 1px 6px;
-  border-radius: 3px;
-  background: rgba(255,100,100,0.1);
-  border: 1px solid rgba(255,100,100,0.3);
+.nen-max-badge.blocked {
   color: rgba(255,100,100,0.7);
-  cursor: pointer;
-  margin-left: 4px;
-  transition: background 0.2s;
-}
-
-.nen-undo-btn:hover {
-  background: rgba(255,100,100,0.25);
 }
 
 /* ════════════════════════════════════════
-   TRAINING CARDS (Cards de Treinamento)
+   TRAINING CARDS (mantidos do sistema anterior)
    ════════════════════════════════════════ */
 .training-list {
   display: grid;
@@ -323,7 +485,7 @@
   border-radius: 10px;
   background: linear-gradient(145deg, var(--jj-bg-soft), var(--jj-bg-main));
   border: 1px solid var(--jj-border-soft);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25), 0 0 0 1px rgba(42,100,180,0.06);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
   display: flex;
   flex-direction: column;
   min-height: 180px;
@@ -331,7 +493,6 @@
   overflow: hidden;
 }
 
-/* Energia de fundo */
 .training-card::before {
   content: "";
   position: absolute;
@@ -350,7 +511,6 @@
   100% { transform: translate(-5%, -5%); }
 }
 
-/* Header */
 .training-header {
   display: flex;
   justify-content: space-between;
@@ -358,31 +518,17 @@
   flex: 0 0 auto;
 }
 
-/* Nome */
 .training-name {
   font-size: 14px;
   font-weight: 700;
   color: var(--jj-text-main);
 }
 
-/* Estrelas */
-.training-stars {
-  display: flex;
-  gap: 2px;
-}
+.training-stars { display: flex; gap: 2px; }
 
-.star {
-  font-size: 12px;
-  color: #303050;
-  transition: all 120ms;
-}
+.star { font-size: 12px; color: #303050; transition: all 120ms; }
+.star.filled { color: #e0c060; text-shadow: 0 0 6px rgba(200,168,75,0.6); }
 
-.star.filled {
-  color: #e0c060;
-  text-shadow: 0 0 6px rgba(200,168,75,0.6);
-}
-
-/* Meta */
 .jujutsu-meta {
   flex: 0 0 auto;
   font-size: 10px;
@@ -393,7 +539,6 @@
   justify-content: space-between;
 }
 
-/* Efeito */
 .training-effect {
   flex: 1;
   margin-top: 6px;
@@ -406,7 +551,6 @@
   min-height: 42px;
 }
 
-/* Ações */
 .jujutsu-actions {
   margin-top: auto;
   padding-top: 6px;
@@ -428,42 +572,24 @@
   transition: all 120ms;
 }
 
-.btn-instant:hover {
-  border-color: #c08020;
-  color: #ffb030;
-}
+.btn-instant:hover { border-color: #c08020; color: #ffb030; }
 
-/* ── ESTADOS ─── */
-.training-card.locked {
-  opacity: 0.5;
-  filter: grayscale(0.6);
-}
-
-.training-card:not(.locked) {
-  border-color: rgba(42,106,170,0.4);
-}
-
+.training-card.locked { opacity: 0.5; filter: grayscale(0.6); }
+.training-card:not(.locked) { border-color: rgba(42,106,170,0.4); }
 .training-card:not(.locked):hover {
   transform: translateY(-3px) scale(1.02);
   border-color: rgba(42,106,170,0.7);
   box-shadow: 0 0 20px rgba(42,106,170,0.35);
 }
 
-/* ── RANKS ─── */
 .training-card.rank-1 { border-color: rgba(42,106,170,0.3); }
+.training-card.rank-2 { border-color: rgba(42,130,200,0.5); box-shadow: 0 0 12px rgba(42,100,180,0.2); }
 
-.training-card.rank-2 {
-  border-color: rgba(42,130,200,0.5);
-  box-shadow: 0 0 12px rgba(42,100,180,0.2);
-}
-
-.training-card.rank-3 {
+.training-card.rank-3,
+.training-card.rank-max {
   border-color: rgba(255,180,40,0.7) !important;
   background: linear-gradient(145deg, #120a00, #0a0600) !important;
-  box-shadow:
-    0 0 16px rgba(255,160,30,0.45),
-    0 0 36px rgba(255,100,0,0.2),
-    inset 0 0 20px rgba(255,140,0,0.05);
+  box-shadow: 0 0 16px rgba(255,160,30,0.45), 0 0 36px rgba(255,100,0,0.2), inset 0 0 20px rgba(255,140,0,0.05);
   animation: jj-perfection-glow 2.5s ease-in-out infinite;
 }
 
@@ -472,56 +598,28 @@
   50%       { box-shadow: 0 0 28px rgba(255,180,40,0.7), 0 0 60px rgba(255,120,0,0.4); }
 }
 
-.training-card.rank-3 .training-name {
-  color: #ffd060;
-  text-shadow: 0 0 8px rgba(255,180,0,0.6);
-}
+.training-card.rank-3 .training-name,
+.training-card.rank-max .training-name { color: #ffd060; text-shadow: 0 0 8px rgba(255,180,0,0.6); }
 
-.training-card.rank-3 .training-effect {
-  color: #e0c080;
-  -webkit-line-clamp: unset;
-}
+.training-card.rank-3 .training-effect,
+.training-card.rank-max .training-effect { color: #e0c080; -webkit-line-clamp: unset; }
 
-.training-card.rank-3 .jujutsu-meta { color: #a08040; }
+.training-card.rank-3 .jujutsu-meta,
+.training-card.rank-max .jujutsu-meta { color: #a08040; }
 
-.training-card.rank-3 .training-stars .star.filled {
-  color: #ffd060;
-  text-shadow: 0 0 6px rgba(255,200,0,0.8);
-}
+.training-card.rank-3 .star.filled,
+.training-card.rank-max .star.filled { color: #ffd060; text-shadow: 0 0 6px rgba(255,200,0,0.8); }
 
-.training-card.rank-3.locked {
-  opacity: 1 !important;
-  filter: none !important;
-}
+.training-card.rank-3.locked,
+.training-card.rank-max.locked { opacity: 1 !important; filter: none !important; }
 
-/* ── ANIMAÇÕES ─── */
-.training-card.level-up {
-  animation: jj-level-up 0.5s ease-out;
-}
-
+.training-card.level-up { animation: jj-level-up 0.5s ease-out; }
 @keyframes jj-level-up {
   0%   { transform: scale(0.9); }
   50%  { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
-.training-card.perfected::after {
-  content: "";
-  position: absolute;
-  inset: -40%;
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(255,80,80,0.25), rgba(255,0,0,0.15) 40%, transparent 70%);
-  animation: jj-perfect 2s ease-out;
-}
-
-@keyframes jj-perfect {
-  0%   { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(1.6); opacity: 0; }
-}
-
-/* ════════════════════════════════════════
-   PROGRESS BAR (ranks do training card)
-   ════════════════════════════════════════ */
 .training-progress {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -549,18 +647,324 @@
   box-shadow: 0 0 10px rgba(200,168,75,0.6);
 }
 
-.training-progress span::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
-  opacity: 0;
-  animation: jj-progress-shine 2s linear infinite;
+
+/* MUDANÇA FEITA PELO GPT A PARTIR DAQUI */
+.nen-category-card {
+  --cat-color: #c8a84b; /* fallback */
+
+  position: relative;
+  border-radius: 12px;
+
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--cat-color) 18%, transparent), transparent 60%),
+    linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+
+  border: 1px solid color-mix(in srgb, var(--cat-color) 35%, rgba(255,255,255,0.08));
+
+  box-shadow:
+    0 0 0px transparent,
+    inset 0 0 12px rgba(255,255,255,0.02);
+
+  transition: all 0.25s ease;
 }
 
-@keyframes jj-progress-shine {
-  0%   { opacity: 0; transform: translateX(-100%); }
-  40%  { opacity: 1; }
-  60%  { opacity: 1; }
-  100% { opacity: 0; transform: translateX(100%); }
+/* Glow no hover */
+.nen-category-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--cat-color) 35%, transparent),
+    0 6px 20px rgba(0,0,0,0.5);
+}
+
+.nen-train-btn {
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+/* linha lateral colorida (detalhe forte visual) */
+.nen-train-btn::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+
+  background: var(--cat-color);
+  opacity: 0.7;
+}
+
+/* hover com cor */
+.nen-train-btn:hover {
+  background: color-mix(in srgb, var(--cat-color) 14%, transparent);
+}
+
+/* nome ganha cor leve */
+.nen-train-name {
+  color: color-mix(in srgb, var(--cat-color) 70%, white);
+}
+
+.nen-cat-icon {
+  border-radius: 8px;
+
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--cat-color) 30%, transparent), transparent 70%);
+
+  border: 1px solid color-mix(in srgb, var(--cat-color) 40%, transparent);
+
+  box-shadow: 0 0 8px color-mix(in srgb, var(--cat-color) 40%, transparent);
+}
+
+.nen-cat-level-num {
+  font-size: 24px;
+  font-weight: 900;
+
+  color: var(--cat-color);
+
+  text-shadow: 0 0 10px color-mix(in srgb, var(--cat-color) 60%, transparent);
+}
+
+.nen-cat-bar-fill {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--cat-color) 70%, black),
+    var(--cat-color)
+  );
+
+  box-shadow: 0 0 8px color-mix(in srgb, var(--cat-color) 60%, transparent);
+}
+
+.nen-ability-card {
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--cat-color) 10%, transparent),
+      rgba(255,255,255,0.02)
+    );
+
+  border: 1px solid color-mix(in srgb, var(--cat-color) 25%, rgba(255,255,255,0.05));
+
+  transition: all 0.15s ease;
+}
+
+/* hover */
+.nen-ability-card:hover {
+  border-color: var(--cat-color);
+
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--cat-color) 40%, transparent);
+}
+
+/* desbloqueada */
+.nen-ability-card.major.unlocked {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--cat-color) 22%, transparent),
+      rgba(0,0,0,0.2)
+    );
+
+  border-color: var(--cat-color);
+}
+
+.nen-ability-tooltip {
+  background: #0e1420;
+
+  border: 1px solid color-mix(in srgb, var(--cat-color) 50%, transparent);
+
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--cat-color) 25%, transparent);
+}
+
+/* cada vértice pode usar cor da categoria */
+.nen-hexagon-svg .vertex-label {
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* linhas padrão */
+.nen-hexagon-svg .grid-line {
+  stroke: rgba(255,255,255,0.08);
+}
+
+/* shape principal */
+.nen-hexagon-svg .stat-shape {
+  fill: rgba(255,255,255,0.06);
+  stroke: rgba(255,255,255,0.4);
+}
+
+/* PONTOS coloridos (isso aqui muda o jogo) */
+.nen-hexagon-svg .vertex-dot {
+  r: 4;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.cat-enhancement { --cat-color: #e74c3c; }
+.cat-transmutation { --cat-color: #9b59b6; }
+.cat-conjuration { --cat-color: #3498db; }
+.cat-emission { --cat-color: #f1c40f; }
+.cat-manipulation { --cat-color: #2ecc71; }
+.cat-specialization { --cat-color: #95a5a6; }
+
+
+/* ════════════════════════════════════════
+   CATEGORY CARD — BASE LIMPA
+   ════════════════════════════════════════ */
+
+.nen-category-card {
+  --cat-color: #c8a84b;
+
+  position: relative;
+  border-radius: 10px;
+
+  /* FUNDO neutro */
+  background: rgba(15,18,28,0.9);
+
+  border: 1px solid rgba(255,255,255,0.06);
+
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+
+  transition: all 0.2s ease;
+}
+
+/* linha sutil no topo */
+.nen-category-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+
+  background: var(--cat-color);
+
+  opacity: 0.8;
+}
+
+.nen-category-card:hover {
+  transform: translateY(-2px);
+
+  border-color: var(--cat-color);
+
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--cat-color) 35%, transparent),
+    0 6px 18px rgba(0,0,0,0.5);
+}
+
+.nen-train-btn {
+  background: transparent;
+  position: relative;
+}
+
+/* barra lateral (bem mais controlada) */
+.nen-train-btn::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+
+  background: var(--cat-color);
+  border-radius: 2px;
+
+  opacity: 0.7;
+}
+
+/* hover suave (quase nada) */
+.nen-train-btn:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.nen-train-name {
+  color: rgba(255,255,255,0.9);
+}
+
+/* só um leve destaque */
+.nen-category-card:hover .nen-train-name {
+  color: var(--cat-color);
+}
+
+.nen-cat-level-num {
+  color: var(--cat-color);
+  font-weight: 800;
+
+  text-shadow: 0 0 6px color-mix(in srgb, var(--cat-color) 40%, transparent);
+}
+
+.nen-cat-bar-fill {
+  background: var(--cat-color);
+}
+
+
+.nen-ability-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* hover usa cor */
+.nen-ability-card:hover {
+  border-color: var(--cat-color);
+
+  box-shadow: 0 0 8px color-mix(in srgb, var(--cat-color) 30%, transparent);
+}
+
+/* desbloqueado */
+.nen-ability-card.major.unlocked {
+  border-color: var(--cat-color);
+
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--cat-color) 40%, transparent);
+}
+
+.nen-hexagon-svg {
+  width: 340px;
+  height: 340px;
+}
+
+/* labels maiores */
+.nen-hexagon-svg text {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* números */
+.nen-hexagon-svg .stat-value {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+/* ════════════════════════════════════════
+   HOVER COM COR DA CATEGORIA (CORRETO)
+   ════════════════════════════════════════ */
+
+.nen-category-card:hover {
+  border-color: var(--cat-color) !important;
+
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--cat-color) 40%, transparent),
+    0 6px 18px rgba(0,0,0,0.5);
+}
+
+
+/* garante que TODOS os filhos usem a cor certa */
+.nen-category-card {
+  --cat-color: #c8a84b; /* fallback */
+}
+
+.nen-ability-card.major.unlocked {
+  border-color: var(--cat-color);
+
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--cat-color) 70%, transparent);
+
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--cat-color) 10%, transparent),
+      rgba(0,0,0,0.2)
+    );
 }
