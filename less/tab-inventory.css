@@ -1,0 +1,169 @@
+/* ══════════════════════════════════════════════════════
+   TAB INVENTORY — Aba de Inventário
+   Sistema Hunter x Hunter — Foundry VTT
+   ══════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
+   ENCUMBRANCE — ocultado no Hunter
+   ════════════════════════════════════════ */
+.dnd5e2 .inventory-element .encumbrance {
+  display: none !important;
+}
+
+/* ════════════════════════════════════════
+   CURRENCY — Jenny (¥)
+   ════════════════════════════════════════ */
+.jj-yen-label {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+}
+
+.jj-yen-symbol {
+  position: absolute;
+  inset: -2px auto auto -2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--jj-accent);
+  filter: drop-shadow(0 0 1px black);
+  pointer-events: none;
+}
+
+.dnd5e2 section.currency input.jj-yen-input {
+  width: 160px !important;
+  font-size: 13px !important;
+}
+
+/* ════════════════════════════════════════
+   INVENTORY — SEÇÕES E HEADERS
+   ════════════════════════════════════════ */
+.tab[data-tab="inventory"] {
+  background: transparent;
+}
+
+.tab[data-tab="inventory"] .items-section {
+  background: linear-gradient(145deg, #101722, #0c121a);
+  border: 1px solid rgba(42,106,170,0.2);
+  border-radius: 8px;
+}
+
+.tab[data-tab="inventory"] .items-section > header,
+.tab[data-tab="inventory"] .items-header {
+  background: linear-gradient(90deg,
+    rgba(42,106,170,0.15),
+    rgba(200,168,75,0.08)
+  );
+  border-bottom: 1px solid rgba(42,106,170,0.25);
+}
+
+.tab[data-tab="inventory"] .items-section > header *,
+.tab[data-tab="inventory"] .items-header * {
+  color: var(--jj-primary-soft);
+}
+
+.tab[data-tab="inventory"] h3 {
+  color: var(--jj-primary-soft);
+  text-shadow: 0 0 8px rgba(42,106,170,0.25);
+}
+
+/* ════════════════════════════════════════
+   INVENTORY — LINHAS DE ITEM
+   ════════════════════════════════════════ */
+.tab[data-tab="inventory"] .item {
+  border-bottom: 1px solid rgba(42,106,170,0.08);
+  transition: background 120ms;
+}
+
+.tab[data-tab="inventory"] .item:hover {
+  background: rgba(42,100,180,0.07);
+}
+
+.tab[data-tab="inventory"] .item:last-child {
+  border-bottom: none;
+}
+
+/* Ícone do item */
+.tab[data-tab="inventory"] .item-image {
+  border-radius: 3px;
+  border: 1px solid rgba(42,106,170,0.2);
+  transition: border-color 120ms;
+}
+
+.tab[data-tab="inventory"] .item:hover .item-image {
+  border-color: rgba(42,106,170,0.5);
+}
+
+/* Nome do item */
+.tab[data-tab="inventory"] .item-name h4 {
+  color: var(--jj-text-main);
+  font-size: 12px;
+}
+
+/* Detalhes (quantidade, peso, preço) */
+.tab[data-tab="inventory"] .item-detail {
+  color: var(--jj-text-soft);
+  font-size: 11px;
+}
+
+/* Controles (editar, deletar) */
+.tab[data-tab="inventory"] .item-controls a {
+  color: var(--jj-text-fade);
+  transition: color 120ms;
+}
+
+.tab[data-tab="inventory"] .item-controls a:hover {
+  color: var(--hxh-gold);
+}
+
+/* ════════════════════════════════════════
+   INVENTORY — FILTROS DE TIPO
+   ════════════════════════════════════════ */
+.inventory-filters {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--jj-border-soft);
+  background: rgba(14,18,24,0.6);
+}
+
+.filter-list {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-item {
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--jj-border-soft);
+  background: transparent;
+  color: var(--jj-text-fade);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.filter-item:hover {
+  border-color: rgba(42,106,170,0.4);
+  color: var(--jj-text-soft);
+}
+
+.filter-item.active {
+  border-color: var(--hxh-blue);
+  background: rgba(42,106,170,0.12);
+  color: var(--hxh-blue-bright);
+}
+
+/* ════════════════════════════════════════
+   CONTAINERS
+   ════════════════════════════════════════ */
+.tab[data-tab="inventory"] .top {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}

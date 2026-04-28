@@ -1,0 +1,256 @@
+/* ══════════════════════════════════════════════════════
+   TAB SPELLS — Aba de Técnicas / Feitiços
+   Sistema Hunter x Hunter — Foundry VTT
+   ══════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
+   CONTAINER GERAL
+   ════════════════════════════════════════ */
+.tab[data-tab="spells"] {
+  background: transparent;
+}
+
+/* ════════════════════════════════════════
+   SEÇÕES E HEADERS
+   ════════════════════════════════════════ */
+.tab[data-tab="spells"] .items-section {
+  background: rgba(10,10,20,0.6);
+  border-color: var(--jj-border-soft);
+  border-radius: 8px;
+}
+
+.tab[data-tab="spells"] .items-section > header,
+.tab[data-tab="spells"] .items-header {
+  background: linear-gradient(90deg, #1c1c30, #161628);
+  border-bottom: 1px solid var(--jj-border);
+}
+
+.tab[data-tab="spells"] .items-section > header *,
+.tab[data-tab="spells"] .items-header * {
+  color: var(--jj-primary-soft);
+}
+
+.tab[data-tab="spells"] h3 {
+  color: var(--jj-primary-soft);
+  text-shadow: 0 0 8px rgba(120,80,255,0.3);
+}
+
+/* ════════════════════════════════════════
+   REMOVER PIPS DE ESPAÇO DE MAGIA
+   (não usamos slots no Hunter)
+   ════════════════════════════════════════ */
+.tab[data-tab="spells"] [class*="pip"] {
+  display: none !important;
+}
+
+/* ════════════════════════════════════════
+   FILTROS DO SPELLBOOK
+   ════════════════════════════════════════ */
+.spellbook-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--jj-border-soft);
+  background: rgba(12,14,20,0.7);
+}
+
+/* Habilidade de conjuração */
+.spellbook-filters .spellcasting-ability {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--jj-text-soft);
+}
+
+.spellbook-filters .spellcasting-ability label {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 9px;
+  color: var(--jj-text-fade);
+}
+
+.spellbook-filters .spellcasting-ability select {
+  background: var(--jj-bg-card);
+  border: 1px solid var(--jj-border-soft);
+  border-radius: 3px;
+  color: var(--hxh-gold);
+  font-size: 10px;
+  padding: 2px 4px;
+}
+
+.spellbook-filters .spellcasting-ability span {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--jj-text-soft);
+}
+
+/* Lista de filtros */
+.spellbook-filters .filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-left: auto;
+}
+
+.spellbook-filters .filter-item {
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--jj-border-soft);
+  background: transparent;
+  color: var(--jj-text-fade);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.spellbook-filters .filter-item:hover {
+  border-color: rgba(120,80,255,0.4);
+  color: var(--jj-text-soft);
+}
+
+.spellbook-filters .filter-item.active {
+  border-color: rgba(120,80,255,0.7);
+  background: rgba(120,80,255,0.1);
+  color: #c0a0ff;
+}
+
+/* ════════════════════════════════════════
+   HEADER DO SPELLBOOK (nível/grupo)
+   ════════════════════════════════════════ */
+.spellbook-header {
+  background: linear-gradient(90deg, #1c1c30, #161628) !important;
+  border-bottom: 1px solid var(--jj-border) !important;
+}
+
+.spellbook-header h3 {
+  color: var(--jj-primary-soft) !important;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Colunas do header */
+.spellbook-header .spell-school,
+.spellbook-header .spell-action,
+.spellbook-header .spell-target {
+  font-size: 9px;
+  color: var(--jj-text-fade);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ════════════════════════════════════════
+   LINHAS DE TÉCNICA (SPELL ITEM)
+   ════════════════════════════════════════ */
+.tab[data-tab="spells"] .item {
+  border-bottom: 1px solid rgba(80,60,180,0.08);
+  transition: background 120ms;
+}
+
+.tab[data-tab="spells"] .item:hover {
+  background: rgba(80,60,180,0.07);
+}
+
+.tab[data-tab="spells"] .item:last-child {
+  border-bottom: none;
+}
+
+/* Ícone */
+.tab[data-tab="spells"] .item-image {
+  border-radius: 3px;
+  border: 1px solid rgba(120,80,255,0.15);
+  transition: border-color 120ms;
+}
+
+.tab[data-tab="spells"] .item:hover .item-image {
+  border-color: rgba(120,80,255,0.5);
+}
+
+/* Nome da técnica */
+.tab[data-tab="spells"] .item-name h4 {
+  color: var(--jj-text-main);
+  font-size: 12px;
+}
+
+/* Escola / Ação / Alvo */
+.tab[data-tab="spells"] .spell-school {
+  font-size: 10px;
+  color: var(--hxh-gold-dim);
+  font-style: italic;
+}
+
+.tab[data-tab="spells"] .spell-action {
+  font-size: 10px;
+  color: var(--jj-text-soft);
+}
+
+.tab[data-tab="spells"] .spell-target {
+  font-size: 10px;
+  color: var(--jj-text-soft);
+}
+
+/* Usos da técnica */
+.tab[data-tab="spells"] .spell-uses {
+  font-size: 10px;
+  color: var(--jj-text-fade);
+}
+
+/* Componentes (V, S, M, C, R) */
+.spell-comps {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.spell-component {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 3px;
+  border-radius: 2px;
+  border: 1px solid rgba(120,80,255,0.25);
+  color: rgba(180,140,255,0.7);
+  background: rgba(80,40,160,0.12);
+  line-height: 1;
+}
+
+.spell-component.tag {
+  border-color: rgba(200,168,75,0.3);
+  color: rgba(200,168,75,0.7);
+  background: rgba(200,168,75,0.08);
+}
+
+/* Controles */
+.tab[data-tab="spells"] .item-controls a {
+  color: var(--jj-text-fade);
+  transition: color 120ms;
+}
+
+.tab[data-tab="spells"] .item-controls a:hover {
+  color: var(--hxh-gold);
+}
+
+/* ════════════════════════════════════════
+   SPELLBOOK VAZIO
+   ════════════════════════════════════════ */
+.spellbook-empty {
+  border-style: dashed !important;
+  border-color: var(--jj-border-soft) !important;
+  background: transparent !important;
+}
+
+.tab[data-tab="spells"] .notes {
+  font-size: 11px;
+  color: var(--jj-text-fade);
+  font-style: italic;
+  text-align: center;
+  padding: 8px;
+}

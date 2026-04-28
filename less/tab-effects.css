@@ -1,0 +1,185 @@
+/* ══════════════════════════════════════════════════════
+   TAB EFFECTS — Aba de Efeitos Ativos
+   Sistema Hunter x Hunter — Foundry VTT
+   ══════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
+   CONTAINER GERAL
+   ════════════════════════════════════════ */
+.tab[data-tab="effects"] {
+  background: transparent;
+}
+
+/* ════════════════════════════════════════
+   SEÇÕES E HEADERS
+   ════════════════════════════════════════ */
+.tab[data-tab="effects"] .items-section {
+  background: rgba(10,10,20,0.6);
+  border-color: var(--jj-border-soft);
+  border-radius: 8px;
+}
+
+.tab[data-tab="effects"] .items-section > header,
+.tab[data-tab="effects"] .items-header {
+  background: linear-gradient(90deg, #1c1c30, #161628);
+  border-bottom: 1px solid var(--jj-border);
+}
+
+.tab[data-tab="effects"] .items-section > header *,
+.tab[data-tab="effects"] .items-header * {
+  color: var(--jj-primary-soft);
+}
+
+.tab[data-tab="effects"] h3 {
+  color: var(--jj-primary-soft);
+  text-shadow: 0 0 8px rgba(120,80,255,0.3);
+}
+
+/* ════════════════════════════════════════
+   EFFECTS FIX — override crítico do dnd5e
+   (o dnd5e base força maroon; sobrescrevemos)
+   ════════════════════════════════════════ */
+.effects-element .items-header,
+.tab[data-tab="effects"] .items-section > header {
+  background: linear-gradient(90deg, #1c1c30, #161628) !important;
+  border-bottom: 1px solid var(--jj-border) !important;
+}
+
+.effects-element .items-header *,
+.tab[data-tab="effects"] .items-section > header * {
+  color: var(--jj-primary-soft) !important;
+  font-size: 11px !important;
+  text-transform: uppercase;
+}
+
+/* Mantém o maroon APENAS no .dnd5e2 padrão (não-customizado) */
+.dnd5e2 .effects-element .items-header {
+  background: var(--dnd5e-color-maroon, #44000f) !important;
+}
+
+/* ════════════════════════════════════════
+   LINHAS DE EFEITO
+   ════════════════════════════════════════ */
+.tab[data-tab="effects"] .item {
+  border-bottom: 1px solid rgba(80,60,180,0.07);
+  transition: background 120ms;
+}
+
+.tab[data-tab="effects"] .item:hover {
+  background: rgba(80,60,180,0.08);
+}
+
+.tab[data-tab="effects"] .item:last-child {
+  border-bottom: none;
+}
+
+/* Ícone do efeito */
+.tab[data-tab="effects"] .item-image {
+  border-radius: 3px;
+  border: 1px solid rgba(120,80,255,0.15);
+  transition: border-color 120ms;
+}
+
+.tab[data-tab="effects"] .item:hover .item-image {
+  border-color: rgba(120,80,255,0.45);
+}
+
+/* Nome */
+.tab[data-tab="effects"] .item-name h4 {
+  color: var(--jj-text-main);
+  font-size: 12px;
+}
+
+/* Detalhes (fonte, duração) */
+.tab[data-tab="effects"] .item-detail {
+  color: var(--jj-text-soft);
+  font-size: 11px;
+}
+
+/* Controles */
+.tab[data-tab="effects"] .item-controls a {
+  color: var(--jj-text-fade);
+  transition: color 120ms;
+}
+
+.tab[data-tab="effects"] .item-controls a:hover {
+  color: var(--hxh-gold);
+}
+
+/* ════════════════════════════════════════
+   CONDITIONS — Grid de status
+   (usado no chat card E na aba de efeitos)
+   ════════════════════════════════════════ */
+.jj-conditions-section {
+  margin-top: 12px;
+  padding: 0 4px;
+}
+
+.jj-cond-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #1c1c30, #161628);
+  border: 1px solid var(--jj-border);
+  border-radius: 3px;
+  font: 700 12px var(--dnd5e-font-roboto-condensed, sans-serif);
+  color: var(--jj-primary-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.jj-cond-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.jj-cond-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid #1e1e2e;
+  border-radius: 4px;
+  background: var(--jj-bg-main);
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.jj-cond-item img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 120ms;
+}
+
+.jj-cond-item span {
+  font-size: 10px;
+  color: var(--jj-text-fade);
+  transition: color 120ms;
+}
+
+.jj-cond-item:hover {
+  border-color: #3a3a5a;
+  background: #141420;
+}
+
+.jj-cond-item:hover img  { opacity: 1; }
+.jj-cond-item:hover span { color: var(--jj-text-soft); }
+
+.jj-cond-item.active {
+  border-color: #6a1a1a;
+  background: #1a0808;
+}
+
+.jj-cond-item.active img  { opacity: 1; }
+.jj-cond-item.active span { color: #e0a0a0; }
+
+.jj-cond-item.active:hover {
+  border-color: #a02020;
+  background: #220a0a;
+}

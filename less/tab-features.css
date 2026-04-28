@@ -1,0 +1,362 @@
+/* ══════════════════════════════════════════════════════
+   TAB FEATURES — Aba de Habilidades
+   Sistema Hunter x Hunter — Foundry VTT
+   ══════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
+   FEATURES — SEÇÕES E HEADERS
+   ════════════════════════════════════════ */
+.tab[data-tab="features"] {
+  background: transparent;
+}
+
+.tab[data-tab="features"] .items-section {
+  background: rgba(10,10,20,0.6);
+  border-color: var(--jj-border-soft);
+  border-radius: 8px;
+}
+
+.tab[data-tab="features"] .items-section > header,
+.tab[data-tab="features"] .items-header {
+  background: linear-gradient(90deg, #1c1c30, #161628);
+  border-bottom: 1px solid var(--jj-border);
+}
+
+.tab[data-tab="features"] .items-section > header *,
+.tab[data-tab="features"] .items-header * {
+  color: var(--jj-primary-soft);
+}
+
+.tab[data-tab="features"] h3 {
+  color: var(--jj-primary-soft);
+  text-shadow: 0 0 8px rgba(120,80,255,0.3);
+}
+
+/* ════════════════════════════════════════
+   FEATURES — LINHAS DE ITEM
+   ════════════════════════════════════════ */
+.tab[data-tab="features"] .item {
+  border-bottom: 1px solid rgba(42,106,170,0.07);
+  transition: background 120ms;
+}
+
+.tab[data-tab="features"] .item:hover {
+  background: rgba(80,60,180,0.08);
+}
+
+.tab[data-tab="features"] .item:last-child {
+  border-bottom: none;
+}
+
+/* Ícone do item */
+.tab[data-tab="features"] .item-image {
+  border-radius: 3px;
+  border: 1px solid rgba(120,80,255,0.15);
+  transition: border-color 120ms;
+}
+
+.tab[data-tab="features"] .item:hover .item-image {
+  border-color: rgba(120,80,255,0.4);
+}
+
+/* Nome */
+.tab[data-tab="features"] .item-name h4 {
+  color: var(--jj-text-main);
+  font-size: 12px;
+}
+
+/* Detalhes (uses, tipo de ação) */
+.tab[data-tab="features"] .item-detail {
+  color: var(--jj-text-soft);
+  font-size: 11px;
+}
+
+/* Controles */
+.tab[data-tab="features"] .item-controls a {
+  color: var(--jj-text-fade);
+  transition: color 120ms;
+}
+
+.tab[data-tab="features"] .item-controls a:hover {
+  color: var(--hxh-gold);
+}
+
+/* ════════════════════════════════════════
+   FEATURES — FILTROS (Ação/Bônus/Reação)
+   ════════════════════════════════════════ */
+.tab[data-tab="features"] .inventory-filters {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--jj-border-soft);
+  background: rgba(14,18,24,0.6);
+}
+
+.tab[data-tab="features"] .filter-list {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tab[data-tab="features"] .filter-item {
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--jj-border-soft);
+  background: transparent;
+  color: var(--jj-text-fade);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.tab[data-tab="features"] .filter-item:hover {
+  border-color: rgba(120,80,255,0.4);
+  color: var(--jj-text-soft);
+}
+
+.tab[data-tab="features"] .filter-item.active {
+  border-color: rgba(120,80,255,0.7);
+  background: rgba(120,80,255,0.1);
+  color: #c0a0ff;
+}
+
+/* ════════════════════════════════════════
+   FEATURES — SEÇÕES CUSTOMIZADAS (jj-*)
+   ════════════════════════════════════════ */
+
+/*
+  Seções: jj-origin, jj-combat, jj-path,
+          jj-basic, jj-talents, jj-flaws
+  Cada uma com cor de destaque própria.
+*/
+
+/* Origem */
+[data-group-origin="jj-origin"] .items-header,
+[data-group-origin="jj-origin"] > header {
+  background: linear-gradient(90deg,
+    rgba(200,168,75,0.12),
+    rgba(200,168,75,0.04)
+  ) !important;
+  border-left: 2px solid var(--hxh-gold) !important;
+}
+
+/* Combate */
+[data-group-origin="jj-combat"] .items-header,
+[data-group-origin="jj-combat"] > header {
+  background: linear-gradient(90deg,
+    rgba(200,80,80,0.12),
+    rgba(200,80,80,0.04)
+  ) !important;
+  border-left: 2px solid #c85050 !important;
+}
+
+/* Caminhos */
+[data-group-origin="jj-path"] .items-header,
+[data-group-origin="jj-path"] > header {
+  background: linear-gradient(90deg,
+    rgba(80,160,220,0.12),
+    rgba(80,160,220,0.04)
+  ) !important;
+  border-left: 2px solid var(--hxh-blue-bright) !important;
+}
+
+/* Básicas */
+[data-group-origin="jj-basic"] .items-header,
+[data-group-origin="jj-basic"] > header {
+  background: linear-gradient(90deg,
+    rgba(100,200,160,0.10),
+    rgba(100,200,160,0.03)
+  ) !important;
+  border-left: 2px solid #50c896 !important;
+}
+
+/* Talentos */
+[data-group-origin="jj-talents"] .items-header,
+[data-group-origin="jj-talents"] > header {
+  background: linear-gradient(90deg,
+    rgba(160,100,220,0.12),
+    rgba(160,100,220,0.04)
+  ) !important;
+  border-left: 2px solid #a064dc !important;
+}
+
+/* Falhas */
+[data-group-origin="jj-flaws"] .items-header,
+[data-group-origin="jj-flaws"] > header {
+  background: linear-gradient(90deg,
+    rgba(180,80,80,0.10),
+    rgba(180,80,80,0.03)
+  ) !important;
+  border-left: 2px solid #b05050 !important;
+}
+
+/* Drag-over nas seções jj-* */
+.jj-drag-over {
+  outline: 1px dashed rgba(200,168,75,0.5) !important;
+  background: rgba(200,168,75,0.04) !important;
+}
+
+/* ════════════════════════════════════════
+   CLASSES PILLS (topo da aba Features)
+   ════════════════════════════════════════ */
+.classes.pills-lg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 0 10px;
+}
+
+.classes.pills-lg .class.pill-lg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: linear-gradient(145deg, #121a24, #0e141c);
+  border: 1px solid rgba(42,106,170,0.3);
+  overflow: hidden;
+  transition: border-color 150ms, box-shadow 150ms;
+  min-width: 160px;
+}
+
+.classes.pills-lg .class.pill-lg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--underlay) center / cover no-repeat;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.classes.pills-lg .class.pill-lg:hover {
+  border-color: rgba(42,106,170,0.6);
+  box-shadow: 0 0 12px rgba(42,106,170,0.15);
+}
+
+/* Ícones da classe / subclasse */
+.classes.pills-lg .icons {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.classes.pills-lg .gold-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid rgba(200,168,75,0.25);
+  object-fit: contain;
+  background: rgba(0,0,0,0.3);
+}
+
+.classes.pills-lg .icons.subclass .gold-icon:last-of-type {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  bottom: -4px;
+  right: -6px;
+  border-color: rgba(42,106,170,0.4);
+}
+
+/* Nome + subclasse */
+.classes.pills-lg .name-stacked {
+  flex: 1;
+  min-width: 0;
+}
+
+.classes.pills-lg .name-stacked .title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--jj-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.classes.pills-lg .name-stacked .subtitle {
+  font-size: 10px;
+  color: var(--jj-text-fade);
+}
+
+/* Nível */
+.classes.pills-lg .level {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--hxh-gold);
+  text-shadow: 0 0 6px rgba(200,168,75,0.3);
+  flex-shrink: 0;
+}
+
+.classes.pills-lg .level-selector {
+  background: transparent;
+  border: 1px solid rgba(42,106,170,0.3);
+  border-radius: 3px;
+  color: var(--hxh-gold);
+  font-size: 12px;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+/* Controles de deleção */
+.classes.pills-lg .controls {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 120ms;
+}
+
+.classes.pills-lg .class.pill-lg:hover .controls {
+  opacity: 1;
+}
+
+.classes.pills-lg .deletion-control {
+  color: rgba(200,80,80,0.6);
+  font-size: 12px;
+  transition: color 120ms;
+}
+
+.classes.pills-lg .deletion-control:hover {
+  color: #ff5050;
+}
+
+/* Pill "Adicionar classe" */
+.classes.pills-lg .pill-lg.empty {
+  color: var(--jj-text-fade);
+  font-size: 11px;
+  border-style: dashed;
+  border-color: var(--jj-border-soft);
+  cursor: pointer;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.classes.pills-lg .pill-lg.empty:hover {
+  color: var(--hxh-gold);
+  border-color: rgba(200,168,75,0.4);
+  background: rgba(200,168,75,0.04);
+}
+
+/* Ícone "adicionar subclasse" */
+.classes.pills-lg .subclass-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--jj-text-fade);
+  font-size: 14px;
+  transition: color 120ms;
+}
+
+.classes.pills-lg .subclass-icon:hover {
+  color: var(--hxh-gold);
+}

@@ -1,0 +1,221 @@
+/* ══════════════════════════════════════════════════════
+   HUNTER BASE — Variáveis, Sheet Core, Cards, Skills
+   Sistema Hunter x Hunter — Foundry VTT
+   ══════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
+   ROOT — VARIÁVEIS PRINCIPAIS
+   (versão final Hunter — segundo bloco do jujutsu-card.css)
+   ════════════════════════════════════════ */
+:root {
+  /* BASE */
+  --jj-black:         #0b0f14;
+  --jj-bg-main:       #0b0f14;
+  --jj-bg-soft:       #121923;
+  --jj-bg-card:       #17202b;
+
+  /* BORDAS */
+  --jj-border:        #243244;
+  --jj-border-soft:   #1a2634;
+
+  /* TEXTO */
+  --jj-text-main:     #d6e2f0;
+  --jj-text-soft:     #8fa8c0;
+  --jj-text-fade:     #4a6075;
+  --jj-text-dim:      #5a6a7a;
+
+  /* IDENTIDADE (Hunter — Azul/Dourado) */
+  --jj-primary:       #2f6fae;
+  --jj-primary-soft:  #c8b888;
+  --jj-accent:        #c8a84b;
+  --jj-accent-soft:   #e8c870;
+  --jj-accent-red:    #c84b4b;
+
+  /* VARIÁVEIS HxH */
+  --hxh-gold:         #c8a84b;
+  --hxh-gold-bright:  #f0d070;
+  --hxh-gold-dim:     #8a7030;
+  --hxh-blue:         #2a6aaa;
+  --hxh-blue-bright:  #4a90d0;
+  --hxh-blue-dim:     #1a3a60;
+  --hxh-blue-glow:    rgba(42,106,170,.4);
+  --hxh-bg:           #0e1218;
+  --hxh-bg2:          #121820;
+  --hxh-bg3:          #161e28;
+  --hxh-border:       rgba(42,106,170,.3);
+  --hxh-text:         #c0ccd8;
+  --hxh-text-dim:     #5a6a7a;
+}
+
+/* ════════════════════════════════════════
+   DND SHEET CORE
+   ════════════════════════════════════════ */
+.dnd5e2.sheet.actor.character {
+  --dnd5e-background-card: #0e0e1e;
+  --dnd5e-border-gold:     1px solid #2e2a50;
+  --dnd5e-card-header-1:   #1a1035;
+  --dnd5e-card-header-2:   #120d28;
+  --dnd5e-color-gold:      #aaa495;
+
+  --color-text-primary:    var(--jj-text-main);
+  --color-text-secondary:  var(--jj-text-soft);
+  --color-text-tertiary:   var(--jj-text-fade);
+}
+
+.dnd5e2.sheet.actor.character .window-content,
+.dnd5e2.sheet.actor.character .sheet-body {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(42,106,170,0.10), transparent 50%),
+    radial-gradient(circle at 80% 90%, rgba(200,168,75,0.08), transparent 50%),
+    linear-gradient(180deg, #0b0f14 0%, #0e141c 100%);
+  color: var(--jj-text-main) !important;
+}
+
+.dnd5e2.sheet.actor.character .sheet-sidebar {
+  background: rgba(18,18,28,0.8) !important;
+  border-right: 1px solid rgba(42,106,170,0.15);
+}
+
+/* ════════════════════════════════════════
+   CARDS BASE
+   ════════════════════════════════════════ */
+.dnd5e2.sheet.actor.character .card,
+.dnd5e2.sheet.actor.character fieldset.card {
+  background: var(--jj-bg-card);
+  border: 1px solid var(--jj-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.25);
+}
+
+.card .header {
+  background: linear-gradient(90deg, #1c1c30, #161628);
+  border-bottom: 1px solid var(--jj-border);
+}
+
+.card .header h3,
+.card .header h4 {
+  color: var(--jj-primary-soft);
+}
+
+.card li:hover,
+.card .item:hover {
+  background: rgba(42,100,180,0.06);
+}
+
+/* ════════════════════════════════════════
+   TABS BASE
+   ════════════════════════════════════════ */
+.tab[data-tab] {
+  background: transparent;
+}
+
+.tab[data-tab] .items-section > header,
+.tab[data-tab] .items-section > .items-header {
+  background: linear-gradient(90deg, #1c1c30, #161628);
+  border-bottom: 1px solid var(--jj-border);
+}
+
+.tab[data-tab] .items-section > header *,
+.tab[data-tab] .items-section > .items-header * {
+  color: var(--jj-primary-soft);
+}
+
+.tab[data-tab] .items-section {
+  background: rgba(10,10,20,0.6);
+  border-color: var(--jj-border-soft);
+}
+
+/* Tabs específicas */
+.tab[data-tab="effects"],
+.tab[data-tab="features"],
+.tab[data-tab="spells"] {
+  background: transparent;
+}
+
+.tab[data-tab="effects"] .items-section,
+.tab[data-tab="features"] .items-section,
+.tab[data-tab="spells"] .items-section {
+  background: rgba(10,10,20,0.6);
+  border-color: var(--jj-border-soft);
+}
+
+.tab[data-tab="effects"] .items-section > header,
+.tab[data-tab="features"] .items-section > header,
+.tab[data-tab="spells"] .items-section > header,
+.tab[data-tab="effects"] .items-header,
+.tab[data-tab="features"] .items-header,
+.tab[data-tab="spells"] .items-header {
+  background: linear-gradient(90deg, #1c1c30, #161628);
+  border-bottom: 1px solid var(--jj-border);
+}
+
+.tab[data-tab="effects"] h3,
+.tab[data-tab="features"] h3,
+.tab[data-tab="spells"] h3 {
+  color: var(--jj-primary-soft);
+  text-shadow: 0 0 8px rgba(120,80,255,0.3);
+}
+
+.tab[data-tab="features"] .item:hover,
+.tab[data-tab="effects"] .item:hover {
+  background: rgba(80,60,180,0.08);
+}
+
+/* ════════════════════════════════════════
+   EFFECTS FIX
+   ════════════════════════════════════════ */
+.effects-element .items-header,
+.tab[data-tab="effects"] .items-section > header {
+  background: linear-gradient(90deg, #1c1c30, #161628) !important;
+  border-bottom: 1px solid var(--jj-border) !important;
+}
+
+.effects-element .items-header *,
+.tab[data-tab="effects"] .items-section > header * {
+  color: var(--jj-primary-soft) !important;
+  font-size: 11px !important;
+  text-transform: uppercase;
+}
+
+/* Override crítico do dnd5e base */
+.dnd5e2 .effects-element .items-header {
+  background: var(--dnd5e-color-maroon, #44000f) !important;
+}
+
+
+
+/* ════════════════════════════════════════
+   CURRENCY (YEN)
+   ════════════════════════════════════════ */
+.jj-yen-label {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+}
+
+.jj-yen-symbol {
+  position: absolute;
+  inset: -2px auto auto -2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--jj-accent-red);
+  filter: drop-shadow(0 0 1px black);
+  pointer-events: none;
+}
+
+.dnd5e2 section.currency input.jj-yen-input {
+  width: 160px !important;
+  font-size: 13px !important;
+}
+
+.dnd5e2 .inventory-element .encumbrance {
+  display: none !important;
+}
+
+/* ════════════════════════════════════════
+   SPELLS — REMOVER PIPS
+   ════════════════════════════════════════ */
+.tab[data-tab="spells"] [class*="pip"] {
+  display: none !important;
+}

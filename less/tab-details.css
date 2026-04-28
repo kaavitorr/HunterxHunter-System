@@ -1,0 +1,121 @@
+/* ══════════════════════════════════════════════════════
+   TAB DETAILS — Aba de Detalhes + Sidebar
+   Sistema Hunter x Hunter — Foundry VTT
+
+   NOTA: A maioria dos elementos da sidebar (HP, Aura,
+   portrait, lozenges, favorites) usam o estilo padrão
+   do dnd5e.css sem override. Só incluir aqui o que
+   realmente precisa ser customizado.
+   ══════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
+   SIDEBAR — Explosão Defensiva
+   ════════════════════════════════════════ */
+.jj-expdef-sidebar {
+  padding: 4px 8px 6px;
+}
+
+.jj-expdef-sidebar-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #0e0e18;
+  border: 1px solid #2a2a40;
+  border-radius: 4px;
+  color: #6060a0;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.jj-expdef-sidebar-btn:hover {
+  background: #141428;
+  border-color: #4a4a70;
+  color: #a0a0d0;
+}
+
+.jj-expdef-sidebar-btn.active {
+  background: #0a0a20;
+  border-color: #3a5a9a;
+  color: #6090e0;
+  box-shadow: 0 0 8px rgba(60,100,200,0.3);
+}
+
+/* ════════════════════════════════════════
+   SKILLS / SAVES / TOOLS
+   ════════════════════════════════════════ */
+.sheet-body .skills,
+.sheet-body .saves,
+.sheet-body .tools {
+  --filigree-background-color:        #0f0f1c;
+  --filigree-border-color:            #302860;
+  --proficiency-cycle-enabled-color:  #5a3a90;
+  --proficiency-cycle-disabled-color: #2e2850;
+}
+
+.sheet-body .skills .header,
+.sheet-body .saves .header,
+.sheet-body .tools .header {
+  background: transparent !important;
+  border-bottom: 1px solid #1a1832;
+}
+
+.sheet-body .skills ul > li,
+.sheet-body .saves ul > li,
+.sheet-body .tools ul > li {
+  padding: 4px 6px;
+  border-radius: 3px;
+}
+
+.sheet-body .skills ul > li:hover,
+.sheet-body .saves ul > li:hover,
+.sheet-body .tools ul > li:hover {
+  background: rgba(60,35,100,0.10);
+}
+
+/* ════════════════════════════════════════
+   ABILITY SCORE HEX
+   ════════════════════════════════════════ */
+.ability-score {
+  width: 64px;
+  height: 72px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ability-score::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, #0e0e1e, #0a0a14);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  border: 1px solid rgba(120,150,255,.25);
+}
+
+.ability-score > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ════════════════════════════════════════
+   ENERGY BAR (Aura) — versão Hunter (azul)
+   ════════════════════════════════════════ */
+@keyframes jj-energy-flow {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(80,120,180,0.5), 0 0 12px rgba(42,106,170,0.3);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(80,140,220,0.9), 0 0 28px rgba(42,106,170,0.6), inset 0 0 6px rgba(120,180,240,0.4);
+  }
+}
+
+.dnd5e2.sheet.actor.character .cursed-energy-bar {
+  animation: jj-energy-flow 2.8s ease-in-out infinite !important;
+}

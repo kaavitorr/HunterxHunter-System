@@ -1,0 +1,345 @@
+/* ══════════════════════════════════════════════════════
+   HUNTER CHAT CARD — Cards de Rolagem no Chat
+   Sistema Hunter x Hunter — Foundry VTT
+   ══════════════════════════════════════════════════════ */
+
+/* ── CARD BASE ──────────────────────────────────────── */
+.jujutsu-card {
+  font-family: var(--dnd5e-font-roboto, sans-serif);
+  background: var(--jj-bg-main);
+  border: 1px solid #1a2434;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* ── TOP BAR ────────────────────────────────────────── */
+.jj-top-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #0e1620;
+  border-bottom: 1px solid #1c1c30;
+}
+
+.jj-top-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #2a2a50;
+  background: #1a1a3a;
+  object-fit: cover;
+  flex: none;
+}
+
+.jj-top-name {
+  font: 700 14px var(--dnd5e-font-roboto-slab, serif);
+  color: #d0c8ff;
+}
+
+.jj-top-sub {
+  margin-left: auto;
+  font-size: 10px;
+  color: #9090b0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* ── DESCRIÇÃO ──────────────────────────────────────── */
+.jj-description {
+  padding: 8px 14px;
+  font-size: 11px;
+  color: #b0a8d0;
+  line-height: 1.5;
+  border-bottom: 1px solid #141420;
+}
+
+.jj-description p { margin: 0; }
+
+/* ── DADOS (ESTADOS) ────────────────────────────────── */
+.jj-die.discarded {
+  opacity: 0.3;
+  text-decoration: line-through;
+  text-decoration-color: #4a4860;
+}
+
+.jj-die.active {
+  border-color: #5040a0;
+  color: #c0a0ff;
+  background: #1a1430;
+}
+
+/* ── BOTÕES DE ROLAGEM ──────────────────────────────── */
+.jj-roll-btns,
+.jj-adv-row {
+  display: grid;
+  gap: 1px;
+}
+
+.jj-roll-btns { grid-template-columns: 1fr 1fr; background: #141420; }
+.jj-adv-row   { grid-template-columns: 1fr 1fr; background: var(--jj-bg-main); border-bottom: 1px solid #141420; }
+
+.jj-btn,
+.jj-adv-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border: none;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+/* Ataque — Azul Hunter */
+.jj-attack-btn {
+  background: #0f1a24;
+  color: #6fa8dc;
+}
+.jj-attack-btn:hover {
+  background: #132232;
+  color: #9fc5ff;
+}
+
+/* Dano — Laranja */
+.jj-damage-btn {
+  background: #1a0f0f;
+  color: #d46a4a;
+}
+.jj-damage-btn:hover {
+  background: #221313;
+  color: #ff8a60;
+}
+
+/* Vantagem / Desvantagem */
+.jj-adv-btn {
+  background: #0c1218;
+  color: #405060;
+}
+.jj-adv-btn:hover {
+  background: #111120;
+  color: #60607a;
+}
+
+.jj-adv-btn[data-adv="advantage"].active {
+  background: #0e1a12;
+  color: #5fd08a;
+  border-bottom: 2px solid #2f7a4a;
+}
+
+.jj-adv-btn[data-adv="disadvantage"].active {
+  background: #1a0e0e;
+  color: #d06060;
+  border-bottom: 2px solid #7a3030;
+}
+
+/* ── PAINÉIS DE RESULTADO ───────────────────────────── */
+.jj-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.jj-panel {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+}
+
+.jj-panel.visible { display: flex; }
+.jj-panel + .jj-panel { border-left: 1px solid #1a1a28; }
+
+.jj-panel-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #8080a8;
+}
+
+/* ── VALOR PRINCIPAL ────────────────────────────────── */
+.jj-panel-val {
+  font: 700 36px var(--font-primary, serif);
+  color: #7fb0ff;
+  transition: all 200ms ease;
+}
+
+.jj-panel-val.dmg { color: #ff8850; }
+
+/* Estado: Crítico (nat 20) */
+.jj-panel-val.nat20 {
+  color: #000;
+  -webkit-text-stroke: 2px #cc1111;
+  text-shadow: 0 0 12px rgba(200,20,20,.9);
+  font-size: 48px;
+  animation: kokusen-flash .6s ease-out;
+}
+
+/* Estado: Falha (nat 1) */
+.jj-panel-val.nat1 {
+  opacity: .45;
+  color: #3a3850;
+  text-decoration: line-through;
+  animation: fumble-fade .4s ease-out;
+}
+
+/* Animações de resultado */
+@keyframes kokusen-flash {
+  0%   { transform: scale(1.4); opacity: 0.4; }
+  60%  { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes fumble-fade {
+  0%   { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: .45; }
+}
+
+/* ── BREAKDOWN DE DADOS ──────────────────────────────── */
+.jj-panel-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: #8080a0;
+}
+
+.jj-die-pip {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #2a2a40;
+  border-radius: 3px;
+  background: #141420;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.jj-die-pip.max { border-color: #306030; color: #50a050; background: #0a120a; }
+.jj-die-pip.min { border-color: #603030; color: #a05050; background: #120a0a; }
+
+.jj-mod-pip { font-size: 10px; color: #9090b0; }
+
+/* ── FOOTER ─────────────────────────────────────────── */
+.jj-footer {
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid #1a1a28;
+}
+
+.jj-footer.visible { display: flex; }
+
+/* Modificadores */
+.jj-mods { display: flex; gap: 3px; }
+
+.jj-mod-check {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 7px;
+  border: 1px solid #1e1e2e;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #40405a;
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.jj-mod-check input { display: none; }
+
+.jj-mod-check:hover {
+  border-color: #3a3a5a;
+  color: #8080a0;
+}
+
+.jj-mod-check:has(input:checked) {
+  border-color: #e07040;
+  background: #200e04;
+  color: #ff9060;
+}
+
+/* Modificador especial — Kokusen */
+.jj-kokusen:has(input:checked) {
+  border-color: #991111;
+  background: #0a0000;
+  color: #ff2020;
+  text-shadow: 0 0 6px rgba(255,0,0,.6);
+}
+
+/* Modificador especial — Crítico */
+.jj-crit-check:has(input:checked) {
+  border-color: #c08020;
+  background: #1a1000;
+  color: #ffb030;
+}
+
+/* Total + botão aplicar */
+.jj-footer-total { font-size: 11px; color: #50506a; }
+.jj-footer-total strong { color: #ff8850; font-size: 14px; }
+
+.jj-apply-btn {
+  margin-left: auto;
+  padding: 5px 12px;
+  border: 1px solid #601a1a;
+  background: #140606;
+  color: #d05040;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.jj-apply-btn:hover   { border-color: #a02020; color: #ff6050; }
+.jj-apply-btn:disabled { opacity: .4; cursor: default; }
+
+/* ── CONDIÇÕES (ÍCONES DE STATUS NO CHAT) ───────────── */
+.jj-conditions-section {
+  margin-top: 12px;
+  padding: 0 4px;
+}
+
+.jj-cond-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  background: var(--dnd5e-color-maroon, #44000f);
+  border-radius: 3px;
+  font: 700 12px var(--dnd5e-font-roboto-condensed, sans-serif);
+  color: #e0c0c0;
+  text-transform: uppercase;
+}
+
+.jj-cond-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.jj-cond-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid #1e1e2e;
+  border-radius: 4px;
+  background: var(--jj-bg-main);
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.jj-cond-item:hover         { border-color: #3a3a5a; background: #141420; }
+.jj-cond-item.active        { border-color: #6a1a1a; background: #1a0808; }
+.jj-cond-item.active:hover  { border-color: #a02020; background: #220a0a; }

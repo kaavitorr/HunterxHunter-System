@@ -35,12 +35,16 @@
     }
   ],
   "styles": [
-    {
-      "src": "dnd5e.css"
-    },
-    {
-      "src": "less/jujutsu-card.css"
-    }
+    { "src": "dnd5e.css" },
+    { "src": "less/hunter-base.css" },
+    { "src": "less/hunter-chat-card.css" },
+    { "src": "less/tab-details.css" },
+    { "src": "less/tab-inventory.css" },
+    { "src": "less/tab-features.css" },
+    { "src": "less/tab-spells.css" },
+    { "src": "less/tab-effects.css" },
+    { "src": "less/tab-manipulation.css" },
+    { "src": "less/tab-trainings.css" }
   ],
   "documentTypes": {
     "ActiveEffect": {
