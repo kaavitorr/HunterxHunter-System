@@ -77,77 +77,84 @@
 .nen-categories-grid { display: none; }
 
 /* ════════════════════════════════════════
-   CARD DE CATEGORIA
+   CARD DE CATEGORIA — Estilo 2 (glow + pills)
    ════════════════════════════════════════ */
 .nen-category-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
+  --cat-color: #c8a84b;
   border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--cat-color) 30%, #1a2634);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--cat-color) 8%, #0c121a),
+    #0b0f14
+  );
+  cursor: pointer;
+  transition: all 0.22s ease;
   overflow: hidden;
-  transition: border-color 0.2s;
 }
 
 .nen-category-card:hover {
-  border-color: rgba(255,255,255,0.14);
+  border-color: var(--cat-color);
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--cat-color) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--cat-color) 15%, transparent);
 }
 
-/* ════════════════════════════════════════
-   HEADER — BOTÃO DE TREINAR
-   ════════════════════════════════════════ */
+/* ── HEADER ── */
 .nen-cat-header {
   display: flex;
-  align-items: stretch;
-  gap: 0;
-  min-height: 56px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 8px;
 }
 
-/* Botão de treinar */
+/* Botão de treinar — ocupa o header inteiro */
 .nen-train-btn {
   display: flex;
   align-items: center;
   gap: 10px;
   flex: 1;
-  padding: 10px 14px;
-  background: rgba(255,255,255,0.03);
+  padding: 0;
+  background: transparent;
   border: none;
-  border-right: 1px solid rgba(255,255,255,0.06);
   cursor: pointer;
-  transition: background 0.18s;
   text-align: left;
+  min-width: 0;
 }
 
-.nen-train-btn:hover {
-  background: color-mix(in srgb, var(--cat-color) 8%, transparent);
-}
-
-/* Header locked (não pode treinar) */
+/* Header locked */
 .nen-cat-header-locked {
   display: flex;
   align-items: center;
   gap: 10px;
   flex: 1;
-  padding: 10px 14px;
-  background: rgba(255,255,255,0.02);
-  border-right: 1px solid rgba(255,255,255,0.05);
-  opacity: 0.7;
+  opacity: 0.65;
+  min-width: 0;
 }
 
-/* Ícone de categoria */
+/* Ícone */
 .nen-cat-icon {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   object-fit: contain;
   flex-shrink: 0;
-  border-radius: 6px;
-  background: rgba(255,255,255,0.04);
-  padding: 3px;
+  border-radius: 8px;
+  padding: 4px;
+  background: color-mix(in srgb, var(--cat-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cat-color) 40%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cat-color) 25%, transparent);
+  transition: box-shadow 0.2s;
 }
 
-/* Labels do botão */
+.nen-category-card:hover .nen-cat-icon {
+  box-shadow: 0 0 16px color-mix(in srgb, var(--cat-color) 45%, transparent);
+}
+
+/* Labels */
 .nen-train-label {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   flex: 1;
   min-width: 0;
 }
@@ -156,64 +163,74 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.03em;
+  color: rgba(255,255,255,0.88);
   white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.nen-category-card:hover .nen-train-name {
+  color: var(--cat-color);
 }
 
 .nen-train-sub {
   font-size: 10px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.4);
 }
 
 .nen-train-sub.muted {
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.28);
   font-style: italic;
 }
 
-/* Custos no botão */
-.nen-train-costs {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  align-items: flex-end;
-  flex-shrink: 0;
-}
+/* Custos — escondidos no header, aparecem no footer */
+.nen-train-costs { display: none; }
 
-.nen-train-costs span {
-  font-size: 9px;
-  color: rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.04);
-  border-radius: 3px;
-  padding: 1px 5px;
-  white-space: nowrap;
-}
-
-/* Bloco de nível + barra + pips */
+/* Bloco de nível */
 .nen-cat-level-block {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  gap: 4px;
-  padding: 10px 14px;
-  min-width: 70px;
+  gap: 2px;
   flex-shrink: 0;
 }
 
 .nen-cat-level-num {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 26px;
+  font-weight: 900;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--cat-color) 50%, transparent);
 }
 
 .nen-cat-level-max {
   font-size: 11px;
-  color: rgba(255,255,255,0.3);
-  margin-top: -6px;
+  color: rgba(255,255,255,0.28);
+  margin-top: -4px;
+}
+
+/* Footer com barra + pills de custo */
+.nen-cat-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px 10px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.nen-cat-pill {
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--cat-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cat-color) 30%, transparent);
+  color: color-mix(in srgb, var(--cat-color) 85%, white);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nen-cat-bar-track {
-  width: 100%;
+  flex: 1;
   height: 3px;
   background: rgba(255,255,255,0.08);
   border-radius: 2px;
@@ -226,22 +243,9 @@
   transition: width 0.4s ease;
 }
 
-.nen-cat-pips {
-  display: flex;
-  gap: 2px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.nen-pip {
-  font-size: 7px;
-  color: rgba(255,255,255,0.12);
-  line-height: 1;
-}
-
-.nen-pip.filled {
-  color: rgba(180,140,30,0.85);
-}
+/* Pips — ocultos no novo layout */
+.nen-cat-pips { display: none; }
+.nen-pip { display: none; }
 
 /* ════════════════════════════════════════
    SEÇÃO DE HABILIDADES
@@ -306,14 +310,9 @@
 
 /* Principais — desbloqueada */
 .nen-ability-card.major.unlocked {
-  /* BORDA REAL com cor da categoria */
-  border-color: var(--cat-color);
-
-  /* glow mais visível e fiel à cor */
-  box-shadow:
-    0 0 6px color-mix(in srgb, var(--cat-color) 60%, transparent),
-    0 0 12px color-mix(in srgb, var(--cat-color) 30%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cat-color, #c8a84b) 18%, transparent);
 }
+
 /* Principais — exclusiva desbloqueada */
 .nen-ability-card.major.exclusive.unlocked {
   border-color: rgba(180,100,220,0.55) !important;
@@ -375,40 +374,6 @@
   flex-shrink: 0;
 }
 
-/* ── TOOLTIP EM HOVER ── */
-.nen-ability-tooltip {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  width: 220px;
-  padding: 9px 11px;
-  background: #0e1420;
-  border: 1px solid rgba(200,168,75,0.3);
-  border-radius: 6px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.8);
-  font-size: 10px;
-  color: rgba(255,255,255,0.7);
-  line-height: 1.55;
-  pointer-events: none;
-}
-
-.nen-ability-card:hover .nen-ability-tooltip {
-  display: block;
-}
-
-/* Setinha do tooltip */
-.nen-ability-tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: rgba(200,168,75,0.3);
-}
 
 /* Botão desbloquear */
 .nen-unlock-btn {
@@ -645,326 +610,4 @@
 .training-progress[data-rank="3"] span {
   background: linear-gradient(90deg, #c8a84b, #f0d070);
   box-shadow: 0 0 10px rgba(200,168,75,0.6);
-}
-
-
-/* MUDANÇA FEITA PELO GPT A PARTIR DAQUI */
-.nen-category-card {
-  --cat-color: #c8a84b; /* fallback */
-
-  position: relative;
-  border-radius: 12px;
-
-  background:
-    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--cat-color) 18%, transparent), transparent 60%),
-    linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-
-  border: 1px solid color-mix(in srgb, var(--cat-color) 35%, rgba(255,255,255,0.08));
-
-  box-shadow:
-    0 0 0px transparent,
-    inset 0 0 12px rgba(255,255,255,0.02);
-
-  transition: all 0.25s ease;
-}
-
-/* Glow no hover */
-.nen-category-card:hover {
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 0 14px color-mix(in srgb, var(--cat-color) 35%, transparent),
-    0 6px 20px rgba(0,0,0,0.5);
-}
-
-.nen-train-btn {
-  background: transparent;
-  transition: all 0.2s ease;
-}
-
-/* linha lateral colorida (detalhe forte visual) */
-.nen-train-btn::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-
-  background: var(--cat-color);
-  opacity: 0.7;
-}
-
-/* hover com cor */
-.nen-train-btn:hover {
-  background: color-mix(in srgb, var(--cat-color) 14%, transparent);
-}
-
-/* nome ganha cor leve */
-.nen-train-name {
-  color: color-mix(in srgb, var(--cat-color) 70%, white);
-}
-
-.nen-cat-icon {
-  border-radius: 8px;
-
-  background:
-    radial-gradient(circle, color-mix(in srgb, var(--cat-color) 30%, transparent), transparent 70%);
-
-  border: 1px solid color-mix(in srgb, var(--cat-color) 40%, transparent);
-
-  box-shadow: 0 0 8px color-mix(in srgb, var(--cat-color) 40%, transparent);
-}
-
-.nen-cat-level-num {
-  font-size: 24px;
-  font-weight: 900;
-
-  color: var(--cat-color);
-
-  text-shadow: 0 0 10px color-mix(in srgb, var(--cat-color) 60%, transparent);
-}
-
-.nen-cat-bar-fill {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--cat-color) 70%, black),
-    var(--cat-color)
-  );
-
-  box-shadow: 0 0 8px color-mix(in srgb, var(--cat-color) 60%, transparent);
-}
-
-.nen-ability-card {
-  border-radius: 10px;
-
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--cat-color) 10%, transparent),
-      rgba(255,255,255,0.02)
-    );
-
-  border: 1px solid color-mix(in srgb, var(--cat-color) 25%, rgba(255,255,255,0.05));
-
-  transition: all 0.15s ease;
-}
-
-/* hover */
-.nen-ability-card:hover {
-  border-color: var(--cat-color);
-
-  box-shadow:
-    0 0 10px color-mix(in srgb, var(--cat-color) 40%, transparent);
-}
-
-/* desbloqueada */
-.nen-ability-card.major.unlocked {
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--cat-color) 22%, transparent),
-      rgba(0,0,0,0.2)
-    );
-
-  border-color: var(--cat-color);
-}
-
-.nen-ability-tooltip {
-  background: #0e1420;
-
-  border: 1px solid color-mix(in srgb, var(--cat-color) 50%, transparent);
-
-  box-shadow:
-    0 0 14px color-mix(in srgb, var(--cat-color) 25%, transparent);
-}
-
-/* cada vértice pode usar cor da categoria */
-.nen-hexagon-svg .vertex-label {
-  font-weight: 800;
-  font-size: 12px;
-}
-
-/* linhas padrão */
-.nen-hexagon-svg .grid-line {
-  stroke: rgba(255,255,255,0.08);
-}
-
-/* shape principal */
-.nen-hexagon-svg .stat-shape {
-  fill: rgba(255,255,255,0.06);
-  stroke: rgba(255,255,255,0.4);
-}
-
-/* PONTOS coloridos (isso aqui muda o jogo) */
-.nen-hexagon-svg .vertex-dot {
-  r: 4;
-  filter: drop-shadow(0 0 6px currentColor);
-}
-
-.cat-enhancement { --cat-color: #e74c3c; }
-.cat-transmutation { --cat-color: #9b59b6; }
-.cat-conjuration { --cat-color: #3498db; }
-.cat-emission { --cat-color: #f1c40f; }
-.cat-manipulation { --cat-color: #2ecc71; }
-.cat-specialization { --cat-color: #95a5a6; }
-
-
-/* ════════════════════════════════════════
-   CATEGORY CARD — BASE LIMPA
-   ════════════════════════════════════════ */
-
-.nen-category-card {
-  --cat-color: #c8a84b;
-
-  position: relative;
-  border-radius: 10px;
-
-  /* FUNDO neutro */
-  background: rgba(15,18,28,0.9);
-
-  border: 1px solid rgba(255,255,255,0.06);
-
-  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-
-  transition: all 0.2s ease;
-}
-
-/* linha sutil no topo */
-.nen-category-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-
-  background: var(--cat-color);
-
-  opacity: 0.8;
-}
-
-.nen-category-card:hover {
-  transform: translateY(-2px);
-
-  border-color: var(--cat-color);
-
-  box-shadow:
-    0 0 10px color-mix(in srgb, var(--cat-color) 35%, transparent),
-    0 6px 18px rgba(0,0,0,0.5);
-}
-
-.nen-train-btn {
-  background: transparent;
-  position: relative;
-}
-
-/* barra lateral (bem mais controlada) */
-.nen-train-btn::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-
-  background: var(--cat-color);
-  border-radius: 2px;
-
-  opacity: 0.7;
-}
-
-/* hover suave (quase nada) */
-.nen-train-btn:hover {
-  background: rgba(255,255,255,0.03);
-}
-
-.nen-train-name {
-  color: rgba(255,255,255,0.9);
-}
-
-/* só um leve destaque */
-.nen-category-card:hover .nen-train-name {
-  color: var(--cat-color);
-}
-
-.nen-cat-level-num {
-  color: var(--cat-color);
-  font-weight: 800;
-
-  text-shadow: 0 0 6px color-mix(in srgb, var(--cat-color) 40%, transparent);
-}
-
-.nen-cat-bar-fill {
-  background: var(--cat-color);
-}
-
-
-.nen-ability-card {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-/* hover usa cor */
-.nen-ability-card:hover {
-  border-color: var(--cat-color);
-
-  box-shadow: 0 0 8px color-mix(in srgb, var(--cat-color) 30%, transparent);
-}
-
-/* desbloqueado */
-.nen-ability-card.major.unlocked {
-  border-color: var(--cat-color);
-
-  box-shadow:
-    0 0 10px color-mix(in srgb, var(--cat-color) 40%, transparent);
-}
-
-.nen-hexagon-svg {
-  width: 340px;
-  height: 340px;
-}
-
-/* labels maiores */
-.nen-hexagon-svg text {
-  font-size: 13px;
-  font-weight: 700;
-}
-
-/* números */
-.nen-hexagon-svg .stat-value {
-  font-size: 14px;
-  font-weight: 900;
-}
-
-/* ════════════════════════════════════════
-   HOVER COM COR DA CATEGORIA (CORRETO)
-   ════════════════════════════════════════ */
-
-.nen-category-card:hover {
-  border-color: var(--cat-color) !important;
-
-  box-shadow:
-    0 0 10px color-mix(in srgb, var(--cat-color) 40%, transparent),
-    0 6px 18px rgba(0,0,0,0.5);
-}
-
-
-/* garante que TODOS os filhos usem a cor certa */
-.nen-category-card {
-  --cat-color: #c8a84b; /* fallback */
-}
-
-.nen-ability-card.major.unlocked {
-  border-color: var(--cat-color);
-
-  box-shadow:
-    0 0 8px color-mix(in srgb, var(--cat-color) 70%, transparent);
-
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--cat-color) 10%, transparent),
-      rgba(0,0,0,0.2)
-    );
 }

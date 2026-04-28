@@ -1965,6 +1965,43 @@ new foundry.applications.ux.ContextMenu.implementation(
       especialista: "systems/hunter-system/assets/Categorias/esp-mini.png"
     };
 
+    // Referências compendium para hover das habilidades de categoria
+    const NEN_ABILITY_REFS = {
+      "robusto_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.s0Rq2BmzMI1Pbw2L",
+      "robusto_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.s0Rq2BmzMI1Pbw2L",
+      "robusto_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.s0Rq2BmzMI1Pbw2L",
+      "ofensivaAprimorada": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.a6Ou5E3jxIMYsZPt",
+      "resistenciaAprimorada": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.3vPFbFcuDdpSvwKT",
+      "corpoAprimorado": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.C4COzedbI6qyJmXo",
+      "agilidadeAvancada_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.AqvfUbRRQzpVlHz1",
+      "agilidadeAvancada_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.AqvfUbRRQzpVlHz1",
+      "agilidadeAvancada_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.AqvfUbRRQzpVlHz1",
+      "emissaoTreinada": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.miXywfeqLSk6hzI6",
+      "reabsorcaoDeAura": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.11yZVOrfieCSv8YC",
+      "atravessarMateria": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.TYMYMOCH2iZhs9NL",
+      "aumentarDensidade_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.D784UnTjqTaJZOEh",
+      "aumentarDensidade_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.D784UnTjqTaJZOEh",
+      "aumentarDensidade_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.D784UnTjqTaJZOEh",
+      "auraTraicoeira": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.VLP7DaQoUH5Gfpu3",
+      "transmutacaoSutil": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.gA882swrqxLwqj1N",
+      "auraAdaptavel_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.GMsFUhiFKbSnPsGJ",
+      "auraAdaptavel_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.GMsFUhiFKbSnPsGJ",
+      "auraAdaptavel_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.GMsFUhiFKbSnPsGJ",
+      "focoConjurador": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.H7CY8R4LSHeE9D3a",
+      "liberacaoConjuradora": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.LzT1Zya0el1kuKRp",
+      "mudandoOJogo": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.9GZp3e1EQqsKA3ah",
+      "auraControlada_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.Z5mDHhz0sVRHsA3B",
+      "auraControlada_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.Z5mDHhz0sVRHsA3B",
+      "auraControlada_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.Z5mDHhz0sVRHsA3B",
+      "objetoConfigurado": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.UIwMEh5O3pBITCIL",
+      "criacaoDeEgo": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.lcaWf7WK3I9lCm8q",
+      "comandosAvancados": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.oXF8McpPaneyvSxT",
+      "ativacaoEficiente": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.2IhjDc0fKUOtdubM",
+      "entendimento": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.EhzWEVQsCbJWY9wB",
+      "movimentoEspecializado": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.9KQ2h5wAyBFZ1KrE",
+      "períciaTranmutadora": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.IT0QweKyExQmAJGc",
+    };
+
     const nenCategories = [];
     for ( const id of CATEGORIES ) {
       // Lê o nível da classe correspondente no actor
@@ -2069,7 +2106,8 @@ new foundry.applications.ux.ContextMenu.implementation(
       cat.minorSlots = [2, 5, 8].map(lvl => {
         const ab = catData?.minor?.[lvl];
         const reached = cat.level >= lvl;
-        return ab ? { ...ab, reached, level: lvl } : { reached: false, level: lvl, empty: true };
+        if ( !ab ) return { reached: false, level: lvl, empty: true };
+        return { ...ab, reached, level: lvl, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
       });
 
       // Principais: slots fixos nos níveis 3, 6, 10
@@ -2080,7 +2118,7 @@ new foundry.applications.ux.ContextMenu.implementation(
         const unlocked = unlockedMajorMap[ab.id] ?? false;
         const canUnlock = reached && !unlocked && (nenMajorCount < nenMajorMax || ab.exclusive);
         // categoryId pré-calculado para evitar {{../cat.id}} no HBS
-        return { ...ab, reached, unlocked, canUnlock, level: lvl, categoryId: cat.id };
+        return { ...ab, reached, unlocked, canUnlock, level: lvl, categoryId: cat.id, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
       });
     }
 

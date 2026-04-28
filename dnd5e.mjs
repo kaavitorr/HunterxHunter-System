@@ -95,7 +95,7 @@ Hooks.once("init", function() {
       label: "Corpo de Lutador (Agilidade)",
       formula: "10 + @abilities.dex.mod + min(@abilities.con.mod, @details.level)"
     },
-    corpoLutadorWis: {
+   corpoLutadorWis: {
       label: "Corpo de Lutador (Sabedoria)",
       formula: "10 + @abilities.wis.mod + min(@abilities.dex.mod, @details.level)"
     },
