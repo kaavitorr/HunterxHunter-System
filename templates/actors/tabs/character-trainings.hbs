@@ -20,7 +20,7 @@
 
   {{!-- ══════════════════════════ HEXÁGONO NEN ══════════════════════════ --}}
   <div class="nen-hexagon-wrapper">
-    <svg class="nen-hexagon-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+    <svg class="nen-hexagon-svg" viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg">
 
       {{!-- Grid circular tracejado --}}
       <circle cx="160" cy="160" r="125" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4 3"/>
@@ -43,15 +43,15 @@
       {{!-- Labels e pontos coloridos por categoria --}}
       {{#each nenLabels as |cat|}}
       {{!-- Ponto colorido no vertice --}}
-      <circle cx="{{cat.lx}}" cy="{{cat.ly}}" r="16"
+      <circle cx="{{cat.lx}}" cy="{{cat.ly}}" r="21"
         fill="{{cat.color}}" opacity="0.92" stroke="rgba(0,0,0,0.6)" stroke-width="1.5"/>
       {{!-- Abreviacao --}}
       <text x="{{cat.lx}}" y="{{cat.ly}}" text-anchor="middle" dominant-baseline="central"
-        fill="rgba(0,0,0,0.9)" font-size="11" font-weight="800">{{cat.abbrev}}</text>
+        fill="rgba(0,0,0,0.9)" font-size="13" font-weight="800">{{cat.abbrev}}</text>
       {{!-- Nivel abaixo do ponto --}}
       <text x="{{cat.lx}}" y="{{cat.ly2}}" text-anchor="middle" dominant-baseline="central"
-        fill="{{cat.color}}" stroke="rgba(0,0,0,0.8)" stroke-width="2.5" paint-order="stroke"
-        font-size="11" font-weight="800">{{cat.level}}</text>
+        fill="{{cat.color}}" stroke="rgba(0,0,0,0.8)" stroke-width="2.4" paint-order="stroke"
+        font-size="13" font-weight="800">{{cat.level}}</text>
       {{/each}}
 
       <circle cx="160" cy="160" r="3" fill="rgba(255,255,255,0.5)"/>

@@ -2650,7 +2650,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
 
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      content: `${this.name} recuperou ${recovered} Cursed Energy Dice no Descanso Longo.`
+      content: `${this.name} recuperou ${recovered} Dados de Aura no Descanso Longo.`
     });
   }
 

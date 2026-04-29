@@ -167,14 +167,14 @@
   </div>
 </div>
             
-{{!-- Cursed Energy --}}
+{{!-- Dados de Aura --}}
 <div class="meter-group">
   <div class="label roboto-condensed-upper" style="display: flex; justify-content: space-between;">
     <span>Pontos de Aura</span>
     {{#if editable}}
     <button type="button" class="config-button unbutton" data-action="showConfiguration"
             data-config="cursedEnergy" data-tooltip="JUJUTSU.Energy.Config"
-            aria-label="Cursed Energy Config">
+            aria-label="Config Dados de Aura">
       <i class="fas fa-cog" inert></i>
     </button>
     {{/if}}
@@ -194,7 +194,7 @@
                placeholder="0" value="{{ total }}" hidden>
       </div>
     </div>
-    <div class="meter sectioned hit-points" style="flex: 1; --dnd5e-color-hp-1: #2a6aaa; --dnd5e-color-hp-2: #4a90d9; --dnd5e-color-hp-3: #3a80c9;">
+    <div class="meter sectioned hit-points" style="flex: 1; --dnd5e-color-hp-1: #2aaa8a; --dnd5e-color-hp-2: #4ad9d7; --dnd5e-color-hp-3: #3ac9a5;">
       <div class="progress hit-points" role="meter" style="--bar-percentage: 100%">
         <div class="label">
           <input type="text" name="system.energy.generated" data-dtype="Number"
@@ -235,8 +235,8 @@
   </div>
 </div>
 {{/with}}
-                    <div class="meter sectioned hit-points energy-dice-bar" style="flex:1; --dnd5e-color-hp-1: #5a3a7a; --dnd5e-color-hp-2: #8b6aad; --dnd5e-color-hp-3: #7a5a9a;" role="meter" aria-valuemin="0" aria-valuenow="{{ system.energyDice.value }}" aria-valuemax="{{ system.energyDice.max }}">
-                      <div class="progress hit-points energy-dice-bar" role="meter" style="--bar-percentage: {{ energyDicePct }}%; --dnd5e-color-hp-1: #5a3a7a; --dnd5e-color-hp-2: #8b6aad; --dnd5e-color-hp-3: #7a5a9a;">
+                    <div class="meter sectioned hit-points energy-dice-bar" style="flex:1; --dnd5e-color-hp-1: #7a553a; --dnd5e-color-hp-2: #ad816a; --dnd5e-color-hp-3: #9a755a;" role="meter" aria-valuemin="0" aria-valuenow="{{ system.energyDice.value }}" aria-valuemax="{{ system.energyDice.max }}">
+                      <div class="progress hit-points energy-dice-bar" role="meter" style="--bar-percentage: {{ energyDicePct }}%; --dnd5e-color-hp-1: #7a4d3a; --dnd5e-color-hp-2: #ad7e6a; --dnd5e-color-hp-3: #9a745a;">
                         <div class="label"><span class="value">{{ system.energyDice.value }}</span><span class="separator">&sol;</span><span class="max">{{ system.energyDice.max }}</span></div>
                       </div>
                     </div>

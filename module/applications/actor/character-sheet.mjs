@@ -474,8 +474,8 @@ context.skills = skillsSorted;
         columns, id: "background", label: "DND5E.FeaturesBackground", order: 2000, groups: { origin: "background" }
       } : null,
       { columns, id: "other", label: "DND5E.FeaturesOther",      order: 3000, groups: { origin: "other" } },
-      { columns, id: "jj-origin",  label: "Origem de Poder",     order: 4000, groups: { origin: "jj-origin"  }, items: [] },
-      { columns, id: "jj-combat",  label: "Estilo de Combate",   order: 5000, groups: { origin: "jj-combat"  }, items: [] },
+      { columns, id: "jj-origin",  label: "Classe Hunter",       order: 4000, groups: { origin: "jj-origin"  }, items: [] },
+      { columns, id: "jj-combat",  label: "Categoria",   order: 5000, groups: { origin: "jj-combat"  }, items: [] },
       { columns, id: "jj-path",    label: "Caminho",             order: 6000, groups: { origin: "jj-path"    }, items: [] },
       { columns, id: "jj-basic",   label: "Habilidades Básicas", order: 7000, groups: { origin: "jj-basic"   }, items: [] },
       { columns, id: "jj-talents", label: "Talentos",            order: 8000, groups: { origin: "jj-talents" }, items: [] },
@@ -1771,6 +1771,147 @@ new foundry.applications.ux.ContextMenu.implementation(
     }
   }
 
+
+  /* -------------------------------------------- */
+
+  /**
+   * Desfaz um princípio de Nen desbloqueado.
+   * Verifica se outros princípios ou habilidades dependem dele antes de permitir.
+   */
+  async _onUndoNenPrinciple(principleId) {
+    const principles = this.actor.system.manipulation?.principles ?? {};
+    if ( !principles[principleId]?.unlocked ) return;
+
+    const allPrinciples = TREE_DATA.flatMap(s => s.principles);
+    const thisPr = allPrinciples.find(p => p.id === principleId);
+    if ( !thisPr ) return;
+
+    const unlockedPrinciples = new Set(
+      allPrinciples.filter(p => principles[p.id]?.unlocked).map(p => p.id)
+    );
+    const unlockedAbilities = new Set(
+      Object.entries(this.actor.system.manipulation?.abilities ?? {})
+        .filter(([, v]) => v?.unlocked).map(([k]) => k)
+    );
+
+    // Princípios que dependem deste (req.pr inclui principleId)
+    const blockerPrinciples = allPrinciples.filter(p => {
+      if ( !unlockedPrinciples.has(p.id) ) return false;
+      return (p.req?.pr ?? []).includes(principleId);
+    });
+
+    // Habilidades filhas desbloqueadas
+    const blockerAbilities = (thisPr.abilities ?? []).filter(ab => unlockedAbilities.has(ab.id));
+
+    const blockers = [
+      ...blockerPrinciples.map(p => p.label),
+      ...blockerAbilities.map(ab => ab.label)
+    ];
+
+    if ( blockers.length > 0 ) {
+      ui.notifications.warn(
+        `Não é possível desfazer "${thisPr.label}" — desfaz primeiro: ${blockers.map(b => `"${b}"`).join(", ")}.`
+      );
+      return;
+    }
+
+    const confirmed = await Dialog.confirm({
+      title: "Desfazer Princípio",
+      content: `<p>Desfazer <strong>${thisPr.label}</strong>?</p>`
+        + `<p style="font-size:11px;color:#aaa;margin-top:6px">Os PM gastos serão devolvidos.</p>`,
+      yes: () => true, no: () => false
+    });
+    if ( !confirmed ) return;
+
+    const cost = thisPr.cost ?? 0;
+    const updates = {
+      [`system.manipulation.principles.${principleId}.unlocked`]: false,
+      "system.manipulation.pointsInvested": Math.max(0, (this.actor.system.manipulation?.pointsInvested ?? 0) - cost)
+    };
+    if ( cost > 0 ) {
+      updates["system.curseResources.cursePoints"] =
+        (this.actor.system.curseResources?.cursePoints ?? 0) + cost;
+    }
+    await this.actor.update(updates);
+
+    ui.notifications.info(`Princípio "${thisPr.label}" desfeito.`);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `↩ <strong>${this.actor.name}</strong> desfez o princípio: <strong>${thisPr.label}</strong>.`
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Desfaz uma habilidade de princípio Nen desbloqueada.
+   * Verifica se outras habilidades ou princípios dependem dela antes de permitir.
+   */
+  async _onUndoNenAbility(abilityId) {
+    const abilities = this.actor.system.manipulation?.abilities ?? {};
+    if ( !abilities[abilityId]?.unlocked ) return;
+
+    const def = MANIPULATION_ABILITIES[abilityId];
+    if ( !def ) return;
+
+    const unlockedAbilities = new Set(
+      Object.entries(abilities).filter(([, v]) => v?.unlocked).map(([k]) => k)
+    );
+
+    const allPrinciples = TREE_DATA.flatMap(s => s.principles);
+    const unlockedPrinciples = new Set(
+      allPrinciples
+        .filter(p => this.actor.system.manipulation?.principles?.[p.id]?.unlocked)
+        .map(p => p.id)
+    );
+
+    // Princípios que têm esta habilidade como req.ab
+    const blockerPrinciples = allPrinciples.filter(p => {
+      if ( !unlockedPrinciples.has(p.id) ) return false;
+      return (p.req?.ab ?? []).includes(abilityId);
+    });
+
+    // Habilidades que listam esta no seu req[]
+    const blockerAbilities = Object.values(MANIPULATION_ABILITIES).filter(ab => {
+      if ( !unlockedAbilities.has(ab.id) ) return false;
+      return (ab.req ?? []).includes(abilityId);
+    });
+
+    const blockers = [
+      ...blockerPrinciples.map(p => p.label),
+      ...blockerAbilities.map(ab => ab.label)
+    ];
+
+    if ( blockers.length > 0 ) {
+      ui.notifications.warn(
+        `Não é possível desfazer "${def.label}" — desfaz primeiro: ${blockers.map(b => `"${b}"`).join(", ")}.`
+      );
+      return;
+    }
+
+    const confirmed = await Dialog.confirm({
+      title: "Desfazer Habilidade",
+      content: `<p>Desfazer <strong>${def.label}</strong>?</p>`
+        + `<p style="font-size:11px;color:#aaa;margin-top:6px">Os PM gastos serão devolvidos.</p>`,
+      yes: () => true, no: () => false
+    });
+    if ( !confirmed ) return;
+
+    const cost = def.cost ?? 0;
+    await this.actor.update({
+      [`system.manipulation.abilities.${abilityId}.unlocked`]: false,
+      "system.manipulation.pointsInvested": Math.max(0, (this.actor.system.manipulation?.pointsInvested ?? 0) - cost),
+      "system.curseResources.cursePoints": (this.actor.system.curseResources?.cursePoints ?? 0) + cost
+    });
+
+    ui.notifications.info(`Habilidade "${def.label}" desfeita.`);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `↩ <strong>${this.actor.name}</strong> desfez: <strong>${def.label}</strong>.`
+    });
+  }
+
+
   /* -------------------------------------------- */
 
   /**
@@ -1949,7 +2090,7 @@ new foundry.applications.ux.ContextMenu.implementation(
       especialista: "ESP"
     };
     const COLORS = {
-      aprimorador: "#E8A800",
+      aprimorador: "#e86800",
       emissor: "#B8860B",
       transmutador: "#9B59D0",
       conjurador: "#3A8FD4",
@@ -2184,6 +2325,12 @@ new foundry.applications.ux.ContextMenu.implementation(
   }
   if ( action === "unlockNenAbility" ) {
     return this._onUnlockNenAbility(target.dataset.id);
+  }
+  if ( action === "undoNenPrinciple" ) {
+    return this._onUndoNenPrinciple(target.dataset.id);
+  }
+  if ( action === "undoNenAbility" ) {
+    return this._onUndoNenAbility(target.dataset.id);
   }
   if ( action === "trainNenCategory" ) {
     return this._onTrainNenCategory(target.dataset.category);

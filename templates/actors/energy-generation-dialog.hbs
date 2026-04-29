@@ -19,7 +19,7 @@
 
   {{#if hasAccumulation}}
   <fieldset style="margin-top: 12px;">
-    <legend>Acúmulo de Energia (Nível 5) — {{ accumulationUses }}/{{ accumulationMax }} usos</legend>
+    <legend>Acúmulo de Aura (Nível 5) — {{ accumulationUses }}/{{ accumulationMax }} usos</legend>
     <div class="form-group">
       <label>Usar Acúmulo de Energia (+{{ level }} PA adicional)</label>
       <div class="form-fields">
@@ -31,9 +31,9 @@
 
   {{#if hasLiberation}}
   <fieldset style="margin-top: 12px;">
-    <legend>Liberação de Energia — {{ liberationUses }} uso(s)</legend>
+    <legend>Acúmulo de Aura — {{ liberationUses }} uso(s)</legend>
     <div class="form-group">
-      <label>Usar Liberação de Energia (gera 3x em vez do normal)</label>
+      <label>Usar Acúmulo de Aura (gera 3x em vez do normal)</label>
       <div class="form-fields">
         <input type="checkbox" name="useLiberation" {{#if (lte liberationUses 0)}}disabled{{/if}}>
       </div>
@@ -42,7 +42,7 @@
   {{/if}}
 
   <fieldset style="margin-top: 12px;">
-    <legend>Bônus Manual (Feitiço/Habilidade)</legend>
+    <legend>Bônus Manual (Manifestação)</legend>
     <div class="form-group">
       <label>PA adicional</label>
       <div class="form-fields">

@@ -53,7 +53,7 @@
 .sheet-body .tools {
   --filigree-background-color:        #0f0f1c;
   --filigree-border-color:            #302860;
-  --proficiency-cycle-enabled-color:  #5a3a90;
+  --proficiency-cycle-enabled-color:  #c96c47;
   --proficiency-cycle-disabled-color: #2e2850;
 }
 
@@ -109,13 +109,40 @@
    ════════════════════════════════════════ */
 @keyframes jj-energy-flow {
   0%, 100% {
-    box-shadow: 0 0 6px rgba(80,120,180,0.5), 0 0 12px rgba(42,106,170,0.3);
+    box-shadow: 0 0 6px rgba(180, 157, 80, 0.5), 0 0 12px rgba(170, 123, 42, 0.3);
   }
   50% {
-    box-shadow: 0 0 14px rgba(80,140,220,0.9), 0 0 28px rgba(42,106,170,0.6), inset 0 0 6px rgba(120,180,240,0.4);
+    box-shadow: 0 0 14px rgba(220, 134, 80, 0.9), 0 0 28px rgba(210, 114, 24, 0.6), inset 0 0 6px rgba(240, 186, 120, 0.4);
   }
 }
 
 .dnd5e2.sheet.actor.character .cursed-energy-bar {
   animation: jj-energy-flow 2.8s ease-in-out infinite !important;
+}
+
+  .energy-dice-bar::before {
+  background: linear-gradient(to right, #793cb6, #26024b) !important;
+  border-inline-end-color: #532a7c !important;
+}
+
+.cursed-energy-bar .progress::before {
+  background: linear-gradient(to right, #b77841 0%, #ad856a 100%) !important;
+  border-inline-end-color: #b46c39 !important;
+}
+
+.cursed-energy-bar {
+  border: 1px solid rgb(159, 146, 117) !important;
+}
+
+.progress.hit-dice-bar::before {
+  background: linear-gradient(to right, #7b241c 0%, #c0392b 100%) !important;
+  border-inline-end-color: #a93226 !important;
+}
+
+.cursed-energy-bar {
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid var(--dnd5e-color-gold) !important;
+  height: 32px !important;
+  font-size: var(--font-size-16) !important;
 }

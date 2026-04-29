@@ -134,8 +134,8 @@
 
 /* Ícone */
 .nen-cat-icon {
-  width: 42px;
-  height: 42px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
   flex-shrink: 0;
   border-radius: 8px;
@@ -160,8 +160,10 @@
 }
 
 .nen-train-name {
-  font-size: 13px;
+  font-size: 18px;
+  margin-left: 8px;
   font-weight: 700;
+  text-transform: uppercase;
   letter-spacing: 0.03em;
   color: rgba(255,255,255,0.88);
   white-space: nowrap;
@@ -173,7 +175,8 @@
 }
 
 .nen-train-sub {
-  font-size: 10px;
+  font-size: 13px;
+  margin-left: 8px;
   color: rgba(255,255,255,0.4);
 }
 
@@ -219,7 +222,7 @@
 }
 
 .nen-cat-pill {
-  font-size: 9px;
+  font-size: 12px;
   padding: 2px 8px;
   border-radius: 20px;
   background: color-mix(in srgb, var(--cat-color) 12%, transparent);
@@ -256,7 +259,8 @@
 }
 
 .nen-abilities-title {
-  font-size: 9px;
+  font-size: 12px;
+  margin-top: 8px;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: 700;
@@ -336,7 +340,7 @@
 
 /* Badge de nível */
 .nen-ability-lvl-badge {
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
@@ -354,7 +358,7 @@
 /* Nome da habilidade */
 .nen-ability-card-name {
   flex: 1;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: rgba(255,255,255,0.92);
   line-height: 1.25;
@@ -364,7 +368,7 @@
 
 /* Badge exclusiva */
 .nen-major-excl-badge {
-  font-size: 8px;
+  font-size: 15px;
   padding: 1px 5px;
   border-radius: 3px;
   background: rgba(180,100,220,0.15);

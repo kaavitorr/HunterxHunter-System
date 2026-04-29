@@ -216,16 +216,21 @@
           {{#if pr.reference}}data-reference-tooltip="{{pr.reference}}"{{else}}data-tooltip="{{pr.description}}" data-tooltip-direction="UP"{{/if}}>
           <span class="nen-box-name">{{pr.label}}</span>
           <span class="nen-box-cost">
-            {{#if pr.canUnlockFree}}0{{else}}{{pr.cost}} PM{{/if}}
+            {{#if pr.canUnlockFree}}Grátis{{else}}{{pr.cost}} PM{{/if}}
           </span>
           {{#if pr.canUnlock}}
           <button class="nen-card-btn nen-card-btn-unlock item-action"
             data-action="unlockNenPrinciple"
             data-id="{{pr.id}}">
-            Desbloquear{{#if pr.canUnlockFree}} (0){{/if}}
+            Desbloquear{{#if pr.canUnlockFree}} (Grátis){{/if}}
           </button>
           {{else if pr.unlocked}}
           <span class="nen-card-locked">✓ Desbloqueado</span>
+          <button class="nen-card-btn nen-card-btn-undo item-action"
+            data-action="undoNenPrinciple"
+            data-id="{{pr.id}}">
+            ↩ Desfazer
+          </button>
           {{/if}}
         </div>
 
@@ -252,6 +257,11 @@
               </button>
               {{else if ab.unlocked}}
               <span class="nen-card-locked">✓ Desbloqueado</span>
+              <button class="nen-card-btn nen-card-btn-undo item-action"
+                data-action="undoNenAbility"
+                data-id="{{ab.id}}">
+                ↩ Desfazer
+              </button>
               {{/if}}
             </div>
           </div>

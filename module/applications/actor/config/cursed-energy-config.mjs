@@ -19,7 +19,7 @@ export default class CursedEnergyConfig extends BaseConfigSheet {
 
   /** @override */
   get title() {
-    return "Cursed Energy";
+    return "Dados de Aura";
   }
 
   /** @inheritDoc */

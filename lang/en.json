@@ -3614,13 +3614,13 @@
 "DND5E.SPELLCASTING": {
   "METHODS": {
     "AtWill": {
-      "label": "Feitiço Básico"
+      "label": "Manifestação de Habilidade"
     },
     "Innate": {
-      "label": "Feitiço Estendido"
+      "label": "Habilidade Inata"
     },
     "Ritual": {
-      "label": "Feitiço Máximo"
+      "label": "Técnica de Princípio"
     },
     "Spell": {
       "label": "Uso de Técnicas",
@@ -3683,7 +3683,7 @@
 },
 "DND5E.SpellLevel": "Grau",
 "DND5E.SpellLevels": "Graus",
-"DND5E.SpellLevel0": "Feitiço Básico",
+"DND5E.SpellLevel0": "Auxiliar",
 "DND5E.SpellLevel1": "Grau 1",
 "DND5E.SpellLevel2": "Grau 2",
 "DND5E.SpellLevel3": "Grau 3",
@@ -3702,8 +3702,8 @@
 "DND5E.SpellMaterialsSupply": "Suprimento de Material",
 "DND5E.SpellName": "Nome da Técnica",
 "DND5E.SpellNone": "Nenhum",
-"DND5E.SpellPrepAtWill": "Feitiço",
-"DND5E.SpellPrepInnate": "Feitiço",
+"DND5E.SpellPrepAtWill": "Manifestação de Habilidade",
+"DND5E.SpellPrepInnate": "Habilidade Inata",
 "DND5E.SpellPrepRitual": "Apenas Ritual",
 "DND5E.SpellPrepPrepared": "Preparada",
 "DND5E.SpellPrepAlways": "Sempre Preparada",
