@@ -615,3 +615,80 @@
   background: linear-gradient(90deg, #c8a84b, #f0d070);
   box-shadow: 0 0 10px rgba(200,168,75,0.6);
 }
+
+/* ════════════════════════════════════════
+   NPC CATEGORY SELECTOR
+   ════════════════════════════════════════ */
+.npc-category-selector {
+  padding: 10px 12px 8px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 6px;
+}
+
+.npc-cat-selector-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: rgba(255,255,255,0.45);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.npc-cat-selector-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.npc-cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--cat-color, #888) 30%, transparent);
+  background: color-mix(in srgb, var(--cat-color, #888) 10%, transparent);
+  color: rgba(255,255,255,0.75);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  line-height: 1;
+}
+
+.npc-cat-btn:hover {
+  border-color: var(--cat-color, #888);
+  background: color-mix(in srgb, var(--cat-color, #888) 22%, transparent);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.npc-cat-btn.active {
+  border-color: var(--cat-color, #888);
+  background: color-mix(in srgb, var(--cat-color, #888) 28%, transparent);
+  color: #fff;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--cat-color, #888) 40%, transparent);
+}
+
+.npc-cat-btn-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.npc-cat-btn-label {
+  flex: 1;
+}
+
+.npc-cat-check {
+  font-size: 9px;
+  color: var(--cat-color, #888);
+  margin-left: 2px;
+}
+
+.npc-cat-hint {
+  font-size: 10px;
+  color: rgba(255,200,50,0.6);
+  margin: 6px 0 0;
+}

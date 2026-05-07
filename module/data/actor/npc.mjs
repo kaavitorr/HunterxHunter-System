@@ -15,6 +15,7 @@ import TraitsFields from "./templates/traits.mjs";
 
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 const { ArrayField, BooleanField, NumberField, SchemaField, SetField, StringField } = foundry.data.fields;
+import MappingField from "../fields/mapping-field.mjs";
 
 /**
  * @import { NPCActorSystemData } from "./_types.mjs";
@@ -138,6 +139,73 @@ export default class NPCData extends CreatureTemplate {
           maxEnergy:      new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
           generatedEnergy: new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 })
         })
+      }),
+      // ── RECURSOS DE MALDIÇÃO / NEN (NPC) ──────────────────────────────────
+      curseResources: new SchemaField({
+        cursePoints: new NumberField({
+          required: true, nullable: false, integer: true, min: 0, initial: 0,
+          label: "JUJUTSU.CursePoints"
+        }),
+        trainingPoints: new NumberField({
+          required: true, nullable: false, integer: true, min: 0, initial: 0,
+          label: "JUJUTSU.TrainingPoints"
+        }),
+        lostTrainingPoints: new NumberField({
+          required: true, nullable: false, integer: true, min: 0, initial: 0,
+          label: "JUJUTSU.LostTrainingPoints"
+        })
+      }, { label: "JUJUTSU.CurseResources" }),
+      // ── PRINCÍPIOS DE NEN (NPC) ───────────────────────────────────────────
+      manipulation: new SchemaField({
+        pointsInvested: new NumberField({
+          required: true, nullable: false, integer: true, min: 0, initial: 0,
+          label: "JUJUTSU.Manipulation.PointsInvested"
+        }),
+        stage: new StringField({ required: true, initial: "beginner" }),
+        principles: new MappingField(new SchemaField({
+          unlocked: new BooleanField({ initial: false })
+        })),
+        abilities: new MappingField(new SchemaField({
+          unlocked: new BooleanField({ initial: false }),
+          dcReduction: new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 })
+        }))
+      }, { label: "JUJUTSU.Manipulation.Label" }),
+      // ── CATEGORIAS NEN (NPC) ─────────────────────────────────────────────
+      nenCategories: new SchemaField({
+        primary: new StringField({ required: false, initial: null, nullable: true }),
+        aprimorador: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        emissor: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        transmutador: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        conjurador: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        manipulador: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        }),
+        especialista: new SchemaField({
+          level: new NumberField({ required: true, nullable: false, integer: true, min: 0, max: 10, initial: 0 }),
+          unlockedMajor: new MappingField(new BooleanField({ initial: false })),
+          dcReductions: new MappingField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }))
+        })
+      }),
+      nenMajorCount: new NumberField({
+        required: true, nullable: false, integer: true, min: 0, initial: 0
       }),
       traits: new SchemaField({
         ...TraitsFields.common,
@@ -568,10 +636,10 @@ export default class NPCData extends CreatureTemplate {
    */
   async resistSave(message) {
     if ( this.resources.legres.value === 0 ) throw new Error("No legendary resistances remaining.");
-    if ( message.flags.HunterLegacy?.roll?.type !== "save" ) throw new Error("Chat message must contain a save roll.");
-    if ( message.flags.HunterLegacy?.roll?.forceSuccess ) throw new Error("Save has already been resisted.");
+    if ( message.flags.JujutsuLegacy?.roll?.type !== "save" ) throw new Error("Chat message must contain a save roll.");
+    if ( message.flags.JujutsuLegacy?.roll?.forceSuccess ) throw new Error("Save has already been resisted.");
     await this.parent.update({ "system.resources.legres.spent": this.resources.legres.spent + 1 });
-    await message.setFlag("hunter-system", "roll.forceSuccess", true);
+    await message.setFlag("jujutsu-system", "roll.forceSuccess", true);
   }
 
   /* -------------------------------------------- */
@@ -592,7 +660,7 @@ export default class NPCData extends CreatureTemplate {
     }
     const template = document.createElement("template");
     template.innerHTML = await foundry.applications.handlebars.renderTemplate(
-      "systems/hunter-system/templates/actors/embeds/npc-embed.hbs", context
+      "systems/jujutsu-system/templates/actors/embeds/npc-embed.hbs", context
     );
 
     /**
@@ -625,7 +693,7 @@ export default class NPCData extends CreatureTemplate {
       ...Array.from(value).map(t => Trait.keyLabel(t, { trait })).filter(_ => _),
       ...splitSemicolons(custom ?? "")
     ].sort((lhs, rhs) => lhs.localeCompare(rhs, game.i18n.lang)));
-    const o = this.parent.flags.HunterLegacy?.statBlockOverride ?? {};
+    const o = this.parent.flags.JujutsuLegacy?.statBlockOverride ?? {};
 
     const prepareSpeed = () => {
       const standard = formatter.format([

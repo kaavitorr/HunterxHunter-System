@@ -3,6 +3,8 @@ import { createCheckboxInput } from "../fields.mjs";
 import BaseActorSheet from "./api/base-actor-sheet.mjs";
 import HabitatConfig from "./config/habitat-config.mjs";
 import TreasureConfig from "./config/treasure-config.mjs";
+import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, MANIPULATION_ABILITIES, canUnlockAbility } from "../../systems/manipulation-data.mjs";
+import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, getMaxLevelForCategory } from "../../systems/nen-categories-data.mjs";
 
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
@@ -27,59 +29,71 @@ export default class NPCActorSheet extends BaseActorSheet {
   /** @override */
   static PARTS = {
     header: {
-      template: "systems/hunter-system/templates/actors/npc-header.hbs"
+      template: "systems/jujutsu-system/templates/actors/npc-header.hbs"
     },
     sidebarCollapser: {
       container: { classes: ["main-content"], id: "main" },
-      template: "systems/hunter-system/templates/actors/parts/sidebar-collapser.hbs"
+      template: "systems/jujutsu-system/templates/actors/parts/sidebar-collapser.hbs"
     },
     sidebar: {
       container: { classes: ["main-content"], id: "main" },
-      template: "systems/hunter-system/templates/actors/npc-sidebar.hbs"
+      template: "systems/jujutsu-system/templates/actors/npc-sidebar.hbs"
     },
     features: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/hunter-system/templates/actors/tabs/actor-features.hbs",
-      templates: ["systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs"],
+      template: "systems/jujutsu-system/templates/actors/tabs/actor-features.hbs",
+      templates: ["systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs"],
       scrollable: [""]
     },
     inventory: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/hunter-system/templates/actors/tabs/actor-inventory.hbs",
+      template: "systems/jujutsu-system/templates/actors/tabs/actor-inventory.hbs",
       templates: [
-        "systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs",
-        "systems/hunter-system/templates/inventory/encumbrance.hbs"
+        "systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs",
+        "systems/jujutsu-system/templates/inventory/encumbrance.hbs"
       ],
       scrollable: [""]
     },
     spells: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/hunter-system/templates/actors/tabs/creature-spells.hbs",
+      template: "systems/jujutsu-system/templates/actors/tabs/creature-spells.hbs",
       scrollable: [""]
     },
     effects: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/hunter-system/templates/actors/tabs/actor-effects.hbs",
+      template: "systems/jujutsu-system/templates/actors/tabs/actor-effects.hbs",
       scrollable: [""]
     },
     biography: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/hunter-system/templates/actors/tabs/npc-biography.hbs",
+      template: "systems/jujutsu-system/templates/actors/tabs/npc-biography.hbs",
       scrollable: [""]
     },
     specialTraits: {
       classes: ["flexcol"],
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/hunter-system/templates/actors/tabs/creature-special-traits.hbs",
+      template: "systems/jujutsu-system/templates/actors/tabs/creature-special-traits.hbs",
+      scrollable: [""]
+    },
+    manipulation: {
+      classes: ["flexcol"],
+      container: { classes: ["tab-body"], id: "tabs" },
+      template: "systems/hunter-system/templates/actors/tabs/character-manipulation.hbs",
+      scrollable: [""]
+    },
+    trainings: {
+      classes: ["flexcol"],
+      container: { classes: ["tab-body"], id: "tabs" },
+      template: "systems/hunter-system/templates/actors/tabs/character-trainings.hbs",
       scrollable: [""]
     },
     warnings: {
-      template: "systems/hunter-system/templates/actors/parts/actor-warnings-dialog.hbs"
+      template: "systems/jujutsu-system/templates/actors/parts/actor-warnings-dialog.hbs"
     },
     tabs: {
       id: "tabs",
       classes: ["tabs-right"],
-      template: "systems/hunter-system/templates/shared/sidebar-tabs.hbs"
+      template: "systems/jujutsu-system/templates/shared/sidebar-tabs.hbs"
     }
   };
 
@@ -88,11 +102,13 @@ export default class NPCActorSheet extends BaseActorSheet {
   /** @override */
   static TABS = [
     { tab: "features", label: "DND5E.Features", icon: "fas fa-list" },
-    { tab: "inventory", label: "DND5E.Inventory", svg: "systems/hunter-system/icons/svg/backpack.svg" },
+    { tab: "inventory", label: "DND5E.Inventory", svg: "systems/jujutsu-system/icons/svg/backpack.svg" },
     { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
     { tab: "effects", label: "DND5E.Effects", icon: "fas fa-bolt" },
     { tab: "biography", label: "DND5E.Biography", icon: "fas fa-feather" },
-    { tab: "specialTraits", label: "DND5E.SpecialTraits", icon: "fas fa-star" }
+    { tab: "specialTraits", label: "DND5E.SpecialTraits", icon: "fas fa-star" },
+    { tab: "manipulation", label: "JUJUTSU.Manipulation.Tab", icon: "fas fa-hand-sparkles" },
+    { tab: "trainings", label: "JUJUTSU.Trainings.Tab", icon: "fas fa-dumbbell" }
   ];
 
   /* -------------------------------------------- */
@@ -159,6 +175,8 @@ export default class NPCActorSheet extends BaseActorSheet {
       case "sidebar": return this._prepareSidebarContext(context, options);
       case "specialTraits": return this._prepareSpecialTraitsContext(context, options);
       case "spells": return this._prepareSpellsContext(context, options);
+      case "manipulation": return this._prepareManipulationContext(context, options);
+      case "trainings": return this._prepareTrainingsContext(context, options);
       default: return context;
     }
   }
@@ -474,6 +492,491 @@ export default class NPCActorSheet extends BaseActorSheet {
 
   /* -------------------------------------------- */
 
+  /**
+   * Prepara o contexto para a aba de Princípios de Nen (Manipulação) no NPC.
+   */
+  async _prepareManipulationContext(context, options) {
+    try {
+      const abilitiesResult = prepareManipulationAbilities(this.actor);
+      const principlesResult = preparePrinciples(this.actor);
+
+      const sections = TREE_DATA.map(treeSection => ({
+        label: treeSection.section,
+        principles: treeSection.principles.map(pr => {
+          const prStatus = principlesResult[pr.id] ?? {};
+          const abilities = (pr.abilities ?? []).map(ab => {
+            const abStatus = abilitiesResult[pr.id]?.[ab.id] ?? {};
+            return {
+              id: ab.id,
+              label: ab.label,
+              description: ab.desc ?? "",
+              reference: ab.reference ?? "",
+              cost: ab.cost,
+              unlocked: abStatus.unlocked ?? false,
+              canUnlock: abStatus.canUnlock ?? false
+            };
+          });
+          const isMasterGrant = prStatus.isMasterGrant ?? false;
+          const unlocked = prStatus.unlocked ?? false;
+          const canUnlock = !unlocked && (isMasterGrant ? true : prStatus.canUnlock ?? false);
+          const canUnlockFree = !unlocked && isMasterGrant;
+          return {
+            id: pr.id,
+            label: pr.label,
+            description: pr.desc ?? "",
+            reference: pr.reference ?? "",
+            cost: pr.cost ?? 0,
+            unlocked,
+            canUnlock,
+            canUnlockFree,
+            isMasterGrant,
+            abilities
+          };
+        })
+      }));
+
+      // O template usa manipulation.sections
+      context.manipulation = { sections };
+      console.log("NPCSheet | _prepareManipulationContext | sections:", sections.length);
+    } catch(err) {
+      console.error("NPCSheet | Erro em _prepareManipulationContext:", err);
+      context.manipulation = { sections: [] };
+    }
+    return context;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Prepara o contexto para a aba de Treinamentos (Categorias Nen) no NPC.
+   * Replicado do CharacterActorSheet para funcionar com o mesmo template.
+   */
+  async _prepareTrainingsContext(context, options) {
+    const CATEGORIES = ["aprimorador", "emissor", "transmutador", "conjurador", "manipulador", "especialista"];
+    const LABELS = {
+      aprimorador: "Aprimorador", emissor: "Emissor", transmutador: "Transmutador",
+      conjurador: "Conjurador", manipulador: "Manipulador", especialista: "Especialista"
+    };
+    const ABBREVS = {
+      aprimorador: "APR", emissor: "EMI", transmutador: "TRA",
+      conjurador: "CON", manipulador: "MAN", especialista: "ESP"
+    };
+    const COLORS = {
+      aprimorador: "#e86800", emissor: "#B8860B", transmutador: "#9B59D0",
+      conjurador: "#3A8FD4", manipulador: "#2ECC71", especialista: "#AAAAAA"
+    };
+    const ICONS = {
+      aprimorador:  "systems/hunter-system/assets/Categorias/apri-mini.png",
+      emissor:      "systems/hunter-system/assets/Categorias/emi-mini.png",
+      transmutador: "systems/hunter-system/assets/Categorias/transmini.png",
+      conjurador:   "systems/hunter-system/assets/Categorias/conj-mini.png",
+      manipulador:  "systems/hunter-system/assets/Categorias/mani-mini.png",
+      especialista: "systems/hunter-system/assets/Categorias/esp-mini.png"
+    };
+    const NEN_ABILITY_REFS = {
+      "robusto_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.s0Rq2BmzMI1Pbw2L",
+      "robusto_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.s0Rq2BmzMI1Pbw2L",
+      "robusto_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.s0Rq2BmzMI1Pbw2L",
+      "ofensivaAprimorada": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.a6Ou5E3jxIMYsZPt",
+      "resistenciaAprimorada": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.3vPFbFcuDdpSvwKT",
+      "corpoAprimorado": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.C4COzedbI6qyJmXo",
+      "agilidadeAvancada_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.AqvfUbRRQzpVlHz1",
+      "agilidadeAvancada_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.AqvfUbRRQzpVlHz1",
+      "agilidadeAvancada_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.AqvfUbRRQzpVlHz1",
+      "emissaoTreinada": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.miXywfeqLSk6hzI6",
+      "reabsorcaoDeAura": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.11yZVOrfieCSv8YC",
+      "atravessarMateria": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.TYMYMOCH2iZhs9NL",
+      "aumentarDensidade_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.D784UnTjqTaJZOEh",
+      "aumentarDensidade_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.D784UnTjqTaJZOEh",
+      "aumentarDensidade_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.D784UnTjqTaJZOEh",
+      "auraTraicoeira": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.VLP7DaQoUH5Gfpu3",
+      "transmutacaoSutil": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.gA882swrqxLwqj1N",
+      "auraAdaptavel_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.GMsFUhiFKbSnPsGJ",
+      "auraAdaptavel_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.GMsFUhiFKbSnPsGJ",
+      "auraAdaptavel_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.GMsFUhiFKbSnPsGJ",
+      "focoConjurador": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.H7CY8R4LSHeE9D3a",
+      "liberacaoConjuradora": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.LzT1Zya0el1kuKRp",
+      "mudandoOJogo": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.9GZp3e1EQqsKA3ah",
+      "auraControlada_1": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.Z5mDHhz0sVRHsA3B",
+      "auraControlada_2": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.Z5mDHhz0sVRHsA3B",
+      "auraControlada_3": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.Z5mDHhz0sVRHsA3B",
+      "objetoConfigurado": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.UIwMEh5O3pBITCIL",
+      "criacaoDeEgo": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.lcaWf7WK3I9lCm8q",
+      "comandosAvancados": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.oXF8McpPaneyvSxT",
+      "ativacaoEficiente": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.2IhjDc0fKUOtdubM",
+      "entendimento": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.EhzWEVQsCbJWY9wB",
+      "movimentoEspecializado": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.9KQ2h5wAyBFZ1KrE",
+      "períciaTranmutadora": "Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.IT0QweKyExQmAJGc"
+    };
+
+    const nenCategories = [];
+    for ( const id of CATEGORIES ) {
+      const level = this.actor.system.nenCategories?.[id]?.level ?? 0;
+      const pct = Math.round((level / 10) * 100);
+      const dcReductions = this.actor.system.nenCategories?.[id]?.dcReductions ?? {};
+      nenCategories.push({ id, label: LABELS[id], abbrev: ABBREVS[id], color: COLORS[id], icon: ICONS[id], level, pct, dcReductions });
+    }
+
+    // Polígono SVG do hexágono
+    const ORDER = ["aprimorador", "transmutador", "conjurador", "especialista", "manipulador", "emissor"];
+    const CX = 160, CY = 160, MAX_R = 125;
+    const hexPts = ORDER.map((id, i) => {
+      const cat = nenCategories.find(c => c.id === id);
+      const r = MAX_R * ((cat?.level ?? 0) / 10);
+      const angle = (Math.PI / 180) * (60 * i - 90);
+      return `${(CX + r * Math.cos(angle)).toFixed(1)},${(CY + r * Math.sin(angle)).toFixed(1)}`;
+    }).join(" ");
+
+    const gridRings = [2, 4, 6, 8, 10].map(lvl => {
+      const r = MAX_R * (lvl / 10);
+      return Array.from({length: 6}, (_, i) => {
+        const angle = (Math.PI / 180) * (60 * i - 90);
+        return `${(CX + r * Math.cos(angle)).toFixed(1)},${(CY + r * Math.sin(angle)).toFixed(1)}`;
+      }).join(" ");
+    });
+
+    const axes = ORDER.map((_, i) => {
+      const angle = (Math.PI / 180) * (60 * i - 90);
+      return { x2: (CX + MAX_R * Math.cos(angle)).toFixed(1), y2: (CY + MAX_R * Math.sin(angle)).toFixed(1) };
+    });
+
+    const LABEL_R = 128;
+    const labels = ORDER.map((id, i) => {
+      const cat = nenCategories.find(c => c.id === id);
+      const angle = (Math.PI / 180) * (60 * i - 90);
+      const ly = (CY + LABEL_R * Math.sin(angle));
+      return { ...cat, lx: (CX + LABEL_R * Math.cos(angle)).toFixed(1), ly: ly.toFixed(1), ly2: (ly + 13).toFixed(1) };
+    });
+
+    for ( const cat of nenCategories ) {
+      cat.pips = Array.from({length: 10}, (_, i) => ({ filled: i < cat.level, n: i + 1 }));
+    }
+
+    const nenMajorCount = this.actor.system.nenMajorCount ?? 0;
+    const nenMajorMax = this._getNenMajorMax();
+
+    // ── Categoria do NPC (salva em system.nenCategories.primary) ──────────
+    const npcPrimaryCategory = this.actor.system.nenCategories?.primary ?? null;
+    context.npcPrimaryCategory = npcPrimaryCategory;
+    context.npcCategoryOptions = CATEGORIES.map(id => ({
+      id, label: LABELS[id], color: COLORS[id], icon: ICONS[id],
+      selected: id === npcPrimaryCategory
+    }));
+
+    for ( const cat of nenCategories ) {
+      const unlockedMajorMap = this.actor.system.nenCategories?.[cat.id]?.unlockedMajor ?? {};
+      // Para NPCs: afinidade baseada na categoria salva (primary)
+      const maxAllowed = npcPrimaryCategory
+        ? this._getNpcMaxLevelForCategory(npcPrimaryCategory, cat.id)
+        : 10; // Sem categoria definida: sem restrição
+      const nextLevel = cat.level + 1;
+      cat.maxAllowed = maxAllowed;
+      cat.affinityPct = maxAllowed >= 10 ? 100 : maxAllowed >= 8 ? 80 : maxAllowed >= 6 ? 60 : maxAllowed >= 4 ? 40 : maxAllowed >= 1 ? 1 : 0;
+
+      if ( nextLevel <= 10 && nextLevel <= maxAllowed ) {
+        const costs = NEN_LEVEL_COSTS[nextLevel];
+        const dcReduction = this.actor.system.nenCategories?.[cat.id]?.dcReductions?.[nextLevel] ?? 0;
+        cat.nextLevel = nextLevel;
+        cat.nextPt = costs.pt;
+        cat.nextPa = costs.pa;
+        cat.currentDC = Math.max(1, costs.cd - dcReduction);
+        cat.canTrain = true;
+      } else if ( maxAllowed === 0 ) {
+        cat.canTrain = false;
+        cat.blockedReason = "Sem afinidade";
+      } else if ( cat.level >= maxAllowed ) {
+        cat.canTrain = false;
+        cat.blockedReason = `Máx. ${maxAllowed} (${cat.affinityPct}%)`;
+      } else {
+        cat.canTrain = false;
+      }
+
+      const catData = NEN_CATEGORIES_DATA[cat.id];
+      cat.minorSlots = [2, 5, 8].map(lvl => {
+        const ab = catData?.minor?.[lvl];
+        const reached = cat.level >= lvl;
+        if ( !ab ) return { reached: false, level: lvl, empty: true };
+        return { ...ab, reached, level: lvl, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
+      });
+
+      cat.majorSlots = [3, 6, 10].map(lvl => {
+        const ab = catData?.major?.[lvl];
+        const reached = cat.level >= lvl;
+        if ( !ab ) return { reached: false, level: lvl, empty: true, categoryId: cat.id };
+        const unlocked = unlockedMajorMap[ab.id] ?? false;
+        const canUnlock = reached && !unlocked && (nenMajorCount < nenMajorMax || ab.exclusive);
+        return { ...ab, reached, unlocked, canUnlock, level: lvl, categoryId: cat.id, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
+      });
+    }
+
+    // Cor primária do hexágono: baseada na categoria do NPC
+    const nenPrimaryColor = npcPrimaryCategory ? COLORS[npcPrimaryCategory] : (COLORS[nenCategories.reduce((a, b) => a.level >= b.level ? a : b).id] ?? "#c8a84b");
+
+    context.nenCategories = nenCategories;
+    context.nenMajorCount = nenMajorCount;
+    context.nenMajorMax = nenMajorMax;
+    context.nenHexPoints = hexPts;
+    context.nenTrainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
+    context.nenLostTrainingPoints = this.actor.system.curseResources?.lostTrainingPoints ?? 0;
+    context.nenGridRings = gridRings;
+    context.nenAxes = axes;
+    context.nenLabels = labels;
+    context.nenPrimaryCategory = npcPrimaryCategory;
+    context.nenPrimaryColor = nenPrimaryColor;
+    console.log("NPCSheet | _prepareTrainingsContext | categories:", nenCategories.length);
+    return context;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Calcula o nível máximo permitido em uma categoria para um NPC,
+   * baseado na categoria principal definida na ficha.
+   * Usa a mesma tabela de afinidade do sistema Hunter.
+   */
+  _getNpcMaxLevelForCategory(primaryCategoryId, targetCategoryId) {
+    // Tabela de afinidade: categoria principal -> máximo em outras categorias
+    const AFFINITY_TABLE = {
+      aprimorador:  { aprimorador: 10, transmutador: 8, conjurador: 6, emissor: 4, manipulador: 4, especialista: 1 },
+      emissor:      { emissor: 10, aprimorador: 8, transmutador: 6, conjurador: 4, manipulador: 4, especialista: 1 },
+      transmutador: { transmutador: 10, aprimorador: 8, emissor: 6, conjurador: 4, manipulador: 4, especialista: 1 },
+      conjurador:   { conjurador: 10, transmutador: 8, emissor: 6, aprimorador: 4, manipulador: 4, especialista: 1 },
+      manipulador:  { manipulador: 10, conjurador: 8, transmutador: 6, emissor: 4, aprimorador: 4, especialista: 1 },
+      especialista: { especialista: 10, aprimorador: 8, emissor: 8, transmutador: 8, conjurador: 8, manipulador: 8 }
+    };
+    return AFFINITY_TABLE[primaryCategoryId]?.[targetCategoryId] ?? 10;
+  }
+
+  /* -------------------------------------------- */
+
+  _getNenMajorMax() {
+    return 4; // NPCs têm sempre máximo fixo de 4 habilidades principais
+  }
+
+  /* -------------------------------------------- */
+
+  /* -------------------------------------------- */
+
+  /** @inheritDoc */
+  _onClickAction(event, target) {
+    const action = target.dataset.action;
+
+    if ( action === "unlockManipulation" )     return this._onUnlockManipulationAbility(target.dataset.ability, parseInt(target.dataset.cost ?? 0));
+    if ( action === "unlockNenPrinciple" )      return this._onUnlockNenPrinciple(target.dataset.id);
+    if ( action === "unlockNenAbility" )        return this._onUnlockNenAbility(target.dataset.id);
+    if ( action === "undoNenPrinciple" )        return this._onUndoNenPrinciple(target.dataset.id);
+    if ( action === "undoNenAbility" )          return this._onUndoNenAbility(target.dataset.id);
+    if ( action === "unlockNenMajor" )          return this._onUnlockNenMajor(target.dataset.category, target.dataset.ability);
+    if ( action === "undoNenMajor" )            return this._onUndoNenMajor(target.dataset.category, target.dataset.ability);
+    if ( action === "trainNenCategory" )        return this._onTrainNenCategory(target.dataset.category);
+    if ( action === "setNpcCategory" )          return this._onSetNpcCategory(target.dataset.category);
+
+    return super._onClickAction(event, target);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Define a categoria principal do NPC (usada para calcular afinidade).
+   */
+  async _onSetNpcCategory(categoryId) {
+    if ( !categoryId ) return;
+    await this.actor.update({ "system.nenCategories.primary": categoryId });
+    console.log(`NPCSheet | _onSetNpcCategory | ${categoryId}`);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Desbloqueia uma habilidade de Nen/Manipulação para o NPC.
+   */
+  async _onUnlockManipulationAbility(abilityId, cost) {
+    if ( !abilityId ) return;
+    const def = MANIPULATION_ABILITIES[abilityId];
+    if ( !def ) return;
+
+    const { can, reason } = canUnlockAbility(abilityId, this.actor);
+    if ( !can ) {
+      ui.notifications.warn(`Não é possível desbloquear: ${reason}`);
+      return;
+    }
+
+    const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
+    if ( cursePoints < (def.cost ?? 0) ) {
+      ui.notifications.warn(`PM insuficientes para desbloquear (custo: ${def.cost}, disponível: ${cursePoints}).`);
+      return;
+    }
+
+    await this.actor.update({
+      [`system.manipulation.abilities.${abilityId}.unlocked`]: true,
+      "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + (def.cost ?? 0),
+      "system.curseResources.cursePoints": Math.max(0, cursePoints - (def.cost ?? 0))
+    });
+
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `🔓 <strong>${this.actor.name}</strong> desbloqueou: <strong>${def.label}</strong>!`
+    });
+    console.log(`NPCSheet | _onUnlockManipulationAbility | ${abilityId}`);
+  }
+
+  /* -------------------------------------------- */
+
+  async _onUnlockNenPrinciple(principleId) {
+    const principles = preparePrinciples(this.actor);
+    const pr = principles[principleId];
+    if ( !pr || pr.unlocked ) { ui.notifications.warn(pr ? "Princípio já desbloqueado." : "Princípio não encontrado."); return; }
+
+    const cost = pr.cost ?? 0;
+    if ( cost > 0 ) {
+      const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
+      if ( cursePoints < cost ) { ui.notifications.warn(`PM insuficientes! Precisa de ${cost} PM.`); return; }
+      await this.actor.update({
+        [`system.manipulation.principles.${principleId}.unlocked`]: true,
+        "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + cost,
+        "system.curseResources.cursePoints": cursePoints - cost
+      });
+    } else {
+      await this.actor.update({ [`system.manipulation.principles.${principleId}.unlocked`]: true });
+    }
+    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `🔓 <strong>${this.actor.name}</strong> desbloqueou o princípio: <strong>${pr.label}</strong>!` });
+  }
+
+  /* -------------------------------------------- */
+
+  async _onUnlockNenAbility(abilityId) {
+    const def = MANIPULATION_ABILITIES[abilityId];
+    if ( !def ) return;
+    const { can, reason } = canUnlockAbility(abilityId, this.actor);
+    if ( !can ) { ui.notifications.warn(`Não é possível desbloquear: ${reason}`); return; }
+
+    const cost = def.cost ?? 0;
+    const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
+    await this.actor.update({
+      [`system.manipulation.abilities.${abilityId}.unlocked`]: true,
+      "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + cost,
+      "system.curseResources.cursePoints": Math.max(0, cursePoints - cost)
+    });
+    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `🔓 <strong>${this.actor.name}</strong> desbloqueou: <strong>${def.label}</strong>!` });
+  }
+
+  /* -------------------------------------------- */
+
+  async _onUndoNenPrinciple(principleId) {
+    const principles = this.actor.system.manipulation?.principles ?? {};
+    if ( !principles[principleId]?.unlocked ) return;
+    const allPrinciples = TREE_DATA.flatMap(s => s.principles);
+    const thisPr = allPrinciples.find(p => p.id === principleId);
+    if ( !thisPr ) return;
+
+    const unlockedPrinciples = new Set(allPrinciples.filter(p => principles[p.id]?.unlocked).map(p => p.id));
+    const unlockedAbilities = new Set(Object.entries(this.actor.system.manipulation?.abilities ?? {}).filter(([, v]) => v?.unlocked).map(([k]) => k));
+    const blockers = [
+      ...allPrinciples.filter(p => unlockedPrinciples.has(p.id) && (p.req?.pr ?? []).includes(principleId)).map(p => p.label),
+      ...(thisPr.abilities ?? []).filter(ab => unlockedAbilities.has(ab.id)).map(ab => ab.label)
+    ];
+    if ( blockers.length ) { ui.notifications.warn(`Desfaz primeiro: ${blockers.join(", ")}.`); return; }
+
+    const cost = thisPr.cost ?? 0;
+    const updates = { [`system.manipulation.principles.${principleId}.unlocked`]: false, "system.manipulation.pointsInvested": Math.max(0, (this.actor.system.manipulation?.pointsInvested ?? 0) - cost) };
+    if ( cost > 0 ) updates["system.curseResources.cursePoints"] = (this.actor.system.curseResources?.cursePoints ?? 0) + cost;
+    await this.actor.update(updates);
+    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `↩ <strong>${this.actor.name}</strong> desfez o princípio: <strong>${thisPr.label}</strong>.` });
+  }
+
+  /* -------------------------------------------- */
+
+  async _onUndoNenAbility(abilityId) {
+    const abilities = this.actor.system.manipulation?.abilities ?? {};
+    if ( !abilities[abilityId]?.unlocked ) return;
+    const def = MANIPULATION_ABILITIES[abilityId];
+    if ( !def ) return;
+    const cost = def.cost ?? 0;
+    await this.actor.update({
+      [`system.manipulation.abilities.${abilityId}.unlocked`]: false,
+      "system.manipulation.pointsInvested": Math.max(0, (this.actor.system.manipulation?.pointsInvested ?? 0) - cost),
+      "system.curseResources.cursePoints": (this.actor.system.curseResources?.cursePoints ?? 0) + cost
+    });
+    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `↩ <strong>${this.actor.name}</strong> desfez: <strong>${def.label}</strong>.` });
+  }
+
+  /* -------------------------------------------- */
+
+  async _onUnlockNenMajor(categoryId, abilityId) {
+    const cat = NEN_CATEGORIES_DATA[categoryId];
+    if ( !cat ) return;
+    const level = this.actor.system.nenCategories?.[categoryId]?.level ?? 0;
+    const abilityEntry = Object.entries(cat.major).find(([, ab]) => ab.id === abilityId);
+    if ( !abilityEntry ) return;
+    const [requiredLvl, ability] = abilityEntry;
+    if ( level < parseInt(requiredLvl) ) { ui.notifications.warn(`Nível insuficiente! Precisa de nível ${requiredLvl}.`); return; }
+
+    const nenMajorCount = this.actor.system.nenMajorCount ?? 0;
+    const nenMajorMax = this._getNenMajorMax();
+    if ( this.actor.system.nenCategories?.[categoryId]?.unlockedMajor?.[abilityId] ) { ui.notifications.warn("Já desbloqueada."); return; }
+    if ( !ability.exclusive && nenMajorCount >= nenMajorMax ) { ui.notifications.warn(`Limite atingido (${nenMajorMax}).`); return; }
+
+    await this.actor.update({
+      [`system.nenCategories.${categoryId}.unlockedMajor.${abilityId}`]: true,
+      "system.nenMajorCount": ability.exclusive ? nenMajorCount : nenMajorCount + 1
+    });
+    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `🔓 <strong>${this.actor.name}</strong> desbloqueou: <strong>${ability.label}</strong>!` });
+  }
+
+  /* -------------------------------------------- */
+
+  async _onUndoNenMajor(categoryId, abilityId) {
+    if ( !this.actor.system.nenCategories?.[categoryId]?.unlockedMajor?.[abilityId] ) return;
+    const cat = NEN_CATEGORIES_DATA[categoryId];
+    const ability = Object.values(cat?.major ?? {}).find(ab => ab.id === abilityId);
+    await this.actor.update({
+      [`system.nenCategories.${categoryId}.unlockedMajor.${abilityId}`]: false,
+      "system.nenMajorCount": Math.max(0, (this.actor.system.nenMajorCount ?? 0) - (ability?.exclusive ? 0 : 1))
+    });
+    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `↩️ <strong>${this.actor.name}</strong> desfez: <strong>${ability?.label ?? abilityId}</strong>.` });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Treina uma categoria Nen para o NPC.
+   * NPCs avançam diretamente (sem rolar dado) — GM controla manualmente.
+   */
+  async _onTrainNenCategory(categoryId) {
+    const cat = NEN_CATEGORIES_DATA[categoryId];
+    if ( !cat ) return;
+
+    const currentLevel = this.actor.system.nenCategories?.[categoryId]?.level ?? 0;
+    const nextLevel = currentLevel + 1;
+    const npcPrimary = this.actor.system.nenCategories?.primary ?? null;
+    const maxAllowed = npcPrimary ? this._getNpcMaxLevelForCategory(npcPrimary, categoryId) : 10;
+
+    if ( nextLevel > 10 ) { ui.notifications.info(`${cat.label} já está no nível máximo!`); return; }
+    if ( maxAllowed === 0 ) { ui.notifications.warn(`Sem afinidade com ${cat.label}.`); return; }
+    if ( nextLevel > maxAllowed ) { ui.notifications.warn(`Máximo ${maxAllowed} para ${cat.label} com a categoria do NPC.`); return; }
+
+    const costs = NEN_LEVEL_COSTS[nextLevel];
+    const trainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
+    const energyTotal = this.actor.system.energy?.total ?? 0;
+
+    if ( trainingPoints < costs.pt ) { ui.notifications.warn(`PT insuficientes! Precisa de ${costs.pt} PT.`); return; }
+    if ( energyTotal < costs.pa ) { ui.notifications.warn(`PA insuficientes! Precisa de ${costs.pa} PA.`); return; }
+
+    await this.actor.update({
+      "system.curseResources.trainingPoints": trainingPoints - costs.pt,
+      "system.energy.total": Math.max(0, energyTotal - costs.pa),
+      [`system.nenCategories.${categoryId}.level`]: nextLevel
+    });
+
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `✅ <strong>${this.actor.name}</strong> avançou para o <strong>Nível ${nextLevel}</strong> em <strong>${cat.label}</strong>!`
+    });
+    console.log(`NPCSheet | _onTrainNenCategory | ${categoryId} -> ${nextLevel}`);
+  }
+
+  /* -------------------------------------------- */
+
   /** @inheritDoc */
   async _renderFrame(options) {
     const html = await super._renderFrame(options);
@@ -717,7 +1220,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
       await _npcApplyEnergyGeneration(actor, result.nd, result.multiplicador);
     } else {
       // Jogador envia as escolhas para o GM processar
-      game.socket.emit("system.hunter-system", {
+      game.socket.emit("system.jujutsu-system", {
         action: "npcEnergyChoices",
         actorId: actor.id,
         nd: result.nd,
@@ -727,7 +1230,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
   }
   // GM emite socket para o dono se não for ele
   else if ( game.user.isGM ) {
-    game.socket.emit("system.hunter-system", {
+    game.socket.emit("system.jujutsu-system", {
       action: "npcEnergyDialog",
       actorId: actor.id,
       userId: owner.id
@@ -737,7 +1240,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 
 // Explosão Defensiva do NPC — mesmo comportamento do jogador
 async function _npcExplosaoDefensiva(actor) {
-  const flagData     = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
+  const flagData     = actor.getFlag("jujutsu-system", "explosaoDefensivaPendente") ?? null;
   const pendente     = flagData?.reducao ?? 0;
   const pendenteCusto = flagData?.paCusto ?? 0;
 
@@ -749,7 +1252,7 @@ async function _npcExplosaoDefensiva(actor) {
       no:  { label: "Manter" }
     });
     if ( !cancel ) return;
-    await actor.unsetFlag("hunter-system", "explosaoDefensivaPendente");
+    await actor.unsetFlag("jujutsu-system", "explosaoDefensivaPendente");
     const paAtual = actor.system?.energy?.generated ?? 0;
     await actor.update({ "system.energy.generated": paAtual + pendenteCusto });
     ui.notifications.info("Explosão Defensiva cancelada. PA devolvida.");
@@ -797,7 +1300,7 @@ async function _npcExplosaoDefensiva(actor) {
   const roll = await new Roll(`${paGasto}d4`).evaluate();
   if ( game.dice3d ) game.dice3d.showForRoll(roll, game.user, true);
 
-  await actor.setFlag("hunter-system", "explosaoDefensivaPendente", { reducao: roll.total, paCusto: paGasto });
+  await actor.setFlag("jujutsu-system", "explosaoDefensivaPendente", { reducao: roll.total, paCusto: paGasto });
   await actor.update({ "system.energy.generated": Math.max(0, paDisp - paGasto) });
 
   await roll.toMessage({

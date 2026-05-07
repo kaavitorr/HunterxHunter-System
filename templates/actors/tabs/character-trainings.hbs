@@ -1,5 +1,30 @@
 <section class="tab {{ tab.cssClass }} jujutsu-section" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
 
+  {{!-- ══════════════════ SELETOR DE CATEGORIA (NPC) ══════════════════ --}}
+  {{#if npcCategoryOptions}}
+  <div class="npc-category-selector">
+    <label class="npc-cat-selector-label">
+      <i class="fas fa-star"></i> Categoria Principal do NPC
+    </label>
+    <div class="npc-cat-selector-grid">
+      {{#each npcCategoryOptions as |cat|}}
+      <button class="npc-cat-btn {{#if cat.selected}}active{{/if}}"
+        data-action="setNpcCategory"
+        data-category="{{cat.id}}"
+        style="--cat-color: {{cat.color}}"
+        title="Definir {{cat.label}} como categoria principal">
+        <img src="{{cat.icon}}" alt="{{cat.label}}" class="npc-cat-btn-icon" />
+        <span class="npc-cat-btn-label">{{cat.label}}</span>
+        {{#if cat.selected}}<i class="fas fa-check npc-cat-check"></i>{{/if}}
+      </button>
+      {{/each}}
+    </div>
+    {{#unless npcPrimaryCategory}}
+    <p class="npc-cat-hint">⚠️ Sem categoria definida — sem restrição de afinidade.</p>
+    {{/unless}}
+  </div>
+  {{/if}}
+
   {{!-- ══════════════════════════ PONTOS DE TREINAMENTO ══════════════════════════ --}}
   <div class="nen-pt-bar">
     <div class="nen-pt-field">

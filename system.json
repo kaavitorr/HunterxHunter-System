@@ -328,8 +328,8 @@
         "SRD 5.2": "SOURCE.BOOK.SRD52"
       }
     },
-    "needsMigrationVersion": "5.3.0",
-    "compatibleMigrationVersion": "0.8",
+    "needsMigrationVersion": "1.0.0",
+    "compatibleMigrationVersion": "1.0.0",
     "hotReload": {
       "extensions": [
         "css",
