@@ -3371,7 +3371,7 @@ new foundry.applications.ux.ContextMenu.implementation(
                           cursor:pointer;">
               <input type="radio" name="jj-training-choice" value="cursePoints" style="flex:0 0 auto;">
               <div>
-                <strong style="color:#ffa060;">💀 Pontos de Maldição +4</strong>
+                <strong style="color:#ffa060;">💀 Pontos de Nen +4</strong>
                 <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PM → ${cursePoints + 4} PM</div>
               </div>
             </label>
@@ -3426,7 +3426,7 @@ new foundry.applications.ux.ContextMenu.implementation(
       const current = actor.system.curseResources?.cursePoints ?? 0;
       updates["system.curseResources.cursePoints"] = current + 4;
       updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 4;
-      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+4 Pontos de Maldição</strong> (total: ${current + 4} PM).`;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+4 Pontos de Nen</strong> (total: ${current + 4} PM).`;
     }
 
     await actor.update(updates);
@@ -3465,7 +3465,7 @@ new foundry.applications.ux.ContextMenu.implementation(
         })
       },
       cursePoints: {
-        label: "Pontos de Maldição",
+        label: "Pontos de Nen",
         amount: 4,
         undo: (it) => ({
           "system.curseResources.cursePoints": Math.max(0, (actor.system.curseResources?.cursePoints ?? 0) - 4),

@@ -1051,7 +1051,7 @@ export default class NPCActorSheet extends BaseActorSheet {
             </label>
             <label style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0e0e1a; border:1px solid #2a2a40; border-radius:6px; cursor:pointer;">
               <input type="radio" name="jj-training-choice" value="cursePoints">
-              <div><strong style="color:#ffa060;">💀 Pontos de Maldição +4</strong>
+              <div><strong style="color:#ffa060;">💀 Pontos de Nen +4</strong>
                 <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PM → ${cursePoints + 4} PM</div></div>
             </label>
           </div>
@@ -1086,7 +1086,7 @@ export default class NPCActorSheet extends BaseActorSheet {
       const cur = actor.system.curseResources?.cursePoints ?? 0;
       updates["system.curseResources.cursePoints"] = cur + 4;
       updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 4;
-      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+4 Pontos de Maldição</strong> (total: ${cur + 4}).`;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+4 Pontos de Nen</strong> (total: ${cur + 4}).`;
     }
 
     await actor.update(updates);
@@ -1104,7 +1104,7 @@ export default class NPCActorSheet extends BaseActorSheet {
         undo: it => ({ "system.energy.intensiveTraining.maxEnergy": Math.max(0, (it.maxEnergy ?? 0) - 1) }) },
       generatedEnergy: { label: "PA Gerada", amount: 1,
         undo: it => ({ "system.energy.intensiveTraining.generatedEnergy": Math.max(0, (it.generatedEnergy ?? 0) - 1) }) },
-      cursePoints:     { label: "Pontos de Maldição", amount: 4,
+      cursePoints:     { label: "Pontos de Nen", amount: 4,
         undo: it => ({
           "system.curseResources.cursePoints": Math.max(0, (actor.system.curseResources?.cursePoints ?? 0) - 4),
           "system.energy.intensiveTraining.cursePoints": Math.max(0, (it.cursePoints ?? 0) - 4)
