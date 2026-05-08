@@ -35,7 +35,7 @@ export default class NPCActorSheet extends BaseActorSheet {
     },
     sidebarCollapser: {
       container: { classes: ["main-content"], id: "main" },
-      template: "systems/jujutsu-system/templates/actors/parts/sidebar-collapser.hbs"
+      template: "systems/hunter-system/templates/actors/parts/sidebar-collapser.hbs"
     },
     sidebar: {
       container: { classes: ["main-content"], id: "main" },
@@ -44,22 +44,22 @@ export default class NPCActorSheet extends BaseActorSheet {
     },
     features: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-features.hbs",
-      templates: ["systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs"],
+      template: "systems/hunter-system/templates/actors/tabs/actor-features.hbs",
+      templates: ["systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs"],
       scrollable: [""]
     },
     inventory: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-inventory.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/actor-inventory.hbs",
       templates: [
-        "systems/jujutsu-system/templates/inventory/inventory.hbs", "systems/jujutsu-system/templates/inventory/activity.hbs",
-        "systems/jujutsu-system/templates/inventory/encumbrance.hbs"
+        "systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs",
+        "systems/hunter-system/templates/inventory/encumbrance.hbs"
       ],
       scrollable: [""]
     },
     spells: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/creature-spells.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/creature-spells.hbs",
       scrollable: [""]
     },
     hatsu: {
@@ -76,13 +76,13 @@ export default class NPCActorSheet extends BaseActorSheet {
     },
     biography: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/npc-biography.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/npc-biography.hbs",
       scrollable: [""]
     },
     specialTraits: {
       classes: ["flexcol"],
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/creature-special-traits.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/creature-special-traits.hbs",
       scrollable: [""]
     },
     manipulation: {
@@ -98,12 +98,12 @@ export default class NPCActorSheet extends BaseActorSheet {
       scrollable: [""]
     },
     warnings: {
-      template: "systems/jujutsu-system/templates/actors/parts/actor-warnings-dialog.hbs"
+      template: "systems/hunter-system/templates/actors/parts/actor-warnings-dialog.hbs"
     },
     tabs: {
       id: "tabs",
       classes: ["tabs-right"],
-      template: "systems/jujutsu-system/templates/shared/sidebar-tabs.hbs"
+      template: "systems/hunter-system/templates/shared/sidebar-tabs.hbs"
     }
   };
 
@@ -112,7 +112,7 @@ export default class NPCActorSheet extends BaseActorSheet {
   /** @override */
   static TABS = [
     { tab: "features", label: "DND5E.Features", icon: "fas fa-list" },
-    { tab: "inventory", label: "DND5E.Inventory", svg: "systems/jujutsu-system/icons/svg/backpack.svg" },
+    { tab: "inventory", label: "DND5E.Inventory", svg: "systems/hunter-system/icons/svg/backpack.svg" },
     { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
     { tab: "hatsu", label: "JUJUTSU.Hatsu.Tab", icon: "fas fa-hand-fist" },
     { tab: "effects", label: "DND5E.Effects", icon: "fas fa-bolt" },
