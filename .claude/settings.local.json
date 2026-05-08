@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"C:\\\\Users\\\\kaa_v\\\\Documents\\\\FoundryVTT\\\\Data\\\\systems\\\\jujutsu-system\\\\templates\\\\actors\\\\tabs\\\\\" 2>&1 | head -10)",
+      "Bash(cd \"/c/Users/kaa_v/Documents/FoundryVTT/Data/systems/hunter-system/templates/actors\" && grep -nE \"<button\\(\\\\s|$\\)\" tabs/character-trainings.hbs tabs/character-hatsu.hbs parts/jj-power-buttons.hbs character-sidebar.hbs | grep -vE 'type=\"button\"|type=submit')",
+      "Bash(grep -n \"\\\\.meter[\\\\.,{ ]\" /c/Users/kaa_v/Documents/FoundryVTT/Data/systems/hunter-system/dnd5e.css)"
+    ]
+  }
+}

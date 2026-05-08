@@ -5571,5 +5571,21 @@
 "JUJUTSU.Manipulation.Tab": "Princípios de Nen",
 "JUJUTSU.Trainings.Label": "Treinamentos",
 "JUJUTSU.Trainings.Tab": "Treinamentos",
-"JUJUTSU.MasteryPoints": "Pontos de Maestria (PT Investido)"
+"JUJUTSU.MasteryPoints": "Pontos de Maestria (PT Investido)",
+"JUJUTSU.Hatsu.Tab": "Hatsu",
+"JUJUTSU.Hatsu.Label": "Hatsu",
+"JUJUTSU.Hatsu.Inata": "Habilidade Inata",
+"JUJUTSU.Hatsu.Manif1": "1ª Manifestação",
+"JUJUTSU.Hatsu.Manif2": "2ª Manifestação",
+"JUJUTSU.Hatsu.Manif3": "3ª Manifestação",
+"JUJUTSU.Hatsu.Tecnicas": "Técnicas",
+"JUJUTSU.Hatsu.TecnicasInata": "Técnicas de Inata",
+"JUJUTSU.Hatsu.TecnicasManif": "Técnicas da Manifestação",
+"JUJUTSU.Hatsu.SlotEmpty": "Arraste uma manifestação aqui",
+"JUJUTSU.Hatsu.Proficiencia": "Proficiência",
+"JUJUTSU.Hatsu.ProfOtimo": "Ótimo",
+"JUJUTSU.Hatsu.ProfExcelente": "Excelente",
+"JUJUTSU.Hatsu.ProfGenial": "Genial",
+"JUJUTSU.Hatsu.ProfUltimato": "Ultimato",
+"JUJUTSU.Hatsu.Bloqueada": "Bloqueada — requisitos não atendidos"
 }

@@ -8,7 +8,7 @@
     </label>
     <div class="npc-cat-selector-grid">
       {{#each npcCategoryOptions as |cat|}}
-      <button class="npc-cat-btn {{#if cat.selected}}active{{/if}}"
+      <button type="button" class="npc-cat-btn {{#if cat.selected}}active{{/if}}"
         data-action="setNpcCategory"
         data-category="{{cat.id}}"
         style="--cat-color: {{cat.color}}"
@@ -94,7 +94,7 @@
         {{!-- Botão de treinar com ícone --}}
         {{!-- Header: ícone + nome + nível --}}
         {{#if cat.canTrain}}
-        <button class="nen-train-btn item-action" data-action="trainNenCategory" data-category="{{cat.id}}"
+        <button type="button" class="nen-train-btn item-action" data-action="trainNenCategory" data-category="{{cat.id}}"
           title="Treinar {{cat.label}} — Nv.{{cat.nextLevel}}">
           <img class="nen-cat-icon" src="{{cat.icon}}" alt="{{cat.label}}" />
           <span class="nen-train-label">
@@ -175,7 +175,7 @@
               <span class="nen-ability-lvl-badge" style="border-color: {{../cat.color}}60; color: {{../cat.color}}">Nv.{{slot.level}}</span>
               <span class="nen-ability-card-name">{{slot.label}}</span>
               {{#if slot.exclusive}}<span class="nen-major-excl-badge">Exclusiva</span>{{/if}}
-              <button class="nen-undo-btn item-action"
+              <button type="button" class="nen-undo-btn item-action"
                 data-action="undoNenMajor"
                 data-category="{{slot.categoryId}}"
                 data-ability="{{slot.id}}"
@@ -192,7 +192,7 @@
               <span class="nen-ability-lvl-badge" style="border-color: {{../cat.color}}50; color: {{../cat.color}}">Nv.{{slot.level}}</span>
               <span class="nen-ability-card-name">{{slot.label}}</span>
               {{#if slot.canUnlock}}
-              <button class="nen-unlock-btn item-action"
+              <button type="button" class="nen-unlock-btn item-action"
                 data-action="unlockNenMajor"
                 data-category="{{slot.categoryId}}"
                 data-ability="{{slot.id}}"

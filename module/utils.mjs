@@ -852,6 +852,7 @@ export async function preloadHandlebarsTemplates() {
     "systems/hunter-system/templates/actors/parts/actor-warnings.hbs",
     "systems/hunter-system/templates/actors/parts/actor-warnings-dialog.hbs",
     "systems/hunter-system/templates/actors/parts/biography-textbox.hbs",
+    "systems/hunter-system/templates/actors/parts/jj-power-buttons.hbs",
     "systems/hunter-system/templates/actors/tabs/character-bastion.hbs",
     "systems/hunter-system/templates/actors/tabs/character-biography.hbs",
     "systems/hunter-system/templates/actors/tabs/character-details.hbs",

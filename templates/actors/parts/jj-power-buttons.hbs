@@ -1,0 +1,142 @@
+{{!-- Botões de poder (Explosão Defensiva / Estágio de Foco / Foco Agressivo / Defensivo)
+     Param `showPin` (boolean):
+       true  → Effects tab: mostra todos os blocos liberados + botão de pin toggle.
+       false → Sidebar:     mostra apenas blocos com pinSidebar = true. --}}
+
+{{!-- Explosão Defensiva --}}
+{{#if expDef.show}}
+{{#if (or showPin pinSidebar.expDef)}}
+<div class="jj-habilidades-row">
+  <filigree-box class="jj-expdef-box">
+    {{#if showPin}}
+    <button type="button" class="jj-power-pin {{#if pinSidebar.expDef}}pinned{{/if}}"
+            data-action="jj-toggle-pin" data-pin="expDef"
+            data-tooltip="{{#if pinSidebar.expDef}}Desafixar do sidebar{{else}}Fixar no sidebar{{/if}}">
+      <i class="fas fa-thumbtack" inert></i>
+    </button>
+    {{/if}}
+    <h3 class="jj-expdef-header">
+      <i class="fas fa-shield-halved" inert></i>
+      <span>Explosão Defensiva</span>
+    </h3>
+    <div class="jj-expdef-btn-wrap">
+      <button type="button" class="jj-expdef-trigger-btn" data-action="jj-expdef-trigger"
+              data-actor-id="{{ actor.id }}"
+              data-tooltip="Gastar PA para reduzir o próximo dano recebido">
+        <i class="fas fa-shield-halved" inert></i>
+        <span>Redução</span>
+      </button>
+    </div>
+  </filigree-box>
+</div>
+{{/if}}
+{{/if}}
+
+{{!-- Estágio de Foco --}}
+{{#if estagioFoco.show}}
+{{#if (or showPin pinSidebar.estagio)}}
+<div class="jj-habilidades-row">
+  <filigree-box class="jj-estagio-box">
+    {{#if showPin}}
+    <button type="button" class="jj-power-pin {{#if pinSidebar.estagio}}pinned{{/if}}"
+            data-action="jj-toggle-pin" data-pin="estagio"
+            data-tooltip="{{#if pinSidebar.estagio}}Desafixar do sidebar{{else}}Fixar no sidebar{{/if}}">
+      <i class="fas fa-thumbtack" inert></i>
+    </button>
+    {{/if}}
+    <h3 class="jj-estagio-header">
+      <i class="fas fa-star" inert></i>
+      <span>Estágio de Foco</span>
+    </h3>
+    <div class="jj-expdef-btn-wrap">
+      <button type="button"
+              class="jj-estagio-btn {{#if estagioFoco.ativo}}active{{/if}}"
+              data-action="jj-toggle-estagio-foco"
+              data-tooltip="Estágio de Foco — Ultimato.&#10;Custo: 2 PA na ativação e início de cada turno.&#10;Ganha +10 PA por turno e dados extras em técnicas.">
+        <i class="fas fa-fire" inert></i>
+        <span>{{#if estagioFoco.ativo}}Ativo{{else}}Ativar{{/if}}</span>
+      </button>
+    </div>
+  </filigree-box>
+</div>
+{{/if}}
+{{/if}}
+
+{{!-- Foco Agressivo / Defensivo (caixa única dividida em duas colunas) --}}
+{{#if foco.show}}
+{{#if (or showPin foco.anyPinned)}}
+<div class="jj-habilidades-row">
+  <filigree-box class="jj-foco-combo-box">
+
+    {{!-- Header dividido --}}
+    <div class="jj-foco-combo-header">
+      {{#if (or showPin pinSidebar.agressivo)}}
+      <div class="jj-foco-combo-side jj-foco-combo-agressivo">
+        {{#if showPin}}
+        <button type="button" class="jj-power-pin {{#if pinSidebar.agressivo}}pinned{{/if}}"
+                data-action="jj-toggle-pin" data-pin="agressivo"
+                data-tooltip="{{#if pinSidebar.agressivo}}Desafixar do sidebar{{else}}Fixar no sidebar{{/if}}">
+          <i class="fas fa-thumbtack" inert></i>
+        </button>
+        {{/if}}
+        <h3 class="jj-foco-header">
+          <i class="fas fa-fist-raised" inert></i>
+          <span>Agressivo</span>
+        </h3>
+      </div>
+      {{/if}}
+
+      {{#if (and (or showPin pinSidebar.agressivo) (or showPin pinSidebar.defensivo))}}
+      <div class="jj-foco-combo-divider"></div>
+      {{/if}}
+
+      {{#if (or showPin pinSidebar.defensivo)}}
+      <div class="jj-foco-combo-side jj-foco-combo-defensivo">
+        {{#if showPin}}
+        <button type="button" class="jj-power-pin {{#if pinSidebar.defensivo}}pinned{{/if}}"
+                data-action="jj-toggle-pin" data-pin="defensivo"
+                data-tooltip="{{#if pinSidebar.defensivo}}Desafixar do sidebar{{else}}Fixar no sidebar{{/if}}">
+          <i class="fas fa-thumbtack" inert></i>
+        </button>
+        {{/if}}
+        <h3 class="jj-foco-header">
+          <i class="fas fa-shield-alt" inert></i>
+          <span>Defensivo</span>
+        </h3>
+      </div>
+      {{/if}}
+    </div>
+
+    {{!-- Botões divididos --}}
+    <div class="jj-foco-combo-body">
+      {{#if (or showPin pinSidebar.agressivo)}}
+      <button type="button"
+              class="jj-foco-btn jj-foco-agressivo {{#if foco.agressivoAtivo}}active{{/if}}"
+              data-action="jj-toggle-foco" data-foco="agressivo"
+              {{#unless foco.agressivoUnlocked}}disabled{{/unless}}
+              data-tooltip="Foco Agressivo: +{{ foco.agressivoDie }} em ataques comuns">
+        <i class="fas fa-fist-raised" inert></i>
+        <span>+{{ foco.agressivoDie }}</span>
+      </button>
+      {{/if}}
+
+      {{#if (and (or showPin pinSidebar.agressivo) (or showPin pinSidebar.defensivo))}}
+      <div class="jj-foco-combo-divider"></div>
+      {{/if}}
+
+      {{#if (or showPin pinSidebar.defensivo)}}
+      <button type="button"
+              class="jj-foco-btn jj-foco-defensivo {{#if foco.defensivoAtivo}}active{{/if}}"
+              data-action="jj-toggle-foco" data-foco="defensivo"
+              {{#unless foco.defensivoUnlocked}}disabled{{/unless}}
+              data-tooltip="Foco Defensivo: +{{ foco.defensivoTemp }} PV temporários">
+        <i class="fas fa-shield-alt" inert></i>
+        <span>+{{ foco.defensivoTemp }} PV</span>
+      </button>
+      {{/if}}
+    </div>
+
+  </filigree-box>
+</div>
+{{/if}}
+{{/if}}

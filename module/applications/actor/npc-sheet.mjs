@@ -4,7 +4,9 @@ import BaseActorSheet from "./api/base-actor-sheet.mjs";
 import HabitatConfig from "./config/habitat-config.mjs";
 import TreasureConfig from "./config/treasure-config.mjs";
 import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, MANIPULATION_ABILITIES, canUnlockAbility } from "../../systems/manipulation-data.mjs";
-import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, getMaxLevelForCategory } from "../../systems/nen-categories-data.mjs";
+import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory } from "../../systems/nen-categories-data.mjs";
+import CharacterActorSheet, { JJ_CONDITIONS, _injectJJConditions } from "./character-sheet.mjs";
+import ContextMenu5e from "../context-menu.mjs";
 
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
@@ -29,7 +31,7 @@ export default class NPCActorSheet extends BaseActorSheet {
   /** @override */
   static PARTS = {
     header: {
-      template: "systems/jujutsu-system/templates/actors/npc-header.hbs"
+      template: "systems/hunter-system/templates/actors/npc-header.hbs"
     },
     sidebarCollapser: {
       container: { classes: ["main-content"], id: "main" },
@@ -37,7 +39,8 @@ export default class NPCActorSheet extends BaseActorSheet {
     },
     sidebar: {
       container: { classes: ["main-content"], id: "main" },
-      template: "systems/jujutsu-system/templates/actors/npc-sidebar.hbs"
+      template: "systems/hunter-system/templates/actors/npc-sidebar.hbs",
+      templates: ["systems/hunter-system/templates/actors/parts/jj-power-buttons.hbs"]
     },
     features: {
       container: { classes: ["tab-body"], id: "tabs" },
@@ -59,9 +62,16 @@ export default class NPCActorSheet extends BaseActorSheet {
       template: "systems/jujutsu-system/templates/actors/tabs/creature-spells.hbs",
       scrollable: [""]
     },
+    hatsu: {
+      classes: ["flexcol"],
+      container: { classes: ["tab-body"], id: "tabs" },
+      template: "systems/hunter-system/templates/actors/tabs/character-hatsu.hbs",
+      scrollable: [""]
+    },
     effects: {
       container: { classes: ["tab-body"], id: "tabs" },
-      template: "systems/jujutsu-system/templates/actors/tabs/actor-effects.hbs",
+      template: "systems/hunter-system/templates/actors/tabs/actor-effects.hbs",
+      templates: ["systems/hunter-system/templates/actors/parts/jj-power-buttons.hbs"],
       scrollable: [""]
     },
     biography: {
@@ -104,6 +114,7 @@ export default class NPCActorSheet extends BaseActorSheet {
     { tab: "features", label: "DND5E.Features", icon: "fas fa-list" },
     { tab: "inventory", label: "DND5E.Inventory", svg: "systems/jujutsu-system/icons/svg/backpack.svg" },
     { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
+    { tab: "hatsu", label: "JUJUTSU.Hatsu.Tab", icon: "fas fa-hand-fist" },
     { tab: "effects", label: "DND5E.Effects", icon: "fas fa-bolt" },
     { tab: "biography", label: "DND5E.Biography", icon: "fas fa-feather" },
     { tab: "specialTraits", label: "DND5E.SpecialTraits", icon: "fas fa-star" },
@@ -163,6 +174,33 @@ export default class NPCActorSheet extends BaseActorSheet {
 
   /* -------------------------------------------- */
 
+  /** @override — intercepta drops na aba Hatsu */
+  async _onDropItem(event, item) {
+    const hatsuTarget = event.target.closest("[data-hatsu-drop]");
+    if ( hatsuTarget && item.type === "spell" ) {
+      return this._onHatsuDropSpell(event, item, hatsuTarget);
+    }
+    return super._onDropItem(event, item);
+  }
+
+  /* -------------------------------------------- */
+
+  /** @override — esconde spells de Hatsu da spellbook normal */
+  _prepareSpellbook(context) {
+    const original = context.itemCategories?.spells;
+    if ( Array.isArray(original) ) {
+      context.itemCategories.spells = original.filter(s => {
+        const flag = s.getFlag("hunter-system", "hatsu") ?? {};
+        return !flag.slot && !flag.parent;
+      });
+    }
+    const result = super._prepareSpellbook(context);
+    if ( original ) context.itemCategories.spells = original;
+    return result;
+  }
+
+  /* -------------------------------------------- */
+
   /** @inheritDoc */
   async _preparePartContext(partId, context, options) {
     context = await super._preparePartContext(partId, context, options);
@@ -175,6 +213,7 @@ export default class NPCActorSheet extends BaseActorSheet {
       case "sidebar": return this._prepareSidebarContext(context, options);
       case "specialTraits": return this._prepareSpecialTraitsContext(context, options);
       case "spells": return this._prepareSpellsContext(context, options);
+      case "hatsu": return this._prepareHatsuContext(context, options);
       case "manipulation": return this._prepareManipulationContext(context, options);
       case "trainings": return this._prepareTrainingsContext(context, options);
       default: return context;
@@ -214,7 +253,61 @@ export default class NPCActorSheet extends BaseActorSheet {
   async _prepareEffectsContext(context, options) {
     context = await super._prepareEffectsContext(context, options);
     context.hasConditions = true;
+
+    // Condições do sistema Hunter para injetar via _onRender
+    const activeStatuses = new Set(this.actor.statuses ?? []);
+    context.jjConditions = JJ_CONDITIONS.map(cond => ({
+      ...cond,
+      active: activeStatuses.has(cond.id)
+    }));
+
+    // Botões de poder no topo da aba (mesmos da sidebar)
+    this._prepareJJPowersContext(context);
+
     return context;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Mesma lógica do CharacterActorSheet — botões de poder + flags de pin.
+   */
+  _prepareJJPowersContext(context) {
+    const ab = this.actor.system.manipulation?.abilities ?? {};
+    context.foco = {
+      show: !!(ab.focoAgressivo?.unlocked || ab.focoDefensivo?.unlocked),
+      agressivoUnlocked: !!ab.focoAgressivo?.unlocked,
+      defensivoUnlocked: !!ab.focoDefensivo?.unlocked,
+      agressivoAtivo:    !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo"),
+      defensivoAtivo:    !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo"),
+      fluxoVeloz:        !!ab.fluxoVeloz?.unlocked,
+      fluxoConstante:    !!ab.fluxoConstante?.unlocked
+    };
+    context.foco.agressivoDie = context.foco.fluxoConstante ? "1d6" : "1d4";
+    const baseTemp = context.foco.fluxoConstante ? 40 : 20;
+    const resistUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
+    const aprimLvl = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
+    context.foco.defensivoTemp = baseTemp + (resistUnlocked ? aprimLvl * 3 : 0);
+
+    const hatsuTier = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
+    context.estagioFoco = {
+      show: hatsuTier === "ultimato",
+      ativo: !!this.actor.getFlag("hunter-system", "hatsuEstagioFocoAtivo")
+    };
+
+    context.expDef = {
+      show: !!this.actor.system.manipulation?.abilities?.explosaoDefensiva?.unlocked
+    };
+
+    const pin = this.actor.getFlag("hunter-system", "pinSidebar") ?? {};
+    context.pinSidebar = {
+      expDef:     pin.expDef     !== false,
+      estagio:    pin.estagio    !== false,
+      agressivo:  pin.agressivo  !== false,
+      defensivo:  pin.defensivo  !== false
+    };
+    context.foco.bothPinned = context.pinSidebar.agressivo && context.pinSidebar.defensivo;
+    context.foco.anyPinned  = context.pinSidebar.agressivo || context.pinSidebar.defensivo;
   }
 
   /* -------------------------------------------- */
@@ -274,6 +367,11 @@ export default class NPCActorSheet extends BaseActorSheet {
    */
   async _prepareHeaderContext(context, options) {
     context.portrait = await this._preparePortrait(context);
+
+    // Percentuais para barras (Pontos de Aura + PA Gerado)
+    const energy = this.actor.system.energy;
+    context.energyPct      = energy?.max    > 0 ? Math.round((energy.total / energy.max) * 100) : 0;
+    context.energyGenPct   = energy?.genMax > 0 ? Math.round((energy.generated / energy.genMax) * 100) : 0;
 
     if ( this.actor.limited ) {
       const enrichmentOptions = { relativeTo: this.actor, rollData: context.rollData };
@@ -416,6 +514,9 @@ export default class NPCActorSheet extends BaseActorSheet {
         .filter(_ => _)
         .sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
     }
+
+    // Botões de poder no sidebar
+    this._prepareJJPowersContext(context);
 
     return context;
   }
@@ -735,16 +836,8 @@ export default class NPCActorSheet extends BaseActorSheet {
    * Usa a mesma tabela de afinidade do sistema Hunter.
    */
   _getNpcMaxLevelForCategory(primaryCategoryId, targetCategoryId) {
-    // Tabela de afinidade: categoria principal -> máximo em outras categorias
-    const AFFINITY_TABLE = {
-      aprimorador:  { aprimorador: 10, transmutador: 8, conjurador: 6, emissor: 4, manipulador: 4, especialista: 1 },
-      emissor:      { emissor: 10, aprimorador: 8, transmutador: 6, conjurador: 4, manipulador: 4, especialista: 1 },
-      transmutador: { transmutador: 10, aprimorador: 8, emissor: 6, conjurador: 4, manipulador: 4, especialista: 1 },
-      conjurador:   { conjurador: 10, transmutador: 8, emissor: 6, aprimorador: 4, manipulador: 4, especialista: 1 },
-      manipulador:  { manipulador: 10, conjurador: 8, transmutador: 6, emissor: 4, aprimorador: 4, especialista: 1 },
-      especialista: { especialista: 10, aprimorador: 8, emissor: 8, transmutador: 8, conjurador: 8, manipulador: 8 }
-    };
-    return AFFINITY_TABLE[primaryCategoryId]?.[targetCategoryId] ?? 10;
+    // Usa a tabela única de afinidade definida em nen-categories-data.mjs
+    return NEN_AFFINITY[primaryCategoryId]?.[targetCategoryId] ?? 0;
   }
 
   /* -------------------------------------------- */
@@ -759,6 +852,10 @@ export default class NPCActorSheet extends BaseActorSheet {
 
   /** @inheritDoc */
   _onClickAction(event, target) {
+    // Bloqueia disparo em botões não-primários (right/middle click).
+    // Right-click deve apenas abrir o context menu, nunca executar a ação.
+    if ( event?.button > 0 ) return;
+
     const action = target.dataset.action;
 
     if ( action === "unlockManipulation" )     return this._onUnlockManipulationAbility(target.dataset.ability, parseInt(target.dataset.cost ?? 0));
@@ -770,8 +867,267 @@ export default class NPCActorSheet extends BaseActorSheet {
     if ( action === "undoNenMajor" )            return this._onUndoNenMajor(target.dataset.category, target.dataset.ability);
     if ( action === "trainNenCategory" )        return this._onTrainNenCategory(target.dataset.category);
     if ( action === "setNpcCategory" )          return this._onSetNpcCategory(target.dataset.category);
+    if ( action === "intensiveTraining" )       return this._onIntensiveTraining();
+    if ( action === "undoIntensiveTraining" )   return this._onUndoIntensiveTraining(target.dataset.field);
+    if ( action === "jj-toggle-pin" )           return this._onTogglePinSidebar(target.dataset.pin);
+
+    // Aba Hatsu — delega para CharacterActorSheet
+    if ( action === "hatsu-roll" )              return this._onHatsuRoll(target.dataset.itemId);
+    if ( action === "hatsu-edit" )              return this._onHatsuEdit(target.dataset.itemId);
+    if ( action === "hatsu-unassign-manif" )    return this._onHatsuUnassign(target.dataset.slot, "manif");
+    if ( action === "hatsu-unassign-tecnica" )  return this._onHatsuUnassignTecnica(target.dataset.itemId);
+    if ( action === "hatsu-create-manif" )      return this._onHatsuCreateManif(target.dataset.slot);
+    if ( action === "hatsu-create-tecnica" )    return this._onHatsuCreateTecnica(target.dataset.slot);
+    if ( action === "hatsu-req-add" )           return this._onHatsuReqAdd(target.dataset.itemId);
+    if ( action === "hatsu-req-remove" )        return this._onHatsuReqRemove(target.dataset.itemId, parseInt(target.dataset.index));
+    if ( action === "hatsu-toggle-ultimato" )   return this._onHatsuToggleUltimato();
+    if ( action === "hatsu-toggle-section" )    return this._onHatsuToggleSection(target.dataset.slot);
 
     return super._onClickAction(event, target);
+  }
+
+  /* -------------------------------------------- */
+  /*  Hatsu — delegação para CharacterActorSheet  */
+  /* -------------------------------------------- */
+
+  _prepareHatsuContext(...args)            { return CharacterActorSheet.prototype._prepareHatsuContext.call(this, ...args); }
+  _onHatsuRoll(...args)                    { return CharacterActorSheet.prototype._onHatsuRoll.call(this, ...args); }
+  _onHatsuEdit(...args)                    { return CharacterActorSheet.prototype._onHatsuEdit.call(this, ...args); }
+  _onHatsuUnassign(...args)                { return CharacterActorSheet.prototype._onHatsuUnassign.call(this, ...args); }
+  _onHatsuUnassignTecnica(...args)         { return CharacterActorSheet.prototype._onHatsuUnassignTecnica.call(this, ...args); }
+  _onHatsuCreateManif(...args)             { return CharacterActorSheet.prototype._onHatsuCreateManif.call(this, ...args); }
+  _onHatsuCreateTecnica(...args)           { return CharacterActorSheet.prototype._onHatsuCreateTecnica.call(this, ...args); }
+  _onHatsuReqAdd(...args)                  { return CharacterActorSheet.prototype._onHatsuReqAdd.call(this, ...args); }
+  _onHatsuReqRemove(...args)               { return CharacterActorSheet.prototype._onHatsuReqRemove.call(this, ...args); }
+  _onHatsuReqChange(...args)               { return CharacterActorSheet.prototype._onHatsuReqChange.call(this, ...args); }
+  _onHatsuToggleUltimato(...args)          { return CharacterActorSheet.prototype._onHatsuToggleUltimato.call(this, ...args); }
+  _onHatsuToggleSection(...args)           { return CharacterActorSheet.prototype._onHatsuToggleSection.call(this, ...args); }
+  _restoreHatsuCollapsedSections(...args)  { return CharacterActorSheet.prototype._restoreHatsuCollapsedSections.call(this, ...args); }
+  _calcHatsuTier(...args)                  { return CharacterActorSheet.prototype._calcHatsuTier.call(this, ...args); }
+  _syncHatsuProficiencyEffect(...args)     { return CharacterActorSheet.prototype._syncHatsuProficiencyEffect.call(this, ...args); }
+  _onHatsuDropSpell(...args)               { return CharacterActorSheet.prototype._onHatsuDropSpell.call(this, ...args); }
+  _isHatsuItemBlocked(...args)             { return CharacterActorSheet.prototype._isHatsuItemBlocked.call(this, ...args); }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Toggle do pin de um botão de poder no sidebar.
+   */
+  async _onTogglePinSidebar(pinKey) {
+    if ( !pinKey ) return;
+    const current = this.actor.getFlag("hunter-system", "pinSidebar") ?? {};
+    const wasPinned = current[pinKey] !== false;
+    await this.actor.setFlag("hunter-system", "pinSidebar", { ...current, [pinKey]: !wasPinned });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Toggle do Foco Agressivo / Defensivo. Mesma lógica do CharacterActorSheet.
+   */
+  async _onToggleFoco(focoType) {
+    const ab = this.actor.system.manipulation?.abilities ?? {};
+    const flagAgressivo  = !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo");
+    const flagDefensivo  = !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo");
+    const fluxoVeloz     = !!ab.fluxoVeloz?.unlocked;
+    const fluxoConstante = !!ab.fluxoConstante?.unlocked;
+    const baseAmount     = fluxoConstante ? 40 : 20;
+    const resistUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
+    const aprimLvl       = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
+    const tempAmount     = baseAmount + (resistUnlocked ? aprimLvl * 3 : 0);
+    const dieFace        = fluxoConstante ? 6 : 4;
+
+    if ( focoType === "agressivo" ) {
+      if ( !ab.focoAgressivo?.unlocked ) return;
+      const novo = !flagAgressivo;
+      if ( novo && flagDefensivo && !fluxoVeloz ) await this._desativarFocoDefensivo({ silent: true });
+      await this.actor.setFlag("hunter-system", "focoAgressivoAtivo", novo);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: novo
+          ? `🥊 <strong>${this.actor.name}</strong> ativou o <strong>Foco Agressivo</strong> (+1d${dieFace} de dano em ataques comuns).`
+          : `🥊 <strong>${this.actor.name}</strong> desativou o <strong>Foco Agressivo</strong>.`
+      });
+    } else if ( focoType === "defensivo" ) {
+      if ( !ab.focoDefensivo?.unlocked ) return;
+      const novo = !flagDefensivo;
+      if ( novo ) {
+        if ( flagAgressivo && !fluxoVeloz ) {
+          await this.actor.setFlag("hunter-system", "focoAgressivoAtivo", false);
+          ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+            content: `🥊 <strong>${this.actor.name}</strong> desativou o <strong>Foco Agressivo</strong>.`
+          });
+        }
+        await this._ativarFocoDefensivo(tempAmount);
+      } else {
+        await this._desativarFocoDefensivo();
+      }
+    }
+  }
+
+  async _ativarFocoDefensivo(amount) {
+    const cur = this.actor.system.attributes?.hp?.temp ?? 0;
+    await this.actor.update({ "system.attributes.hp.temp": cur + amount });
+    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", true);
+    await this.actor.setFlag("hunter-system", "focoDefensivoTempHpGranted", amount);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> (+${amount} PV temporários).`
+    });
+  }
+
+  async _desativarFocoDefensivo({ silent = false } = {}) {
+    const granted = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
+    const cur = this.actor.system.attributes?.hp?.temp ?? 0;
+    await this.actor.update({ "system.attributes.hp.temp": Math.max(0, cur - granted) });
+    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", false);
+    await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    if ( !silent ) ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `🛡️ <strong>${this.actor.name}</strong> desativou o <strong>Foco Defensivo</strong>.`
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Toggle do Estágio de Foco (requer Ultimato). Custa 2 PA na ativação.
+   */
+  async _onToggleEstagioFoco() {
+    const tier = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
+    if ( tier !== "ultimato" ) {
+      ui.notifications.warn("Estágio de Foco requer proficiência Ultimato.");
+      return;
+    }
+    const ativo = !!this.actor.getFlag("hunter-system", "hatsuEstagioFocoAtivo");
+    if ( !ativo ) {
+      const energy = this.actor.system.energy?.total ?? 0;
+      if ( energy < 2 ) { ui.notifications.warn("PA insuficientes (2 PA)."); return; }
+      await this.actor.update({ "system.energy.total": energy - 2 });
+      await this.actor.setFlag("hunter-system", "hatsuEstagioFocoAtivo", true);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `🔥 <strong>${this.actor.name}</strong> entrou no <strong>Estágio de Foco</strong> (-2 PA).`
+      });
+    } else {
+      await this.actor.setFlag("hunter-system", "hatsuEstagioFocoAtivo", false);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `<strong>${this.actor.name}</strong> saiu do Estágio de Foco.`
+      });
+    }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Treinamento Intenso (10 dias) — escolhe entre PA Máximo +5, PA Gerada +1/turno, ou +4 PM.
+   * Mesma lógica do character sheet, exposta no NPC.
+   */
+  async _onIntensiveTraining() {
+    const actor = this.actor;
+    const it = actor.system.energy?.intensiveTraining ?? {};
+    const cursePoints = actor.system.curseResources?.cursePoints ?? 0;
+    const generatedAtLimit = (it.generatedEnergy ?? 0) >= 20;
+    const currentMaxPA = actor.system.energy?.max ?? 0;
+    const currentGeneratedBonus = it.generatedEnergy ?? 0;
+
+    const choice = await foundry.applications.api.DialogV2.wait({
+      window: { title: "⚔️ Treinamento Intenso — Evolução na Prática" },
+      content: `
+        <div style="padding:4px 0; font-size:13px; color:#ccc; line-height:1.5;">
+          <p style="margin:0 0 10px; font-size:12px; color:#aaa;">Escolha o benefício do <strong>Treinamento Intenso (10 dias)</strong>:</p>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0e0e1a; border:1px solid #2a2a40; border-radius:6px; cursor:pointer;">
+              <input type="radio" name="jj-training-choice" value="maxEnergy">
+              <div><strong style="color:#c0a0ff;">↑ PA Máximo +5</strong>
+                <div style="font-size:11px; color:#8080a0;">Atual: ${currentMaxPA} → ${currentMaxPA + 5} (treino ${(it.maxEnergy ?? 0) + 1})</div></div>
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0e0e1a; border:1px solid #2a2a40; border-radius:6px; cursor:pointer; ${generatedAtLimit ? "opacity:0.4;" : ""}">
+              <input type="radio" name="jj-training-choice" value="generatedEnergy" ${generatedAtLimit ? "disabled" : ""}>
+              <div><strong style="color:#60c0ff;">⚡ PA Gerada +1/turno</strong>
+                <div style="font-size:11px; color:#8080a0;">${generatedAtLimit ? "⛔ Limite atingido (20 treinos)" : `Treinos: ${currentGeneratedBonus}/20 — bônus de +${currentGeneratedBonus} → +${currentGeneratedBonus + 1} por turno`}</div></div>
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0e0e1a; border:1px solid #2a2a40; border-radius:6px; cursor:pointer;">
+              <input type="radio" name="jj-training-choice" value="cursePoints">
+              <div><strong style="color:#ffa060;">💀 Pontos de Maldição +4</strong>
+                <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PM → ${cursePoints + 4} PM</div></div>
+            </label>
+          </div>
+        </div>`,
+      buttons: [
+        { label: "Confirmar Treinamento", action: "ok", default: true,
+          callback: (event, button, dialog) => {
+            const sel = (dialog.element ?? document).querySelector("input[name='jj-training-choice']:checked");
+            return sel?.value ?? null;
+          }},
+        { label: "Cancelar", action: "cancel", callback: () => null }
+      ],
+      rejectClose: false,
+      close: () => null
+    });
+
+    if ( !choice ) return;
+    const it2 = actor.system.energy?.intensiveTraining ?? {};
+    const updates = {};
+    let chatMsg = "";
+
+    if ( choice === "maxEnergy" ) {
+      const novo = (it2.maxEnergy ?? 0) + 1;
+      updates["system.energy.intensiveTraining.maxEnergy"] = novo;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>PA Máximo +5</strong> (${novo} treino(s) = +${novo * 5} PA Máx).`;
+    } else if ( choice === "generatedEnergy" ) {
+      if ( generatedAtLimit ) { ui.notifications.warn("Limite de treinos de PA Gerada (20)."); return; }
+      const novo = (it2.generatedEnergy ?? 0) + 1;
+      updates["system.energy.intensiveTraining.generatedEnergy"] = novo;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>PA Gerada +1</strong>/turno (treino ${novo}/20).`;
+    } else if ( choice === "cursePoints" ) {
+      const cur = actor.system.curseResources?.cursePoints ?? 0;
+      updates["system.curseResources.cursePoints"] = cur + 4;
+      updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 4;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+4 Pontos de Maldição</strong> (total: ${cur + 4}).`;
+    }
+
+    await actor.update(updates);
+    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: chatMsg });
+    ui.notifications.info("Treinamento Intenso concluído!");
+  }
+
+  /* -------------------------------------------- */
+
+  async _onUndoIntensiveTraining(field) {
+    const actor = this.actor;
+    const it = actor.system.energy?.intensiveTraining ?? {};
+    const FIELDS = {
+      maxEnergy:       { label: "PA Máximo", amount: 1,
+        undo: it => ({ "system.energy.intensiveTraining.maxEnergy": Math.max(0, (it.maxEnergy ?? 0) - 1) }) },
+      generatedEnergy: { label: "PA Gerada", amount: 1,
+        undo: it => ({ "system.energy.intensiveTraining.generatedEnergy": Math.max(0, (it.generatedEnergy ?? 0) - 1) }) },
+      cursePoints:     { label: "Pontos de Maldição", amount: 4,
+        undo: it => ({
+          "system.curseResources.cursePoints": Math.max(0, (actor.system.curseResources?.cursePoints ?? 0) - 4),
+          "system.energy.intensiveTraining.cursePoints": Math.max(0, (it.cursePoints ?? 0) - 4)
+        }) }
+    };
+    const cfg = FIELDS[field];
+    if ( !cfg ) return;
+    if ( (it[field] ?? 0) <= 0 ) {
+      ui.notifications.warn(`Não há treinos de ${cfg.label} para desfazer.`);
+      return;
+    }
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "↩️ Desfazer Treinamento" },
+      content: `<p>Desfazer o último treino de <strong>${cfg.label}</strong>?<br><span style="font-size:12px;color:#aaa;">Reverterá <strong>-${cfg.amount}</strong>.</span></p>`,
+      yes: { label: "Desfazer" }, no: { label: "Cancelar" }
+    });
+    if ( !ok ) return;
+    await actor.update(cfg.undo(it));
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `↩️ <strong>${actor.name}</strong> desfez um Treinamento de <strong>${cfg.label}</strong> (-${cfg.amount}).`
+    });
+    ui.notifications.info(`Treinamento de ${cfg.label} desfeito.`);
   }
 
   /* -------------------------------------------- */
@@ -942,6 +1298,61 @@ export default class NPCActorSheet extends BaseActorSheet {
    * Treina uma categoria Nen para o NPC.
    * NPCs avançam diretamente (sem rolar dado) — GM controla manualmente.
    */
+  /**
+   * Desfaz o último treinamento de uma categoria. Devolve PT e PA gastos
+   * (NPC não rola dado, então o gasto é integralmente reversível).
+   * Cascata: remove habilidades principais cujo nível requerido fica acima do novo nível.
+   */
+  async _onUndoTrainNenCategory(categoryId) {
+    const cat = NEN_CATEGORIES_DATA[categoryId];
+    if ( !cat ) return;
+
+    const currentLevel = this.actor.system.nenCategories?.[categoryId]?.level ?? 0;
+    if ( currentLevel <= 0 ) {
+      ui.notifications.warn(`${cat.label} não tem treinamento para desfazer.`);
+      return;
+    }
+
+    const newLevel = currentLevel - 1;
+    const costs = NEN_LEVEL_COSTS[currentLevel];
+    const refundPt = costs?.pt ?? 0;
+    const refundPa = costs?.pa ?? 0;
+
+    const updates = {
+      [`system.nenCategories.${categoryId}.level`]: newLevel,
+      "system.curseResources.trainingPoints": (this.actor.system.curseResources?.trainingPoints ?? 0) + refundPt,
+      "system.energy.total": (this.actor.system.energy?.total ?? 0) + refundPa
+    };
+
+    // Cascata: remove majors cujo nível requerido fica acima do novo nível
+    const unlockedMajorMap = this.actor.system.nenCategories?.[categoryId]?.unlockedMajor ?? {};
+    const undoneMajors = [];
+    let nenMajorCount = this.actor.system.nenMajorCount ?? 0;
+    for ( const [reqLvlStr, ability] of Object.entries(cat.major ?? {}) ) {
+      const reqLvl = parseInt(reqLvlStr);
+      if ( reqLvl > newLevel && unlockedMajorMap[ability.id] ) {
+        updates[`system.nenCategories.${categoryId}.unlockedMajor.${ability.id}`] = false;
+        if ( !ability.exclusive ) nenMajorCount = Math.max(0, nenMajorCount - 1);
+        undoneMajors.push(ability.label);
+      }
+    }
+    updates["system.nenMajorCount"] = nenMajorCount;
+
+    await this.actor.update(updates);
+
+    ui.notifications.info(`${cat.label}: nível ${currentLevel} → ${newLevel}. Devolveu ${refundPt} PT e ${refundPa} PA.`);
+    let chatContent = `↩️ <strong>${this.actor.name}</strong> desfez o treinamento de <strong>${cat.label}</strong>: Nível ${currentLevel} → Nível ${newLevel}. ${refundPt} PT e ${refundPa} PA devolvidos.`;
+    if ( undoneMajors.length ) {
+      chatContent += `<br/>⚠️ Habilidades principais removidas em cascata: <strong>${undoneMajors.join(", ")}</strong>.`;
+    }
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: chatContent
+    });
+  }
+
+  /* -------------------------------------------- */
+
   async _onTrainNenCategory(categoryId) {
     const cat = NEN_CATEGORIES_DATA[categoryId];
     if ( !cat ) return;
@@ -1012,6 +1423,26 @@ export default class NPCActorSheet extends BaseActorSheet {
   /* -------------------------------------------- */
 
   /** @inheritDoc */
+  /** @inheritDoc */
+  async _onFirstRender(context, options) {
+    await super._onFirstRender(context, options);
+
+    // Context menu de "Desfazer Treinamento" nos cards de categoria
+    new ContextMenu5e(
+      this.element,
+      ".nen-category-card[data-category]",
+      [{
+        name: "Desfazer Treinamento",
+        icon: '<i class="fas fa-rotate-left"></i>',
+        condition: el => (this.actor.system.nenCategories?.[el.dataset.category]?.level ?? 0) > 0,
+        callback: el => this._onUndoTrainNenCategory(el.dataset.category)
+      }],
+      { jQuery: false }
+    );
+  }
+
+  /* -------------------------------------------- */
+
   async _onRender(context, options) {
     await super._onRender(context, options);
 
@@ -1038,6 +1469,44 @@ export default class NPCActorSheet extends BaseActorSheet {
     // ── Explosão Defensiva NPC ─────────────────────────────
     this.element.querySelector("[data-action='jj-npc-expdef']")
       ?.addEventListener("click", () => _npcExplosaoDefensiva(this.actor));
+
+    // ── Botões de poder (Explosão Defensiva, Foco, Estágio) ────────
+    this.element.querySelector("[data-action='jj-expdef-trigger']")
+      ?.addEventListener("click", () => _npcExplosaoDefensiva(this.actor));
+    this.element.querySelectorAll("[data-action='jj-toggle-foco']")
+      .forEach(btn => btn.addEventListener("click", () => {
+        if ( btn.disabled ) return;
+        this._onToggleFoco(btn.dataset.foco);
+      }));
+    this.element.querySelector("[data-action='jj-toggle-estagio-foco']")
+      ?.addEventListener("click", () => this._onToggleEstagioFoco());
+
+    // ── Injeta Condições Hunter na aba Effects ────
+    _injectJJConditions(this.element, this.actor);
+
+    // ── Hatsu — feedback visual de hover nos drop zones
+    this.element.querySelectorAll(".hatsu-drop-zone").forEach(zone => {
+      zone.addEventListener("dragenter", e => { e.preventDefault(); zone.classList.add("drag-hover"); });
+      zone.addEventListener("dragover",  e => { e.preventDefault(); });
+      zone.addEventListener("dragleave", e => { if ( !zone.contains(e.relatedTarget) ) zone.classList.remove("drag-hover"); });
+      zone.addEventListener("drop", () => zone.classList.remove("drag-hover"));
+    });
+
+    // ── Hatsu — change listeners para requisitos
+    this.element.querySelectorAll("[data-hatsu-req]").forEach(el => {
+      el.addEventListener("change", () => {
+        const field  = el.dataset.hatsuReq;
+        const itemId = el.dataset.itemId;
+        const index  = parseInt(el.dataset.index);
+        this._onHatsuReqChange(itemId, index, field, el.value);
+      });
+    });
+
+    // ── Hatsu — restaura collapsed + sync AE de proficiência
+    if ( this.actor.isOwner ) this._syncHatsuProficiencyEffect();
+    this._restoreHatsuCollapsedSections();
+
+    // (context menu registrado em _onFirstRender)
 
     // ── Atualizar porcentagens das barras de energia ───────
     const energy = this.actor.system.energy;
@@ -1145,30 +1614,37 @@ export default class NPCActorSheet extends BaseActorSheet {
  * SISTEMA DE ENERGIA — NPC
  * ============================================================ */
 
-// Geração de PA no início do turno — dialog 2x / 3x / 4x do ND
+// Geração de PA no início do turno — dialog 2x / 3x / 4x do ND + bônus de treinamento
 async function _npcEnergyGenerationDialog(actor) {
   const nd = actor.system.details?.cr ?? 1;
+  const trainingBonus = (actor.system.energy?.bonuses?.generatedEnergy ?? 0)
+                      + (actor.system.energy?.intensiveTraining?.generatedEnergy ?? 0);
+  const fmt = n => trainingBonus > 0 ? `${n} (${nd}×N + ${trainingBonus})` : `${n}`;
 
   const multiplicador = await foundry.applications.api.DialogV2.wait({
     window: { title: `⚡ Geração de Energia — ${actor.name}` },
     content: `
-      <p style="margin:0 0 10px;">Quantas vezes o ND (<strong>${nd}</strong>) deseja gerar?</p>`,
+      <p style="margin:0 0 4px;">Quantas vezes o ND (<strong>${nd}</strong>) deseja gerar?</p>
+      ${trainingBonus > 0 ? `<p style="margin:0 0 10px;font-size:11px;color:#7090b0;">+${trainingBonus} PA de bônus de treinamento</p>` : ""}`,
     buttons: [
-      { label: `2× (${nd * 2} PA)`,  action: "2", default: true },
-      { label: `3× (${nd * 3} PA)`,  action: "3" },
-      { label: `4× (${nd * 4} PA)`,  action: "4" },
-      { label: "Pular",              action: "skip" }
+      { label: `2× (${fmt(nd * 2 + trainingBonus)} PA)`, action: "2", default: true },
+      { label: `3× (${fmt(nd * 3 + trainingBonus)} PA)`, action: "3" },
+      { label: `4× (${fmt(nd * 4 + trainingBonus)} PA)`, action: "4" },
+      { label: "Pular",                                  action: "skip" }
     ],
     rejectClose: false,
     close: () => "skip"
   });
 
   if ( !multiplicador || multiplicador === "skip" ) return null;
-  return { nd, multiplicador };
+  return { nd, multiplicador, trainingBonus };
 }
 
-async function _npcApplyEnergyGeneration(actor, nd, multiplicador) {
-  const alvo        = nd * Number(multiplicador);
+async function _npcApplyEnergyGeneration(actor, nd, multiplicador, trainingBonusOverride) {
+  const trainingBonus = trainingBonusOverride
+                     ?? (actor.system.energy?.bonuses?.generatedEnergy ?? 0)
+                      + (actor.system.energy?.intensiveTraining?.generatedEnergy ?? 0);
+  const alvo        = (nd * Number(multiplicador)) + trainingBonus;
   const geradaAtual = actor.system.energy.generated ?? 0;
   const totalAtual  = actor.system.energy.total ?? 0;
 
@@ -1220,17 +1696,18 @@ Hooks.on("updateCombat", async (combat, changed) => {
       await _npcApplyEnergyGeneration(actor, result.nd, result.multiplicador);
     } else {
       // Jogador envia as escolhas para o GM processar
-      game.socket.emit("system.jujutsu-system", {
+      game.socket.emit("system.hunter-system", {
         action: "npcEnergyChoices",
         actorId: actor.id,
         nd: result.nd,
-        multiplicador: result.multiplicador
+        multiplicador: result.multiplicador,
+        trainingBonus: result.trainingBonus
       });
     }
   }
   // GM emite socket para o dono se não for ele
   else if ( game.user.isGM ) {
-    game.socket.emit("system.jujutsu-system", {
+    game.socket.emit("system.hunter-system", {
       action: "npcEnergyDialog",
       actorId: actor.id,
       userId: owner.id
@@ -1240,7 +1717,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 
 // Explosão Defensiva do NPC — mesmo comportamento do jogador
 async function _npcExplosaoDefensiva(actor) {
-  const flagData     = actor.getFlag("jujutsu-system", "explosaoDefensivaPendente") ?? null;
+  const flagData     = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
   const pendente     = flagData?.reducao ?? 0;
   const pendenteCusto = flagData?.paCusto ?? 0;
 
@@ -1252,7 +1729,7 @@ async function _npcExplosaoDefensiva(actor) {
       no:  { label: "Manter" }
     });
     if ( !cancel ) return;
-    await actor.unsetFlag("jujutsu-system", "explosaoDefensivaPendente");
+    await actor.unsetFlag("hunter-system", "explosaoDefensivaPendente");
     const paAtual = actor.system?.energy?.generated ?? 0;
     await actor.update({ "system.energy.generated": paAtual + pendenteCusto });
     ui.notifications.info("Explosão Defensiva cancelada. PA devolvida.");
@@ -1300,7 +1777,7 @@ async function _npcExplosaoDefensiva(actor) {
   const roll = await new Roll(`${paGasto}d4`).evaluate();
   if ( game.dice3d ) game.dice3d.showForRoll(roll, game.user, true);
 
-  await actor.setFlag("jujutsu-system", "explosaoDefensivaPendente", { reducao: roll.total, paCusto: paGasto });
+  await actor.setFlag("hunter-system", "explosaoDefensivaPendente", { reducao: roll.total, paCusto: paGasto });
   await actor.update({ "system.energy.generated": Math.max(0, paDisp - paGasto) });
 
   await roll.toMessage({

@@ -9,40 +9,435 @@
    ══════════════════════════════════════════════════════ */
 
 /* ════════════════════════════════════════
-   SIDEBAR — Explosão Defensiva
+   SIDEBAR — Habilidades em filigree-box
+   (Explosão Defensiva, Foco Agressivo/Defensivo)
    ════════════════════════════════════════ */
-.jj-expdef-sidebar {
-  padding: 4px 8px 6px;
+
+/* Wrapper — 1 coluna padrão, 2 colunas quando duo */
+.jj-habilidades-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  margin: 2px 8px;
+  min-width: 0;
 }
 
-.jj-expdef-sidebar-btn {
-  width: 100%;
+.jj-habilidades-row + .jj-habilidades-row { margin-top: 6px; }
+
+.jj-habilidades-row.jj-habilidades-duo {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Quando a sidebar está colapsada, esconde os botões pra não vazarem */
+.sidebar-collapsed .main-content > .sidebar .jj-habilidades-row { display: none; }
+
+/* ════════════════════════════════════════
+   PONTOS DE AURA + AURA GERADA — barras estilo HP (NPC)
+   ════════════════════════════════════════ */
+.dnd5e2.sheet.actor.npc .sheet-header .vitals .meter.aura-points,
+.dnd5e2.sheet.actor.npc .sheet-header .vitals .meter.aura-generated {
+  block-size: 20px;
+  font-size: var(--font-size-12);
+  margin-top: -1px;
+}
+
+.dnd5e2.sheet.actor.npc .sheet-header .vitals .meter.aura-points .label,
+.dnd5e2.sheet.actor.npc .sheet-header .vitals .meter.aura-generated .label {
+  padding-inline-start: 12px;
+}
+
+.dnd5e2.sheet.actor.npc.editable .sheet-header .vitals
+  :is(.aura-points, .aura-generated) .label {
+  padding-inline-end: 6px;
+}
+
+.dnd5e2.sheet.actor.npc.editable .sheet-header .vitals
+  :is(.aura-points, .aura-generated) .label .config-button {
+  color: inherit;
+  font-size: var(--font-size-10);
+  margin-left: auto;
+}
+
+.dnd5e2.sheet.actor.npc .meter.aura-points .progress::before,
+.dnd5e2.sheet.actor.npc .meter.aura-generated .progress::before {
+  block-size: unset;
+  clip-path: unset;
+  box-shadow: inset 0 1px 0 1px var(--dnd5e-highlight-40);
+  inset: 1px auto 1px 1px;
+  inline-size: calc(var(--bar-percentage) - 2px);
+  border-radius: 2px;
+  border-inline-end: none;
+}
+
+.dnd5e2.sheet.actor.npc .meter.aura-points .progress::before {
+  background: linear-gradient(to right, #ff973c 0%, #c66818 100%);
+}
+
+.dnd5e2.sheet.actor.npc .meter.aura-generated .progress::before {
+  background: linear-gradient(to right, #2bd6c8 0%, #128a84 100%);
+}
+
+/* Habilita click-to-edit nas barras (igual a .hit-points) */
+.dnd5e2.sheet.actor .meter.sectioned > .aura-points,
+.dnd5e2.sheet.actor .meter.sectioned > .aura-generated {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: var(--cursor-pointer);
+}
+
+.dnd5e2.sheet.actor .meter.sectioned > .aura-points > input,
+.dnd5e2.sheet.actor .meter.sectioned > .aura-generated > input {
+  position: relative;
+}
+
+/* ── Header comum (filigree) ── */
+.jj-expdef-header,
+.jj-foco-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: #0e0e18;
-  border: 1px solid #2a2a40;
-  border-radius: 4px;
-  color: #6060a0;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 5px;
+  padding: 5px 8px 3px;
+  border: none;
+  margin: 0;
+}
+
+.jj-expdef-header i,
+.jj-foco-header i {
+  font-size: 9px;
+}
+
+.jj-expdef-header span,
+.jj-foco-header span {
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* ── Wrapper do botão ── */
+.jj-expdef-btn-wrap {
+  padding: 0 5px 5px;
+}
+
+/* ── Botão base (Explosão Defensiva, Foco) ── */
+.jj-expdef-trigger-btn,
+.jj-foco-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 4px;
+  width: 100%;
+  background: #040a10;
+  border: 1px solid #0a1a2a;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1a2840;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: all 140ms;
 }
 
-.jj-expdef-sidebar-btn:hover {
-  background: #141428;
-  border-color: #4a4a70;
-  color: #a0a0d0;
+.jj-expdef-trigger-btn i,
+.jj-foco-btn i {
+  font-size: 13px;
+  color: #152030;
+  transition: color 140ms;
 }
 
-.jj-expdef-sidebar-btn.active {
-  background: #0a0a20;
-  border-color: #3a5a9a;
-  color: #6090e0;
-  box-shadow: 0 0 8px rgba(60,100,200,0.3);
+.jj-foco-btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+/* ── Explosão Defensiva (azul) ── */
+filigree-box.jj-expdef-box {
+  --filigree-background-color: #06101a;
+  --filigree-border-color: #0e2a50;
+  --filigree-drop-shadow: drop-shadow(0 0 3px rgba(40, 80, 200, 0.25));
+  display: block;
+}
+
+.jj-expdef-header i { color: #2a50a0; animation: jj-expdef-pulse 2s ease-in-out infinite; }
+.jj-expdef-header span { color: #7090b0; }
+
+.jj-expdef-trigger-btn:hover { border-color: #204070; color: #4060a0; }
+.jj-expdef-trigger-btn:hover i { color: #2a4070; }
+.jj-expdef-trigger-btn.active {
+  background: #020810;
+  border-color: #2050a0;
+  color: #4080d0;
+  animation: jj-expdef-glow 2s ease-in-out infinite;
+}
+.jj-expdef-trigger-btn.active i { color: #2860b0; }
+
+@keyframes jj-expdef-pulse {
+  0%, 100% { text-shadow: 0 0 4px rgba(40,80,220,0.3); }
+  50%       { text-shadow: 0 0 10px rgba(40,80,220,0.8), 0 0 18px rgba(30,60,180,0.3); }
+}
+
+@keyframes jj-expdef-glow {
+  0%, 100% { box-shadow: inset 0 0 5px rgba(40,80,180,0.1); }
+  50%       { box-shadow: inset 0 0 10px rgba(40,80,200,0.2), 0 0 6px rgba(30,60,180,0.15); }
+}
+
+/* ── Foco Agressivo (vermelho/laranja) ── */
+filigree-box.jj-foco-agressivo-box {
+  --filigree-background-color: #1a0808;
+  --filigree-border-color: #501818;
+  --filigree-drop-shadow: drop-shadow(0 0 3px rgba(200, 80, 60, 0.25));
+  display: block;
+}
+
+.jj-foco-agressivo-box .jj-foco-header i { color: #a04030; }
+.jj-foco-agressivo-box .jj-foco-header span { color: #b07060; }
+
+.jj-foco-btn.jj-foco-agressivo:hover:not(:disabled) { border-color: #703020; color: #a04030; }
+.jj-foco-btn.jj-foco-agressivo:hover:not(:disabled) i { color: #802818; }
+.jj-foco-btn.jj-foco-agressivo.active {
+  background: #100404;
+  border-color: #a02818;
+  color: #d04030;
+  animation: jj-foco-agressivo-glow 2s ease-in-out infinite;
+}
+.jj-foco-btn.jj-foco-agressivo.active i { color: #c04020; }
+
+@keyframes jj-foco-agressivo-glow {
+  0%, 100% { box-shadow: inset 0 0 5px rgba(200,60,40,0.1); }
+  50%       { box-shadow: inset 0 0 10px rgba(220,80,40,0.25), 0 0 6px rgba(180,40,30,0.18); }
+}
+
+/* ── Foco Combo Box (Agressivo + Defensivo numa única filigree) ── */
+filigree-box.jj-foco-combo-box {
+  --filigree-background-color: #0e0814;
+  --filigree-border-color: #3a2840;
+  --filigree-drop-shadow: drop-shadow(0 0 3px rgba(140, 90, 160, 0.18));
+  display: block;
+  position: relative;
+}
+
+.jj-foco-combo-header {
+  display: flex;
+  align-items: center;
+  border: none;
+  position: relative;
+  padding: 4px 14px;
+}
+.jj-foco-combo-header h3 { border: none; box-shadow: none; }
+.jj-foco-combo-header .jj-foco-combo-side { flex: 1 1 0; border: none; }
+
+/* Divisor horizontal: gradiente que some nas pontas, igual ao vertical */
+.jj-foco-combo-header::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #3a2840 25%, #3a2840 75%, transparent);
+  pointer-events: none;
+}
+
+.jj-foco-combo-body {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 4px 12px 8px;
+}
+
+.jj-foco-combo-body > .jj-foco-btn {
+  flex: 1 1 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 4px 6px 6px;
+}
+
+.jj-foco-combo-body > .jj-foco-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-agressivo.active {
+  background: rgba(160, 60, 40, 0.12);
+  border: none;
+  animation: none;
+  box-shadow: inset 0 0 8px rgba(200, 60, 40, 0.25);
+}
+
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-defensivo.active {
+  background: rgba(40, 80, 160, 0.12);
+  border: none;
+  animation: none;
+  box-shadow: inset 0 0 8px rgba(40, 80, 200, 0.25);
+}
+
+.jj-foco-combo-side { position: relative; }
+
+.jj-foco-combo-divider {
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, #3a2840 25%, #3a2840 75%, transparent);
+  margin: 0 4px;
+  align-self: stretch;
+}
+
+/* Cores específicas dos headers nas duas metades */
+.jj-foco-combo-agressivo .jj-foco-header i { color: #a04030; }
+.jj-foco-combo-agressivo .jj-foco-header span { color: #b07060; }
+.jj-foco-combo-defensivo .jj-foco-header i { color: #2a50a0; }
+.jj-foco-combo-defensivo .jj-foco-header span { color: #7090b0; }
+
+/* Pin button posicionado dentro de cada metade */
+.jj-foco-combo-side .jj-power-pin {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+/* ── Foco Defensivo (azul claro) — mantido para compatibilidade ── */
+filigree-box.jj-foco-defensivo-box {
+  --filigree-background-color: #06101a;
+  --filigree-border-color: #0e2a50;
+  --filigree-drop-shadow: drop-shadow(0 0 3px rgba(40, 80, 200, 0.25));
+  display: block;
+}
+
+.jj-foco-defensivo-box .jj-foco-header i { color: #2a50a0; }
+.jj-foco-defensivo-box .jj-foco-header span { color: #7090b0; }
+
+.jj-foco-btn.jj-foco-defensivo:hover:not(:disabled) { border-color: #204070; color: #4060a0; }
+.jj-foco-btn.jj-foco-defensivo:hover:not(:disabled) i { color: #2a4070; }
+.jj-foco-btn.jj-foco-defensivo.active {
+  background: #020810;
+  border-color: #2050a0;
+  color: #4080d0;
+  padding: 15px;
+  animation: jj-expdef-glow 2s ease-in-out infinite;
+}
+.jj-foco-btn.jj-foco-defensivo.active i { color: #2860b0; }
+
+/* ── Estágio de Foco (Ultimato — dourado) ── */
+filigree-box.jj-estagio-box {
+  --filigree-background-color: #181004;
+  --filigree-border-color: #503820;
+  --filigree-drop-shadow: drop-shadow(0 0 4px rgba(240, 192, 96, 0.3));
+  display: block;
+}
+
+.jj-estagio-header { display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 5px 8px 3px; border: none; margin: 0; }
+.jj-estagio-header i { font-size: 9px; color: #c09030; animation: jj-estagio-pulse 2s ease-in-out infinite; }
+.jj-estagio-header span { color: #c0a060; font-size: 9px; letter-spacing: 0.07em;
+  text-transform: uppercase; font-weight: 700; }
+
+.jj-estagio-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 4px;
+  width: 100%;
+  background: #100804;
+  border: 1px solid #2a1a08;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #604020;
+  cursor: pointer;
+  transition: all 140ms;
+}
+.jj-estagio-btn i { font-size: 13px; color: #402810; transition: color 140ms; }
+.jj-estagio-btn:hover { border-color: #604020; color: #a07030; }
+.jj-estagio-btn:hover i { color: #805020; }
+.jj-estagio-btn.active {
+  background: #1a0e04;
+  border-color: #c09030;
+  color: #f0c060;
+  animation: jj-estagio-glow 2s ease-in-out infinite;
+}
+.jj-estagio-btn.active i { color: #e0a040; }
+
+@keyframes jj-estagio-pulse {
+  0%, 100% { text-shadow: 0 0 4px rgba(240,192,96,0.3); }
+  50%       { text-shadow: 0 0 10px rgba(240,192,96,0.8), 0 0 18px rgba(220,170,60,0.4); }
+}
+@keyframes jj-estagio-glow {
+  0%, 100% { box-shadow: inset 0 0 5px rgba(240,192,96,0.15); }
+  50%       { box-shadow: inset 0 0 12px rgba(240,192,96,0.3), 0 0 8px rgba(220,170,60,0.25); }
+}
+
+/* ════════════════════════════════════════
+   PIN TOGGLE — Botões de poder
+   ════════════════════════════════════════ */
+.jj-power-pin {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #14142a;
+  border: 1px solid #3a3a60;
+  border-radius: 3px;
+  color: #6060a0;
+  font-size: 8px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 140ms ease;
+}
+
+.jj-power-pin:hover {
+  border-color: #5a5a80;
+  color: #c0c0e0;
+  background: #1a1a3a;
+}
+
+.jj-power-pin.pinned {
+  background: rgba(120, 100, 200, 0.18);
+  border-color: #6f5fb0;
+  color: #b0a8ff;
+  transform: rotate(0deg);
+}
+
+.jj-power-pin:not(.pinned) i {
+  opacity: 0.5;
+  transform: rotate(45deg);
+}
+
+filigree-box.jj-expdef-box,
+filigree-box.jj-estagio-box,
+filigree-box.jj-foco-agressivo-box,
+filigree-box.jj-foco-defensivo-box {
+  position: relative;
+}
+
+/* ════════════════════════════════════════
+   ABA EFFECTS — Seção de botões de poder
+   ════════════════════════════════════════ */
+.jj-power-buttons-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  padding: 8px 10px 4px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #1a1a28;
+}
+
+.jj-power-buttons-section .jj-habilidades-row { margin: 0; }
+
+/* Foco duo ocupa 2 colunas (quando houver espaço) pra não ficar apertado */
+.jj-power-buttons-section .jj-habilidades-row.jj-habilidades-duo {
+  grid-column: span 2;
 }
 
 /* ════════════════════════════════════════

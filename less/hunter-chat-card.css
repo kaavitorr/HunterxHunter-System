@@ -225,7 +225,14 @@
 .jj-die-pip.max { border-color: #306030; color: #50a050; background: #0a120a; }
 .jj-die-pip.min { border-color: #603030; color: #a05050; background: #120a0a; }
 
-.jj-mod-pip { font-size: 10px; color: #9090b0; }
+.jj-mod-pip { font-size: 10px; color: #9090b0; padding: 0 1px; }
+
+.jj-break-bracket {
+  font-size: 10px;
+  color: #505070;
+  opacity: 0.5;
+  padding: 0 1px;
+}
 
 /* ── FOOTER ─────────────────────────────────────────── */
 .jj-footer {

@@ -429,17 +429,8 @@
             <li class="drop roboto-upper">{{ localize "DND5E.FavoriteDrop" }}</li>
         </ul>
 
-        {{!-- Explosão Defensiva — aparece se habilidade desbloqueada --}}
-        {{#if actor.system.manipulation.abilities.explosaoDefensiva.unlocked}}
-        <div class="jj-expdef-sidebar" id="jj-expdef-sidebar-{{actor.id}}">
-            <button type="button" class="jj-expdef-sidebar-btn" data-action="jj-expdef-trigger"
-                    data-actor-id="{{ actor.id }}"
-                    data-tooltip="Gastar PA para reduzir o próximo dano recebido">
-                <i class="fas fa-shield-halved" inert></i>
-                <span>Explosão Defensiva</span>
-            </button>
-        </div>
-        {{/if}}
+        {{!-- Botões de poder (apenas os pinados aparecem aqui) --}}
+        {{> "systems/hunter-system/templates/actors/parts/jj-power-buttons.hbs" showPin=false }}
 
         {{!-- Seis Olhos — aparece se o item Seis Olhos estiver na ficha --}}
         {{#if seisOlhos}}

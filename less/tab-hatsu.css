@@ -1,0 +1,628 @@
+/* ══════════════════════════════════════════════════════
+   ABA HATSU — Manifestações + Técnicas
+   Sistema Hunter x Hunter — Foundry VTT
+   ══════════════════════════════════════════════════════ */
+
+.hatsu-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 10px 12px;
+}
+
+/* ── Header de Proficiência ────────────────────────── */
+.hatsu-prof-header {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, #0c0c18 0%, #08080f 100%);
+  border: 1px solid #2a2a48;
+  border-radius: 6px;
+}
+
+.hatsu-prof-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding-right: 12px;
+  border-right: 1px solid #1a1a2c;
+}
+
+.hatsu-prof-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8080a0;
+  font-weight: 700;
+}
+
+.hatsu-prof-value {
+  font-family: var(--dnd5e-font-roboto-slab, serif);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #b0b0d0;
+}
+
+.hatsu-prof-value.hatsu-prof-otimo     { color: #9b8acb; }
+.hatsu-prof-value.hatsu-prof-excelente { color: #6fa8dc; }
+.hatsu-prof-value.hatsu-prof-genial    { color: #c96c47; }
+.hatsu-prof-value.hatsu-prof-ultimato {
+  color: #f0c060;
+  text-shadow: 0 0 8px rgba(240, 192, 96, 0.4);
+}
+
+.hatsu-prof-primary {
+  font-size: 10px;
+  color: #6a6a8a;
+  white-space: nowrap;
+}
+.hatsu-prof-primary strong { color: #b0a8d0; font-weight: 700; }
+
+.hatsu-prof-tiers {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  flex: 1 1 auto;
+}
+
+.hatsu-tier-chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 6px 7px;
+  background: #0a0a14;
+  border: 1px solid #1c1c30;
+  border-radius: 4px;
+  transition: all 160ms ease;
+}
+
+.hatsu-tier-chip.locked {
+  opacity: 0.4;
+  filter: grayscale(0.5);
+}
+
+.hatsu-tier-chip.current {
+  background: #14142a;
+  border-color: #4a4a70;
+  box-shadow: 0 0 10px rgba(120, 120, 200, 0.25);
+}
+
+.hatsu-tier-chip.hatsu-prof-otimo.current     { border-color: #6f5fb0; box-shadow: 0 0 10px rgba(155, 138, 203, 0.4); }
+.hatsu-tier-chip.hatsu-prof-excelente.current { border-color: #4080c0; box-shadow: 0 0 10px rgba(111, 168, 220, 0.4); }
+.hatsu-tier-chip.hatsu-prof-genial.current    { border-color: #a04830; box-shadow: 0 0 10px rgba(201, 108, 71, 0.4); }
+.hatsu-tier-chip.hatsu-prof-ultimato.current  {
+  border-color: #c09030;
+  box-shadow: 0 0 14px rgba(240, 192, 96, 0.5);
+}
+
+.hatsu-tier-name {
+  font: 700 11px var(--dnd5e-font-roboto-slab, serif);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hatsu-tier-chip.hatsu-prof-otimo .hatsu-tier-name     { color: #9b8acb; }
+.hatsu-tier-chip.hatsu-prof-excelente .hatsu-tier-name { color: #6fa8dc; }
+.hatsu-tier-chip.hatsu-prof-genial .hatsu-tier-name    { color: #c96c47; }
+.hatsu-tier-chip.hatsu-prof-ultimato .hatsu-tier-name  { color: #f0c060; }
+
+.hatsu-tier-reqs {
+  font-size: 9px;
+  color: #6a6a8a;
+  letter-spacing: 0.04em;
+}
+
+.hatsu-tier-action {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #14142a;
+  border: 1px solid #4a4a70;
+  border-radius: 3px;
+  color: #8080c0;
+  font-size: 9px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hatsu-tier-action:hover {
+  border-color: #f0c060;
+  color: #f0c060;
+}
+
+.hatsu-tier-action.active {
+  background: rgba(240, 192, 96, 0.15);
+  border-color: #c09030;
+  color: #f0c060;
+}
+
+/* ── Seção de slot ──────────────────────────────────── */
+.hatsu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px 10px;
+  background: #0c0c14;
+  border: 1px solid #1c1c2c;
+  border-radius: 6px;
+}
+
+.hatsu-section.blocked {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+.hatsu-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 6px;
+  border-bottom: 1px solid #1a1a28;
+  margin-bottom: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.hatsu-section-header:hover { background: rgba(180, 168, 208, 0.04); }
+
+.hatsu-accordion-chevron {
+  font-size: 10px;
+  color: #6a6a8a;
+  transition: transform 200ms ease;
+}
+
+.hatsu-accordion.collapsed .hatsu-accordion-chevron {
+  transform: rotate(-90deg);
+}
+
+.hatsu-accordion.collapsed .hatsu-section-header {
+  border-bottom-color: transparent;
+  margin-bottom: 0;
+  padding-bottom: 4px;
+}
+
+.hatsu-accordion-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+  transition: height 240ms ease;
+}
+
+.hatsu-section-title {
+  font: 700 12px var(--dnd5e-font-roboto-slab, serif);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b0a8d0;
+}
+
+.hatsu-section-summary {
+  flex: 1 1 auto;
+  font-size: 11px;
+  color: #8080a0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  padding-right: 8px;
+}
+
+.hatsu-blocked-badge {
+  font-size: 11px;
+  color: #d06060;
+  margin-left: auto;
+}
+
+.hatsu-section-title { flex: 0 0 auto; }
+
+/* ── Slot da manifestação ───────────────────────────── */
+.hatsu-manif-card {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #14142a;
+  border: 1px solid #2a2a48;
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.hatsu-manif-card:hover { border-color: #3a3a60; }
+
+.hatsu-manif-card.blocked,
+.hatsu-tecnica-item.blocked {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+  position: relative;
+}
+
+.hatsu-manif-card.blocked::after,
+.hatsu-tecnica-item.blocked::after {
+  content: "\f023";
+  font-family: "Font Awesome 6 Free", "FontAwesome";
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  color: #d06060;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.hatsu-manif-img {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #2a2a40;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.hatsu-manif-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hatsu-manif-name {
+  font: 700 12px var(--dnd5e-font-roboto, sans-serif);
+  color: #d0c8ff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hatsu-manif-meta { font-size: 10px; color: #8080a8; }
+
+.hatsu-manif-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.hatsu-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #2a2a40;
+  border-radius: 3px;
+  background: #0c0c18;
+  color: #6060a0;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 120ms ease;
+}
+
+.hatsu-action:hover {
+  border-color: #4a4a70;
+  color: #a0a0d0;
+  background: #14142a;
+}
+
+.hatsu-action-danger:hover {
+  border-color: #803030;
+  color: #d06060;
+  background: #1a0a0a;
+}
+
+/* ── Empty / Drop zone ──────────────────────────────── */
+.hatsu-manif-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: #08080f;
+  border: 1px dashed #2a2a48;
+  border-radius: 4px;
+  color: #4a4a6a;
+  font-size: 11px;
+  font-style: italic;
+  text-align: center;
+}
+
+.hatsu-manif-empty i { font-size: 16px; }
+
+.hatsu-manif-create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  padding: 5px 12px;
+  background: #14142a;
+  border: 1px solid #3a3a60;
+  border-radius: 4px;
+  color: #b0a8d0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.hatsu-manif-create-btn:hover {
+  background: #1a1a3a;
+  border-color: #5a5a80;
+  color: #e0d8ff;
+}
+
+.hatsu-manif-create-btn i { font-size: 11px; }
+
+.hatsu-drop-zone.drag-hover {
+  border-color: #6fa8dc;
+  background: #0e1a28;
+  color: #9fc5ff;
+}
+
+/* ── Técnicas filhas ────────────────────────────────── */
+.hatsu-tecnicas-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.hatsu-tecnicas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  background: #0a0a14;
+  border: 1px solid #1a1a28;
+  border-radius: 3px;
+}
+
+.hatsu-tecnicas-title {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8080a0;
+  font-weight: 700;
+}
+
+.hatsu-tecnica-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #2a2a40;
+  border-radius: 3px;
+  background: #14142a;
+  color: #8080c0;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.hatsu-tecnica-add:hover { border-color: #4a4a70; color: #c0c0e0; }
+
+.hatsu-tecnicas-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 4px;
+  min-height: 32px;
+  background: #06060c;
+  border: 1px dashed #1a1a2c;
+  border-radius: 3px;
+}
+
+.hatsu-tecnica-item {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: #0e0e18;
+  border: 1px solid #1c1c30;
+  border-radius: 3px;
+  cursor: grab;
+}
+
+.hatsu-tecnica-item:hover { border-color: #3a3a60; }
+
+.hatsu-tecnica-img {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #2a2a40;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.hatsu-tecnica-name {
+  font-size: 11px;
+  color: #c0c0e0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hatsu-tecnica-sub {
+  font-size: 9px;
+  color: #6a6a8a;
+}
+
+.hatsu-tecnica-actions {
+  display: flex;
+  gap: 3px;
+}
+
+.hatsu-tecnica-empty {
+  list-style: none;
+  padding: 8px;
+  font-size: 10px;
+  color: #4a4a6a;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Requisitos de Categoria ──────────────────────── */
+.hatsu-reqs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px 8px;
+  background: #08080f;
+  border: 1px solid #1a1a28;
+  border-radius: 3px;
+}
+
+.hatsu-reqs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 4px;
+  border-bottom: 1px solid #14142a;
+}
+
+.hatsu-reqs-title {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8080a0;
+  font-weight: 700;
+}
+
+.hatsu-req-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #2a2a40;
+  border-radius: 3px;
+  background: #14142a;
+  color: #8080c0;
+  cursor: pointer;
+  font-size: 10px;
+}
+.hatsu-req-add:hover { border-color: #4a4a70; color: #c0c0e0; }
+
+.hatsu-reqs-list {
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+
+.hatsu-reqs-list[data-cols="1"] { grid-template-columns: 1fr; }
+.hatsu-reqs-list[data-cols="2"] { grid-template-columns: 1fr 1fr; }
+.hatsu-reqs-list[data-cols="3"] { grid-template-columns: 1fr 1fr 1fr; }
+
+.hatsu-reqs-empty {
+  margin: 0;
+  padding: 6px;
+  font-size: 10px;
+  font-style: italic;
+  color: #4a4a6a;
+  text-align: center;
+}
+
+.hatsu-req-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto 18px;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 5px;
+  background: #0c0c14;
+  border: 1px solid var(--cat-color, #1c1c30);
+  border-left-width: 3px;
+  border-radius: 3px;
+  min-width: 0;
+}
+
+.hatsu-req-row.met {
+  background: linear-gradient(90deg, rgba(46, 204, 113, 0.06), transparent);
+}
+
+.hatsu-req-row.unmet {
+  background: linear-gradient(90deg, rgba(208, 96, 96, 0.06), transparent);
+}
+
+.hatsu-req-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+}
+
+.hatsu-req-row.met .hatsu-req-status {
+  background: rgba(46, 204, 113, 0.15);
+  color: #5fd08a;
+}
+
+.hatsu-req-row.unmet .hatsu-req-status {
+  background: rgba(208, 96, 96, 0.15);
+  color: #d06060;
+}
+
+.hatsu-req-cat {
+  background: #14142a;
+  border: 1px solid #2a2a40;
+  border-radius: 3px;
+  color: var(--cat-color, #c0c0e0);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+.hatsu-req-cat:focus { border-color: #5a5a80; outline: none; }
+
+.hatsu-req-levels {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hatsu-req-current {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 4px;
+  background: #0e0e18;
+  border: 1px solid #2a2a40;
+  border-radius: 3px;
+  color: #c0c0e0;
+  text-align: center;
+}
+
+.hatsu-req-row.met .hatsu-req-current {
+  border-color: rgba(46, 204, 113, 0.5);
+  color: #5fd08a;
+}
+
+.hatsu-req-row.unmet .hatsu-req-current {
+  border-color: rgba(208, 96, 96, 0.5);
+  color: #d06060;
+}
+
+.hatsu-req-sep { color: #4a4a6a; font-weight: 400; }
+
+.hatsu-req-level {
+  width: 32px;
+  background: #14142a;
+  border: 1px solid #3a3a60;
+  border-radius: 3px;
+  color: #c0c0e0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 3px;
+  text-align: center;
+}
+.hatsu-req-level:focus { border-color: #5a5a80; outline: none; }

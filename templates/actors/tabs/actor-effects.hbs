@@ -1,3 +1,9 @@
 <section class="tab {{ tab.cssClass }}" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
+
+    {{!-- Botões de poder (Hunter): Explosão Defensiva, Estágio de Foco, Foco Agressivo/Defensivo --}}
+    <div class="jj-power-buttons-section">
+        {{> "systems/hunter-system/templates/actors/parts/jj-power-buttons.hbs" showPin=true }}
+    </div>
+
     {{> "dnd5e.active-effects" }}
 </section>

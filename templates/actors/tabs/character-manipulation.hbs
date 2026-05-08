@@ -53,7 +53,7 @@
         <h3 class="evolution-title">Evolução na Prática</h3>
         <span class="evolution-subtitle">Treinamento Intenso — 10 dias</span>
       </div>
-      <button class="jujutsu-btn primary btn-intensive-training"
+      <button type="button" class="jujutsu-btn primary btn-intensive-training"
         data-action="intensiveTraining"
         title="Iniciar Treinamento Intenso (10 dias)">
         <i class="fas fa-dumbbell"></i> Treinar
@@ -75,7 +75,7 @@
           <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.maxEnergy}}</span>
         </div>
         {{#if actor.system.energy.intensiveTraining.maxEnergy}}
-        <button class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="maxEnergy"
+        <button type="button" class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="maxEnergy"
           title="Desfazer último treino de PA Máximo">
           <i class="fas fa-rotate-left"></i>
         </button>
@@ -95,7 +95,7 @@
           <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.generatedEnergy}}</span>
         </div>
         {{#if actor.system.energy.intensiveTraining.generatedEnergy}}
-        <button class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="generatedEnergy"
+        <button type="button" class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="generatedEnergy"
           title="Desfazer último treino de PA Gerada">
           <i class="fas fa-rotate-left"></i>
         </button>
@@ -115,7 +115,7 @@
           <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.cursePoints}}</span>
         </div>
         {{#if actor.system.energy.intensiveTraining.cursePoints}}
-        <button class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="cursePoints"
+        <button type="button" class="evo-undo-btn" data-action="undoIntensiveTraining" data-field="cursePoints"
           title="Desfazer último treino de PM">
           <i class="fas fa-rotate-left"></i>
         </button>
@@ -180,9 +180,9 @@
         {{!-- Ação --}}
         <div class="ability-actions">
           {{#if this.unlocked}}
-            <button class="jujutsu-btn unlocked-state" disabled>✓ Desbloqueado</button>
+            <button type="button" class="jujutsu-btn unlocked-state" disabled>✓ Desbloqueado</button>
           {{else if this.canUnlock}}
-            <button class="jujutsu-btn primary btn-unlock"
+            <button type="button" class="jujutsu-btn primary btn-unlock"
               data-action="unlockManipulation"
               data-ability="{{@key}}"
               data-cost="{{this.cost}}">
@@ -219,14 +219,14 @@
             {{#if pr.canUnlockFree}}0{{else}}{{pr.cost}} PM{{/if}}
           </span>
           {{#if pr.canUnlock}}
-          <button class="nen-card-btn nen-card-btn-unlock item-action"
+          <button type="button" class="nen-card-btn nen-card-btn-unlock item-action"
             data-action="unlockNenPrinciple"
             data-id="{{pr.id}}">
             Desbloquear{{#if pr.canUnlockFree}} (0){{/if}}
           </button>
           {{else if pr.unlocked}}
           <span class="nen-card-locked">✓ Desbloqueado</span>
-          <button class="nen-card-btn nen-card-btn-undo item-action"
+          <button type="button" class="nen-card-btn nen-card-btn-undo item-action"
             data-action="undoNenPrinciple"
             data-id="{{pr.id}}">
             ↩ Desfazer
@@ -250,14 +250,14 @@
               <span class="nen-box-name">{{ab.label}}</span>
               <span class="nen-box-cost">{{ab.cost}} PM</span>
               {{#if ab.canUnlock}}
-              <button class="nen-card-btn nen-card-btn-unlock item-action"
+              <button type="button" class="nen-card-btn nen-card-btn-unlock item-action"
                 data-action="unlockNenAbility"
                 data-id="{{ab.id}}">
                 Desbloquear
               </button>
               {{else if ab.unlocked}}
               <span class="nen-card-locked">✓ Desbloqueado</span>
-              <button class="nen-card-btn nen-card-btn-undo item-action"
+              <button type="button" class="nen-card-btn nen-card-btn-undo item-action"
                 data-action="undoNenAbility"
                 data-id="{{ab.id}}">
                 ↩ Desfazer

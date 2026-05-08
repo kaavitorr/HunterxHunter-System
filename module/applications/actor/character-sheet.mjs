@@ -50,7 +50,8 @@ export default class CharacterActorSheet extends BaseActorSheet {
     },
     sidebar: {
       container: { classes: ["main-content"], id: "main" },
-      template: "systems/hunter-system/templates/actors/character-sidebar.hbs"
+      template: "systems/hunter-system/templates/actors/character-sidebar.hbs",
+      templates: ["systems/hunter-system/templates/actors/parts/jj-power-buttons.hbs"]
     },
     details: {
       classes: ["col-2"],
@@ -79,9 +80,16 @@ export default class CharacterActorSheet extends BaseActorSheet {
       templates: ["systems/hunter-system/templates/inventory/inventory.hbs", "systems/hunter-system/templates/inventory/activity.hbs"],
       scrollable: [""]
     },
+    hatsu: {
+      classes: ["flexcol"],
+      container: { classes: ["tab-body"], id: "tabs" },
+      template: "systems/hunter-system/templates/actors/tabs/character-hatsu.hbs",
+      scrollable: [""]
+    },
     effects: {
       container: { classes: ["tab-body"], id: "tabs" },
       template: "systems/hunter-system/templates/actors/tabs/actor-effects.hbs",
+      templates: ["systems/hunter-system/templates/actors/parts/jj-power-buttons.hbs"],
       scrollable: [""]
     },
     biography: {
@@ -146,6 +154,7 @@ export default class CharacterActorSheet extends BaseActorSheet {
     { tab: "inventory", label: "DND5E.Inventory", svg: "systems/hunter-system/icons/svg/backpack.svg" },
     { tab: "features", label: "DND5E.Features", icon: "fas fa-list" },
     { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
+    { tab: "hatsu", label: "JUJUTSU.Hatsu.Tab", icon: "fas fa-hand-fist" },
     { tab: "effects", label: "DND5E.Effects", icon: "fas fa-bolt" },
     { tab: "bastion", label: "DND5E.Bastion.Label", icon: "fas fa-chess-rook", condition: this.hasBastion },
     // { tab: "specialTraits", label: "DND5E.SpecialTraits", icon: "fas fa-star" },
@@ -216,6 +225,23 @@ export default class CharacterActorSheet extends BaseActorSheet {
 
   /* -------------------------------------------- */
 
+  /** @override */
+  _prepareSpellbook(context) {
+    // Esconde spells da aba Hatsu (manifestações e técnicas filhas) da spellbook normal
+    const original = context.itemCategories?.spells;
+    if ( Array.isArray(original) ) {
+      context.itemCategories.spells = original.filter(s => {
+        const flag = s.getFlag("hunter-system", "hatsu") ?? {};
+        return !flag.slot && !flag.parent;
+      });
+    }
+    const result = super._prepareSpellbook(context);
+    if ( original ) context.itemCategories.spells = original;
+    return result;
+  }
+
+  /* -------------------------------------------- */
+
   /** @inheritDoc */
   async _preparePartContext(partId, context, options) {
     context = await super._preparePartContext(partId, context, options);
@@ -231,6 +257,7 @@ export default class CharacterActorSheet extends BaseActorSheet {
       case "sidebar": return this._prepareSidebarContext(context, options);
       case "specialTraits": return this._prepareSpecialTraitsContext(context, options);
       case "spells": return this._prepareSpellsContext(context, options);
+      case "hatsu": return this._prepareHatsuContext(context, options);
       case "manipulation": return this._prepareManipulationContext(context, options);
       case "trainings": return this._prepareTrainingsContext(context, options);
       default: return context;
@@ -426,6 +453,9 @@ context.skills = skillsSorted;
       ...cond,
       active: activeStatuses.has(cond.id)
     }));
+
+    // Botões de poder (mesmos da sidebar) — sempre exibidos no topo da aba Effects
+    this._prepareJJPowersContext(context);
 
     return context;
   }
@@ -631,6 +661,9 @@ context.energyPct = energy?.max > 0 ? ((energy.total / energy.max) * 100).toFixe
     // Favorites
     context.favorites = await this._prepareFavorites();
 
+    // Power buttons (Explosão Defensiva, Estágio de Foco, Foco Agressivo/Defensivo)
+    this._prepareJJPowersContext(context);
+
     // Speed
     context.speed = Object.entries(CONFIG.DND5E.movementTypes).reduce((obj, [k, { hidden, label }]) => {
       if ( hidden ) return obj;
@@ -643,6 +676,53 @@ context.energyPct = energy?.max > 0 ? ((energy.total / energy.max) * 100).toFixe
     }, { label: CONFIG.DND5E.movementTypes.walk?.label, value: 0 });
 
     return context;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Prepara dados dos botões de poder (Explosão Defensiva, Estágio de Foco,
+   * Foco Agressivo/Defensivo) e flags de pin no sidebar. Usado tanto pela
+   * sidebar quanto pela aba Effects.
+   */
+  _prepareJJPowersContext(context) {
+    const ab = this.actor.system.manipulation?.abilities ?? {};
+    context.foco = {
+      show: !!(ab.focoAgressivo?.unlocked || ab.focoDefensivo?.unlocked),
+      agressivoUnlocked: !!ab.focoAgressivo?.unlocked,
+      defensivoUnlocked: !!ab.focoDefensivo?.unlocked,
+      agressivoAtivo:    !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo"),
+      defensivoAtivo:    !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo"),
+      fluxoVeloz:        !!ab.fluxoVeloz?.unlocked,
+      fluxoConstante:    !!ab.fluxoConstante?.unlocked
+    };
+    context.foco.agressivoDie = context.foco.fluxoConstante ? "1d6" : "1d4";
+    const baseTemp = context.foco.fluxoConstante ? 40 : 20;
+    const resistUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
+    const aprimLvl = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
+    context.foco.defensivoTemp = baseTemp + (resistUnlocked ? aprimLvl * 3 : 0);
+
+    const hatsuTier = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
+    context.estagioFoco = {
+      show: hatsuTier === "ultimato",
+      ativo: !!this.actor.getFlag("hunter-system", "hatsuEstagioFocoAtivo")
+    };
+
+    context.expDef = {
+      show: !!this.actor.system.manipulation?.abilities?.explosaoDefensiva?.unlocked
+    };
+
+    // Flags de pin (qual botão também aparece na sidebar)
+    const pin = this.actor.getFlag("hunter-system", "pinSidebar") ?? {};
+    context.pinSidebar = {
+      expDef:     pin.expDef     !== false, // default: pinned (compatibilidade)
+      estagio:    pin.estagio    !== false,
+      agressivo:  pin.agressivo  !== false,
+      defensivo:  pin.defensivo  !== false
+    };
+    // Estado para a layout duo do Foco no sidebar
+    context.foco.bothPinned = context.pinSidebar.agressivo && context.pinSidebar.defensivo;
+    context.foco.anyPinned  = context.pinSidebar.agressivo || context.pinSidebar.defensivo;
   }
 
   /* -------------------------------------------- */
@@ -981,6 +1061,23 @@ new ContextMenu5e(
   { jQuery: false }
 );
 
+new ContextMenu5e(
+  this.element,
+  ".nen-category-card[data-category]",
+  [
+    {
+      name: "Desfazer Treinamento",
+      icon: '<i class="fas fa-rotate-left"></i>',
+      condition: element => {
+        const id = element.dataset.category;
+        return (this.actor.system.nenCategories?.[id]?.level ?? 0) > 0;
+      },
+      callback: element => this._onUndoTrainNenCategory(element.dataset.category)
+    }
+  ],
+  { jQuery: false }
+);
+
 
 }
 
@@ -1044,7 +1141,13 @@ new foundry.applications.ux.ContextMenu.implementation(
       for ( const { selector, handler } of actions ) {
         this.element.querySelectorAll(selector).forEach(btn => {
           btn.dataset.bound = "1";
-          btn.addEventListener('click', (e) => { e.stopPropagation(); handler(btn); });
+          btn.addEventListener('click', (e) => {
+            if ( e.button !== 0 ) return;
+            e.stopPropagation();
+            handler(btn);
+          });
+          btn.addEventListener('contextmenu', (e) => { e.preventDefault(); });
+          btn.addEventListener('auxclick', (e) => { if ( e.button !== 0 ) e.preventDefault(); });
         });
       }
     }, 150);
@@ -1060,6 +1163,37 @@ new foundry.applications.ux.ContextMenu.implementation(
     this.element.querySelector("[data-action='jj-expdef-trigger']")
       ?.addEventListener("click", () => _onExplosaoDefensiva(this.actor));
 
+    // Botões de Foco Agressivo / Defensivo
+    this.element.querySelectorAll("[data-action='jj-toggle-foco']")
+      .forEach(btn => btn.addEventListener("click", () => {
+        if ( btn.disabled ) return;
+        this._onToggleFoco(btn.dataset.foco);
+      }));
+
+    // Botão Estágio de Foco (Ultimato)
+    this.element.querySelector("[data-action='jj-toggle-estagio-foco']")
+      ?.addEventListener("click", () => this._onToggleEstagioFoco());
+
+    // Hatsu — feedback visual de hover nos drop zones
+    this.element.querySelectorAll(".hatsu-drop-zone").forEach(zone => {
+      zone.addEventListener("dragenter", e => { e.preventDefault(); zone.classList.add("drag-hover"); });
+      zone.addEventListener("dragover",  e => { e.preventDefault(); });
+      zone.addEventListener("dragleave", e => {
+        if ( !zone.contains(e.relatedTarget) ) zone.classList.remove("drag-hover");
+      });
+      zone.addEventListener("drop", () => zone.classList.remove("drag-hover"));
+    });
+
+    // Hatsu — change listeners para requisitos de categoria (select + input)
+    this.element.querySelectorAll("[data-hatsu-req]").forEach(el => {
+      el.addEventListener("change", e => {
+        const field = el.dataset.hatsuReq;
+        const itemId = el.dataset.itemId;
+        const index = parseInt(el.dataset.index);
+        this._onHatsuReqChange(itemId, index, field, el.value);
+      });
+    });
+
     // Seis Olhos — listener nos radio buttons
     this.element.querySelectorAll("input[name='flags.hunter-system.seisOlhosMode']")
       .forEach(radio => radio.addEventListener("change", async (event) => {
@@ -1070,19 +1204,35 @@ new foundry.applications.ux.ContextMenu.implementation(
 
     // Formatar inputs de Yen com pontuação (ex: 5000 → 5.000)
     const _formatYen = val => {
-      const num = parseInt(String(val).replace(/\./g, "").replace(/,/g, "")) || 0;
+      const num = parseInt(String(val).replace(/\D/g, "")) || 0;
       return num.toLocaleString("pt-BR");
     };
     this.element.querySelectorAll("input.jj-yen-input, input[name='system.currency.yen']").forEach(input => {
       if ( input.dataset.yenFormatted ) return;
       input.dataset.yenFormatted = "1";
-      if ( input.value ) input.value = _formatYen(input.value);
+
+      // Cria um input hidden com o valor numérico puro — é esse que o Foundry lê
+      const hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = input.name;
+      hidden.value = parseInt(String(input.value).replace(/\D/g, "")) || 0;
+      input.parentNode.insertBefore(hidden, input.nextSibling);
+
+      // O input visível vira só display: sem name, tipo text, formatado
+      input.removeAttribute("name");
+      input.type = "text";
+      input.value = _formatYen(hidden.value);
+
       input.addEventListener("focus", () => {
-        input.value = String(parseInt(input.value.replace(/\./g, "").replace(/,/g, "")) || 0);
+        input.value = hidden.value;
         input.select();
       });
       input.addEventListener("blur", () => {
-        input.value = _formatYen(input.value);
+        const raw = parseInt(input.value.replace(/\D/g, "")) || 0;
+        hidden.value = raw;
+        // Dispara change no hidden pro Foundry salvar
+        hidden.dispatchEvent(new Event("change", { bubbles: true }));
+        input.value = _formatYen(raw);
       });
     });
 
@@ -1102,6 +1252,19 @@ new foundry.applications.ux.ContextMenu.implementation(
     const isUpdate = (renderContext === "update") || (renderContext === "updateActor");
     const hp = foundry.utils.getProperty(renderData ?? {}, "system.attributes.hp.value");
     if ( isUpdate && (hp === 0) ) this._toggleDeathTray(true);
+
+    // Sincroniza Active Effect da proficiência Hatsu (apenas dono pra evitar conflito)
+    if ( this.actor.isOwner ) this._syncHatsuProficiencyEffect();
+
+    // Restaura estado colapsado dos slots Hatsu
+    this._restoreHatsuCollapsedSections();
+
+    // Re-registra hook do Estágio de Foco caso flag esteja ativa após reload
+    if ( this.actor.isOwner
+         && this.actor.getFlag("hunter-system", "hatsuEstagioFocoAtivo")
+         && !this.actor._estagioFocoHookId ) {
+      _registerEstagioFocoHook(this.actor);
+    }
   }
 
   /* -------------------------------------------- */
@@ -1411,9 +1574,61 @@ new foundry.applications.ux.ContextMenu.implementation(
 
   /** @inheritDoc */
   async _onDropItem(event, item) {
+    // Aba Hatsu: drop em slot de manifestação ou em lista de técnicas
+    const hatsuTarget = event.target.closest("[data-hatsu-drop]");
+    if ( hatsuTarget && item.type === "spell" ) {
+      return this._onHatsuDropSpell(event, item, hatsuTarget);
+    }
+
     if ( !event.target.closest(".favorites") || (item.parent !== this.actor) ) return super._onDropItem(event, item);
     const uuid = item.getRelativeUUID(this.actor);
     return this._onDropFavorite(event, { type: "item", id: uuid });
+  }
+
+  /**
+   * Atribui um spell a um slot de manifestação ou como técnica filha de um slot.
+   */
+  async _onHatsuDropSpell(event, item, dropTarget) {
+    const dropType = dropTarget.dataset.hatsuDrop;
+    const slotId = dropTarget.closest("[data-hatsu-slot]")?.dataset.hatsuSlot;
+    if ( !slotId ) return;
+
+    let owned = item.parent === this.actor ? item : null;
+
+    // Item externo: criar no actor primeiro
+    if ( !owned ) {
+      const itemData = item.toObject();
+      delete itemData._id;
+      if ( dropType === "manif" ) {
+        foundry.utils.setProperty(itemData, "system.method", "atwill");
+      }
+      const created = await Item.implementation.create(itemData, { parent: this.actor });
+      owned = Array.isArray(created) ? created[0] : created;
+      if ( !owned ) return;
+    }
+
+    // Limpar flag anterior antes de setar a nova
+    await owned.unsetFlag("hunter-system", "hatsu");
+
+    if ( dropType === "manif" ) {
+      // Se outra manifestação ocupava esse slot, desocupa
+      const previous = this.actor.items.find(i =>
+        (i !== owned) && (i.type === "spell") &&
+        (i.getFlag("hunter-system", "hatsu.slot") === slotId)
+      );
+      if ( previous ) await previous.unsetFlag("hunter-system", "hatsu");
+      await owned.setFlag("hunter-system", "hatsu", { slot: slotId });
+      // Promover método para "atwill" se ainda não for
+      if ( owned.system?.method !== "atwill" ) {
+        await owned.update({ "system.method": "atwill" });
+      }
+      ui.notifications.info(`"${owned.name}" atribuída ao slot ${slotId}.`);
+    } else {
+      await owned.setFlag("hunter-system", "hatsu", { parent: slotId });
+      ui.notifications.info(`"${owned.name}" adicionada como técnica de ${slotId}.`);
+    }
+
+    return owned;
   }
 
   /* -------------------------------------------- */
@@ -1635,27 +1850,20 @@ new foundry.applications.ux.ContextMenu.implementation(
     const dcReductions = this.actor.system.nenCategories?.[categoryId]?.dcReductions?.[nextLevel] ?? 0;
     const currentDC = Math.max(1, costs.cd - dcReductions);
 
-    // Deduzir custos
+    // Rolar Teste de Espírito (Nen) — chave de perícia "nen" (INT), com todos
+    // os modificadores aplicados pelo sistema. Sem diálogo (rolagem direta).
+    const rollResult = await this.actor.rollSkill(
+      { skill: "nen", target: currentDC },
+      { configure: false },
+      { data: { flavor: `Teste de Espírito (Nen) — ${cat.label} Nível ${nextLevel} (CD ${currentDC})` } }
+    );
+    const roll = Array.isArray(rollResult) ? rollResult[0] : rollResult;
+    if ( !roll ) return; // rolagem cancelada — não deduz PT/PA
+
+    // Deduzir custos somente após o roll ser efetivado
     await this.actor.update({
       "system.curseResources.trainingPoints": trainingPoints - costs.pt,
       "system.energy.total": Math.max(0, energyTotal - costs.pa)
-    });
-
-    // Rolar Teste de Espírito (Nen)
-    // Perícia Nen = "Cont" (INT base) — usa o total já calculado pelo sistema
-    const nenSkill = this.actor.system.skills?.Cont;
-    const intMod = this.actor.system.abilities?.int?.mod ?? 0;
-    const profBonus = this.actor.system.attributes?.prof ?? 2;
-    const skillBonus = nenSkill
-      ? nenSkill.total ?? (intMod + Math.floor(profBonus * (nenSkill.value ?? 0)))
-      : intMod;
-
-    const roll = await new Roll("1d20 + @bonus", { bonus: skillBonus }).evaluate();
-    if ( game.dice3d ) game.dice3d.showForRoll(roll, game.user, true);
-
-    await roll.toMessage({
-      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      flavor: `Teste de Espírito (Nen) — ${cat.label} Nível ${nextLevel} (CD ${currentDC})`
     });
 
     if ( roll.total >= currentDC ) {
@@ -1692,6 +1900,181 @@ new foundry.applications.ux.ContextMenu.implementation(
         content: `❌ <strong>${this.actor.name}</strong> falhou no treino de <strong>${cat.label}</strong> Nível ${nextLevel}. CD reduzida para ${currentDC - 1} (próxima tentativa).`
       });
     }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Alterna o estado dos focos Agressivo/Defensivo.
+   * - Mutuamente exclusivos exceto se Fluxo Veloz desbloqueado.
+   * - Foco Defensivo concede 20 (ou 40 com Fluxo Constante) PV temporários.
+   * - Foco Agressivo apenas seta a flag — o bônus de dano é aplicado no roll.
+   */
+  async _onToggleFoco(focoType) {
+    const ab = this.actor.system.manipulation?.abilities ?? {};
+    const flagAgressivo  = !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo");
+    const flagDefensivo  = !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo");
+    const fluxoVeloz     = !!ab.fluxoVeloz?.unlocked;
+    const fluxoConstante = !!ab.fluxoConstante?.unlocked;
+    const baseAmount     = fluxoConstante ? 40 : 20;
+
+    // Bônus de Resistência Aprimorada: +3 PV temporários por nível de Aprimorador
+    const resistenciaUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
+    const aprimoradorLevel    = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
+    const resistenciaBonus    = resistenciaUnlocked ? aprimoradorLevel * 3 : 0;
+    const tempAmount          = baseAmount + resistenciaBonus;
+    const dieFace             = fluxoConstante ? 6 : 4;
+
+    if ( focoType === "agressivo" ) {
+      if ( !ab.focoAgressivo?.unlocked ) return;
+      const novo = !flagAgressivo;
+      if ( novo && flagDefensivo && !fluxoVeloz ) {
+        await this._desativarFocoDefensivo({ silent: true });
+      }
+      await this.actor.setFlag("hunter-system", "focoAgressivoAtivo", novo);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: novo
+          ? `🥊 <strong>${this.actor.name}</strong> ativou o <strong>Foco Agressivo</strong> (+1d${dieFace} de dano em ataques comuns).`
+          : `🥊 <strong>${this.actor.name}</strong> desativou o <strong>Foco Agressivo</strong>.`
+      });
+    }
+
+    else if ( focoType === "defensivo" ) {
+      if ( !ab.focoDefensivo?.unlocked ) return;
+      const novo = !flagDefensivo;
+      if ( novo ) {
+        if ( flagAgressivo && !fluxoVeloz ) {
+          await this.actor.setFlag("hunter-system", "focoAgressivoAtivo", false);
+          ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+            content: `🥊 <strong>${this.actor.name}</strong> desativou o <strong>Foco Agressivo</strong>.`
+          });
+        }
+        await this._ativarFocoDefensivo(tempAmount);
+      } else {
+        await this._desativarFocoDefensivo();
+      }
+    }
+  }
+
+  async _ativarFocoDefensivo(amount) {
+    const currentTemp = this.actor.system.attributes?.hp?.temp ?? 0;
+    await this.actor.update({ "system.attributes.hp.temp": currentTemp + amount });
+    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", true);
+    await this.actor.setFlag("hunter-system", "focoDefensivoTempHpGranted", amount);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> (+${amount} PV temporários).`
+    });
+  }
+
+  /**
+   * Toggle do Estágio de Foco (Ultimato).
+   * Ao ativar: deduz 2 PA, registra hook de turno (perde 2 PA + ganha 10 PA gerada).
+   * Ao desativar: limpa flag e remove hook.
+   */
+  async _onToggleEstagioFoco() {
+    const tier = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
+    if ( tier !== "ultimato" ) {
+      ui.notifications.warn("Estágio de Foco requer proficiência Ultimato.");
+      return;
+    }
+
+    const ativo = !!this.actor.getFlag("hunter-system", "hatsuEstagioFocoAtivo");
+    if ( !ativo ) {
+      // Ativar: custar 2 PA inicial
+      const energy = this.actor.system.energy?.total ?? 0;
+      if ( energy < 2 ) {
+        ui.notifications.warn("PA insuficientes para ativar Estágio de Foco (custa 2 PA).");
+        return;
+      }
+      await this.actor.update({ "system.energy.total": energy - 2 });
+      await this.actor.setFlag("hunter-system", "hatsuEstagioFocoAtivo", true);
+      _registerEstagioFocoHook(this.actor);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `🔥 <strong>${this.actor.name}</strong> entrou no <strong>Estágio de Foco</strong> (-2 PA).`
+      });
+    } else {
+      await this.actor.setFlag("hunter-system", "hatsuEstagioFocoAtivo", false);
+      _unregisterEstagioFocoHook(this.actor);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `<strong>${this.actor.name}</strong> saiu do Estágio de Foco.`
+      });
+    }
+  }
+
+  async _desativarFocoDefensivo({ silent = false } = {}) {
+    const granted = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
+    const currentTemp = this.actor.system.attributes?.hp?.temp ?? 0;
+    await this.actor.update({ "system.attributes.hp.temp": Math.max(0, currentTemp - granted) });
+    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", false);
+    await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    if ( !silent ) {
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `🛡️ <strong>${this.actor.name}</strong> desativou o <strong>Foco Defensivo</strong>.`
+      });
+    }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Desfaz o último treinamento de uma categoria Nen.
+   * Desce 1 nível, devolve os PT gastos no nível atual, mantém as reduções de CD acumuladas
+   * e desbloqueia em cascata habilidades principais que dependiam do nível desfeito.
+   */
+  async _onUndoTrainNenCategory(categoryId) {
+    const cat = NEN_CATEGORIES_DATA[categoryId];
+    if ( !cat ) return;
+
+    const currentLevel = this.actor.system.nenCategories?.[categoryId]?.level ?? 0;
+    if ( currentLevel <= 0 ) {
+      ui.notifications.warn(`${cat.label} não tem treinamento para desfazer.`);
+      return;
+    }
+
+    const newLevel = currentLevel - 1;
+    const costs = NEN_LEVEL_COSTS[currentLevel];
+    const refundPt = costs?.pt ?? 0;
+
+    const updates = {
+      [`system.nenCategories.${categoryId}.level`]: newLevel,
+      "system.curseResources.trainingPoints": (this.actor.system.curseResources?.trainingPoints ?? 0) + refundPt
+    };
+
+    // Cascata: remove majors cujo nível requerido fica acima do novo nível
+    const unlockedMajorMap = this.actor.system.nenCategories?.[categoryId]?.unlockedMajor ?? {};
+    const undoneMajors = [];
+    let nenMajorCount = this.actor.system.nenMajorCount ?? 0;
+    for ( const [reqLvlStr, ability] of Object.entries(cat.major ?? {}) ) {
+      const reqLvl = parseInt(reqLvlStr);
+      if ( reqLvl > newLevel && unlockedMajorMap[ability.id] ) {
+        updates[`system.nenCategories.${categoryId}.unlockedMajor.${ability.id}`] = false;
+        if ( !ability.exclusive ) nenMajorCount = Math.max(0, nenMajorCount - 1);
+        undoneMajors.push(ability.label);
+      }
+    }
+    updates["system.nenMajorCount"] = nenMajorCount;
+
+    await this.actor.update(updates);
+
+    // Atualiza efeito menor automático para o novo nível (rebaixa ou remove)
+    await this._applyNenMinorEffect(categoryId, newLevel);
+
+    ui.notifications.info(`${cat.label}: nível ${currentLevel} → ${newLevel}. ${refundPt} PT devolvidos.`);
+
+    let chatContent = `↩️ <strong>${this.actor.name}</strong> desfez o treinamento de <strong>${cat.label}</strong>: Nível ${currentLevel} → Nível ${newLevel}. ${refundPt} PT devolvidos.`;
+    if ( undoneMajors.length ) {
+      chatContent += `<br/>⚠️ Habilidades principais removidas em cascata: <strong>${undoneMajors.join(", ")}</strong>.`;
+    }
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: chatContent
+    });
   }
 
   /* -------------------------------------------- */
@@ -2017,11 +2400,17 @@ new foundry.applications.ux.ContextMenu.implementation(
 
   /**
    * Retorna o máximo de habilidades principais que o personagem pode ter.
-   * Base: 4. Sobe para 6 se tiver atingido nível 10 em todas as categorias possíveis.
+   * Base: 4. Sobe para 6 quando todas as categorias atingem o nível máximo permitido
+   * pela afinidade da categoria principal (ex: Aprimorador → 10/8/8/6/6/0).
    */
   _getNenMajorMax() {
     const CATEGORIES = ["aprimorador", "emissor", "transmutador", "conjurador", "manipulador", "especialista"];
-    const allMax = CATEGORIES.every(id => (this.actor.classes?.[id]?.system?.levels ?? 0) >= 10);
+    const allMax = CATEGORIES.every(id => {
+      const max = getMaxLevelForCategory(this.actor, id);
+      if ( max <= 0 ) return true; // categoria sem afinidade não bloqueia o avanço
+      const lvl = this.actor.system.nenCategories?.[id]?.level ?? 0;
+      return lvl >= max;
+    });
     return allMax ? 6 : 4;
   }
 
@@ -2066,6 +2455,494 @@ new foundry.applications.ux.ContextMenu.implementation(
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `🔓 <strong>${this.actor.name}</strong> desbloqueou a habilidade principal: <strong>${ability.label}</strong>!`
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  /* -------------------------------------------- */
+  /*  Hatsu Tab                                   */
+  /* -------------------------------------------- */
+
+  /**
+   * Prepara o contexto da aba Hatsu — 4 slots (inata, m1, m2, m3),
+   * cada um com sua manifestação atribuída e técnicas filhas.
+   */
+  async _prepareHatsuContext(context, options) {
+    const SLOTS = [
+      { id: "inata", label: "Habilidade Inata",   tecnicasLabel: "Técnicas de Inata" },
+      { id: "m1",    label: "1ª Manifestação",    tecnicasLabel: "Técnicas da Manifestação" },
+      { id: "m2",    label: "2ª Manifestação",    tecnicasLabel: "Técnicas da Manifestação" },
+      { id: "m3",    label: "3ª Manifestação",    tecnicasLabel: "Técnicas da Manifestação" }
+    ];
+
+    const CATEGORIES = [
+      { id: "aprimorador",  label: "Aprimorador",  color: "#e86800" },
+      { id: "emissor",      label: "Emissor",      color: "#B8860B" },
+      { id: "transmutador", label: "Transmutador", color: "#9B59D0" },
+      { id: "conjurador",   label: "Conjurador",   color: "#3A8FD4" },
+      { id: "manipulador",  label: "Manipulador",  color: "#2ECC71" },
+      { id: "especialista", label: "Especialista", color: "#AAAAAA" }
+    ];
+
+    const allSpells = this.actor.items.filter(i => i.type === "spell");
+    const slots = SLOTS.map(def => {
+      const manifestacao = allSpells.find(s => s.getFlag("hunter-system", "hatsu.slot") === def.id) ?? null;
+      const tecnicas = allSpells
+        .filter(s => s.getFlag("hunter-system", "hatsu.parent") === def.id && s !== manifestacao)
+        .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+
+      // Requisitos de categoria (até 6) — armazenados na manifestação
+      const rawReqs = manifestacao?.getFlag("hunter-system", "hatsu.requirements") ?? [];
+      const manifestacaoId = manifestacao?.id ?? null;
+      const requirements = rawReqs.map((req, idx) => {
+        const cat = CATEGORIES.find(c => c.id === req.category) ?? CATEGORIES[0];
+        const currentLevel = this.actor.system.nenCategories?.[cat.id]?.level ?? 0;
+        const met = currentLevel >= (req.level ?? 1);
+        return {
+          index: idx,
+          manifestacaoId,
+          category: cat.id,
+          categoryLabel: cat.label,
+          color: cat.color,
+          level: req.level ?? 1,
+          currentLevel,
+          met
+        };
+      });
+      const unmet = requirements.filter(r => !r.met);
+      const blocked = !!manifestacao && unmet.length > 0;
+      const blockedReason = blocked
+        ? "Faltam: " + unmet.map(r => `${r.categoryLabel} Nv${r.level} (atual: ${r.currentLevel})`).join("; ")
+        : "";
+
+      const _spellLite = (s, isBlocked = false) => s ? {
+        id: s.id,
+        name: s.name,
+        img: s.img,
+        subtitle: s.system?.school ? CONFIG.DND5E.spellSchools?.[s.system.school]?.label : "",
+        blocked: isBlocked
+      } : null;
+
+      const reqsCols = requirements.length <= 1 ? 1
+                     : requirements.length <= 4 ? 2
+                     : 3;
+
+      return {
+        ...def,
+        manifestacao: _spellLite(manifestacao, blocked),
+        tecnicas: tecnicas.map(t => _spellLite(t, blocked)),
+        requirements,
+        reqsCols,
+        canAddReq: !!manifestacao && requirements.length < 6,
+        blocked,
+        blockedReason
+      };
+    });
+
+    // Detectar categoria principal (mesma lógica usada na aba Treinamentos)
+    const PRIM_CATS = CATEGORIES.map(c => c.id);
+    let primaryCategory = null;
+    for ( const catId of PRIM_CATS ) {
+      const cls = Object.values(this.actor.classes ?? {}).find(c =>
+        c.identifier === catId || c.system?.identifier === catId || c.name?.toLowerCase() === catId
+      );
+      if ( cls ) { primaryCategory = catId; break; }
+    }
+    if ( !primaryCategory ) {
+      let maxLvl = 0;
+      for ( const catId of PRIM_CATS ) {
+        const lvl = this.actor.system?.nenCategories?.[catId]?.level ?? 0;
+        if ( lvl > maxLvl ) { maxLvl = lvl; primaryCategory = catId; }
+      }
+    }
+    const primaryLevel = primaryCategory
+      ? this.actor.system.nenCategories?.[primaryCategory]?.level ?? 0
+      : 0;
+    const primaryLabel = CATEGORIES.find(c => c.id === primaryCategory)?.label ?? "—";
+
+    // Proficiência: calcular tier
+    const occupied = slots.filter(s => s.manifestacao);
+    const _allCatsAtLeast = (manifSlots, lvl) => {
+      if ( !manifSlots.length ) return false;
+      for ( const m of manifSlots ) {
+        for ( const r of (m.requirements ?? []) ) {
+          const cur = this.actor.system.nenCategories?.[r.category]?.level ?? 0;
+          if ( cur < lvl ) return false;
+        }
+      }
+      return true;
+    };
+
+    const ultimatoUnlocked = !!this.actor.getFlag("hunter-system", "hatsuUltimatoUnlocked");
+    const reqUltimato  = primaryLevel >= 10 && occupied.length >= 1 && _allCatsAtLeast(occupied, 6);
+    const reqGenial    = primaryLevel >= 7  && occupied.length >= 2 && _allCatsAtLeast(occupied.slice(0, 2), 4);
+    const reqExcelente = primaryLevel >= 5  && occupied.length >= 1 && _allCatsAtLeast(occupied.slice(0, 1), 3);
+    const reqOtimo     = primaryLevel >= 1  && occupied.length >= 1 && _allCatsAtLeast(occupied.slice(0, 1), 1);
+
+    let tier = "none";
+    if ( ultimatoUnlocked && reqUltimato ) tier = "ultimato";
+    else if ( reqGenial )                  tier = "genial";
+    else if ( reqExcelente )               tier = "excelente";
+    else if ( reqOtimo )                   tier = "otimo";
+
+    const TIERS = [
+      { id: "otimo",     label: "Ótimo",     mainReq: 1,  catsReq: 1,  manifs: 1,
+        benefits: ["Manifestação de Habilidade", "Recuperação Elevada (d4 → d6)"] },
+      { id: "excelente", label: "Excelente", mainReq: 5,  catsReq: 3,  manifs: 1,
+        benefits: ["+1 Manifestação", "Recuperação Rápida (d6 → d8)", "Aura Fortalecida (+mod em dano/cura)"] },
+      { id: "genial",    label: "Genial",    mainReq: 7,  catsReq: 4,  manifs: 2,
+        benefits: ["Recuperação Veloz (d8 → d10, +2 dados em descanso)", "Aprimorar Aspecto (+4 PA, máx 30)"] },
+      { id: "ultimato",  label: "Ultimato",  mainReq: 10, catsReq: 6,  manifs: "todas",
+        benefits: ["+15 PN", "+2 atributo principal", "+3 talentos", "Dano +1 passo (d10 → d12)",
+                   "+1 Manifestação", "Recuperação Extrema (d10 → d12, +4 dados em descanso)"] }
+    ];
+
+    // Estado de cada tier (alcançado, atual, disponível, bloqueado)
+    const tiersState = TIERS.map(t => {
+      const reqMet = t.id === "ultimato" ? reqUltimato
+                  : t.id === "genial"   ? reqGenial
+                  : t.id === "excelente"? reqExcelente
+                  : reqOtimo;
+      return {
+        ...t,
+        reqMet,
+        isCurrent: tier === t.id,
+        // Para Ultimato, separar "reqs cumpridos" de "ativado"
+        canActivateUltimato: t.id === "ultimato" && reqMet && !ultimatoUnlocked,
+        canDeactivateUltimato: t.id === "ultimato" && ultimatoUnlocked
+      };
+    });
+
+    const tierLabels = { none: "—", otimo: "Ótimo", excelente: "Excelente", genial: "Genial", ultimato: "Ultimato" };
+
+    context.hatsu = {
+      slots,
+      categoryOptions: CATEGORIES,
+      proficiencia: {
+        id: tier,
+        label: tierLabels[tier]
+      },
+      tiers: tiersState,
+      primary: { id: primaryCategory, label: primaryLabel, level: primaryLevel },
+      isGM: game.user.isGM
+    };
+
+    return context;
+  }
+
+  /* -------------------------------------------- */
+
+  async _onHatsuRoll(itemId) {
+    const item = this.actor.items.get(itemId);
+    if ( !item ) return;
+    // Bloqueio: requisitos da própria manifestação ou do pai (se for técnica)
+    const blocked = this._isHatsuItemBlocked(item);
+    if ( blocked ) {
+      ui.notifications.warn(`"${item.name}" está bloqueada — ${blocked}`);
+      return;
+    }
+    return item.use({}, { event: window.event });
+  }
+
+  /**
+   * Verifica se um item de Hatsu (manifestação ou técnica) está bloqueado por
+   * requisitos de categoria não atendidos. Retorna a razão do bloqueio (string)
+   * ou null se livre.
+   */
+  _isHatsuItemBlocked(item) {
+    if ( !item ) return null;
+    const flag = item.getFlag("hunter-system", "hatsu") ?? {};
+    let manifestacao = null;
+    if ( flag.slot ) {
+      manifestacao = item;
+    } else if ( flag.parent ) {
+      manifestacao = this.actor.items.find(i =>
+        i.type === "spell" && i.getFlag("hunter-system", "hatsu.slot") === flag.parent
+      ) ?? null;
+    }
+    if ( !manifestacao ) return null;
+    const reqs = manifestacao.getFlag("hunter-system", "hatsu.requirements") ?? [];
+    if ( !reqs.length ) return null;
+    const unmet = reqs.filter(r => {
+      const lvl = this.actor.system.nenCategories?.[r.category]?.level ?? 0;
+      return lvl < (r.level ?? 1);
+    });
+    if ( !unmet.length ) return null;
+    const CATS = {
+      aprimorador: "Aprimorador", emissor: "Emissor", transmutador: "Transmutador",
+      conjurador: "Conjurador",  manipulador: "Manipulador", especialista: "Especialista"
+    };
+    return "faltam " + unmet.map(r => `${CATS[r.category] ?? r.category} Nv${r.level}`).join(", ");
+  }
+
+  async _onHatsuEdit(itemId) {
+    const item = this.actor.items.get(itemId);
+    if ( !item ) return;
+    return item.sheet?.render(true);
+  }
+
+  async _onHatsuUnassign(slotId, kind) {
+    const target = this.actor.items.find(i =>
+      i.type === "spell" && i.getFlag("hunter-system", "hatsu.slot") === slotId
+    );
+    if ( !target ) return;
+    await target.unsetFlag("hunter-system", "hatsu");
+    ui.notifications.info(`"${target.name}" removida do slot.`);
+  }
+
+  async _onHatsuUnassignTecnica(itemId) {
+    const item = this.actor.items.get(itemId);
+    if ( !item ) return;
+    await item.unsetFlag("hunter-system", "hatsu");
+    ui.notifications.info(`"${item.name}" removida da lista de técnicas.`);
+  }
+
+  async _onHatsuCreateManif(slotId) {
+    // Se o slot já tem manifestação, abre ela em vez de criar duplicata
+    const existing = this.actor.items.find(i =>
+      i.type === "spell" && i.getFlag("hunter-system", "hatsu.slot") === slotId
+    );
+    if ( existing ) return existing.sheet?.render(true);
+
+    const SLOT_NAMES = {
+      inata: "Habilidade Inata",
+      m1:    "1ª Manifestação",
+      m2:    "2ª Manifestação",
+      m3:    "3ª Manifestação"
+    };
+    const created = await Item.implementation.create([{
+      name: SLOT_NAMES[slotId] ?? "Nova Manifestação",
+      type: "spell",
+      system: { level: 0, method: "atwill" },
+      flags: { "hunter-system": { hatsu: { slot: slotId } } }
+    }], { parent: this.actor });
+    const item = Array.isArray(created) ? created[0] : created;
+    if ( item ) item.sheet?.render(true);
+  }
+
+  async _onHatsuCreateTecnica(slotId) {
+    const created = await Item.implementation.create([{
+      name: "Nova Técnica",
+      type: "spell",
+      system: { level: 0 },
+      flags: { "hunter-system": { hatsu: { parent: slotId } } }
+    }], { parent: this.actor });
+    const item = Array.isArray(created) ? created[0] : created;
+    if ( item ) item.sheet?.render(true);
+  }
+
+  async _onHatsuReqAdd(itemId) {
+    const item = this.actor.items.get(itemId);
+    if ( !item ) return;
+    const reqs = foundry.utils.deepClone(item.getFlag("hunter-system", "hatsu.requirements") ?? []);
+    if ( reqs.length >= 6 ) {
+      ui.notifications.warn("Máximo de 6 requisitos por manifestação.");
+      return;
+    }
+    reqs.push({ category: "aprimorador", level: 1 });
+    await item.setFlag("hunter-system", "hatsu", {
+      ...(item.getFlag("hunter-system", "hatsu") ?? {}),
+      requirements: reqs
+    });
+  }
+
+  async _onHatsuReqRemove(itemId, index) {
+    const item = this.actor.items.get(itemId);
+    if ( !item || Number.isNaN(index) ) return;
+    const reqs = foundry.utils.deepClone(item.getFlag("hunter-system", "hatsu.requirements") ?? []);
+    if ( !reqs[index] ) return;
+    reqs.splice(index, 1);
+    await item.setFlag("hunter-system", "hatsu", {
+      ...(item.getFlag("hunter-system", "hatsu") ?? {}),
+      requirements: reqs
+    });
+  }
+
+  /**
+   * Calcula o tier atual de proficiência Hatsu sem depender do contexto da sheet.
+   * Retorna "none" | "otimo" | "excelente" | "genial" | "ultimato".
+   */
+  _calcHatsuTier() {
+    const PRIM_CATS = ["aprimorador", "emissor", "transmutador", "conjurador", "manipulador", "especialista"];
+    let primaryCategory = null;
+    for ( const catId of PRIM_CATS ) {
+      const cls = Object.values(this.actor.classes ?? {}).find(c =>
+        c.identifier === catId || c.system?.identifier === catId || c.name?.toLowerCase() === catId
+      );
+      if ( cls ) { primaryCategory = catId; break; }
+    }
+    if ( !primaryCategory ) {
+      let maxLvl = 0;
+      for ( const catId of PRIM_CATS ) {
+        const lvl = this.actor.system?.nenCategories?.[catId]?.level ?? 0;
+        if ( lvl > maxLvl ) { maxLvl = lvl; primaryCategory = catId; }
+      }
+    }
+    const primaryLevel = primaryCategory
+      ? this.actor.system.nenCategories?.[primaryCategory]?.level ?? 0
+      : 0;
+
+    const SLOTS = ["inata", "m1", "m2", "m3"];
+    const occupied = SLOTS.map(id => this.actor.items.find(i =>
+      i.type === "spell" && i.getFlag("hunter-system", "hatsu.slot") === id
+    )).filter(Boolean);
+
+    const allCatsAtLeast = (manifs, lvl) => {
+      if ( !manifs.length ) return false;
+      for ( const m of manifs ) {
+        const reqs = m.getFlag("hunter-system", "hatsu.requirements") ?? [];
+        for ( const r of reqs ) {
+          const cur = this.actor.system.nenCategories?.[r.category]?.level ?? 0;
+          if ( cur < lvl ) return false;
+        }
+      }
+      return true;
+    };
+
+    const ultimatoUnlocked = !!this.actor.getFlag("hunter-system", "hatsuUltimatoUnlocked");
+    if ( ultimatoUnlocked && primaryLevel >= 10 && occupied.length >= 1 && allCatsAtLeast(occupied, 6) ) return "ultimato";
+    if ( primaryLevel >= 7  && occupied.length >= 2 && allCatsAtLeast(occupied.slice(0, 2), 4) ) return "genial";
+    if ( primaryLevel >= 5  && occupied.length >= 1 && allCatsAtLeast(occupied.slice(0, 1), 3) ) return "excelente";
+    if ( primaryLevel >= 1  && occupied.length >= 1 && allCatsAtLeast(occupied.slice(0, 1), 1) ) return "otimo";
+    return "none";
+  }
+
+  /**
+   * Sincroniza o Active Effect "Proficiência Hatsu: <tier>" com o tier calculado.
+   * Cria/atualiza/remove conforme necessário, evitando loops via flag-cache.
+   */
+  async _syncHatsuProficiencyEffect() {
+    const tier = this._calcHatsuTier();
+    const stored = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
+    if ( tier === stored ) return; // sem mudança, nada a fazer
+
+    const TIER_DATA = {
+      otimo:     { label: "Ótimo",     icon: "icons/svg/aura.svg",      auraDie: "d6"  },
+      excelente: { label: "Excelente", icon: "icons/svg/upgrade.svg",   auraDie: "d8"  },
+      genial:    { label: "Genial",    icon: "icons/svg/sun.svg",       auraDie: "d10" },
+      ultimato:  { label: "Ultimato",  icon: "icons/svg/explosion.svg", auraDie: "d12" }
+    };
+
+    // Remove qualquer marker existente
+    const old = this.actor.effects.filter(e => e.getFlag("hunter-system", "hatsuTierMarker"));
+    if ( old.length ) {
+      await this.actor.deleteEmbeddedDocuments("ActiveEffect", old.map(e => e.id));
+    }
+
+    // Cria novo se tier !== "none"
+    if ( tier !== "none" ) {
+      const def = TIER_DATA[tier];
+      const changes = [
+        // Passo de dado de aura por proficiência
+        { key: "system.energyDice.denomination", mode: 5, value: def.auraDie, priority: 20 }
+      ];
+      await ActiveEffect.implementation.create({
+        name: `Proficiência Hatsu: ${def.label}`,
+        icon: def.icon,
+        flags: {
+          "hunter-system": { hatsuTierMarker: true, hatsuProficiencia: tier }
+        },
+        changes,
+        disabled: false,
+        transfer: false
+      }, { parent: this.actor });
+    }
+
+    await this.actor.setFlag("hunter-system", "hatsuActiveTier", tier);
+  }
+
+  /**
+   * Toggle do pin de um botão de poder no sidebar.
+   * Quando "pinned": o bloco aparece também na sidebar.
+   * Quando não-pinned: o bloco aparece apenas na aba Effects.
+   */
+  async _onTogglePinSidebar(pinKey) {
+    if ( !pinKey ) return;
+    const current = this.actor.getFlag("hunter-system", "pinSidebar") ?? {};
+    // default = true (pinned), então inverte sobre o estado atual
+    const wasPinned = current[pinKey] !== false;
+    const next = { ...current, [pinKey]: !wasPinned };
+    await this.actor.setFlag("hunter-system", "pinSidebar", next);
+  }
+
+  /**
+   * Toggle do acordeão de um slot Hatsu — persistência em localStorage por actor.
+   */
+  _onHatsuToggleSection(slotId) {
+    const storageKey = `hunter-system.hatsu.collapsed.${this.actor.id}`;
+    let collapsed;
+    try { collapsed = JSON.parse(localStorage.getItem(storageKey) ?? "[]"); }
+    catch { collapsed = []; }
+
+    const wrapper = this.element.querySelector(`.hatsu-accordion[data-hatsu-slot="${slotId}"]`);
+    if ( !wrapper ) return;
+    const body = wrapper.querySelector(".hatsu-accordion-body");
+    const isCollapsed = wrapper.classList.toggle("collapsed");
+
+    if ( body ) {
+      if ( isCollapsed ) {
+        body.style.height = body.scrollHeight + "px";
+        requestAnimationFrame(() => { body.style.height = "0px"; });
+      } else {
+        body.style.height = body.scrollHeight + "px";
+        body.addEventListener("transitionend", () => { body.style.height = ""; }, { once: true });
+      }
+    }
+
+    const idx = collapsed.indexOf(slotId);
+    if ( isCollapsed && idx === -1 ) collapsed.push(slotId);
+    else if ( !isCollapsed && idx !== -1 ) collapsed.splice(idx, 1);
+    localStorage.setItem(storageKey, JSON.stringify(collapsed));
+  }
+
+  /**
+   * Restaura o estado colapsado dos slots Hatsu ao renderizar.
+   */
+  _restoreHatsuCollapsedSections() {
+    const storageKey = `hunter-system.hatsu.collapsed.${this.actor.id}`;
+    let collapsed;
+    try { collapsed = JSON.parse(localStorage.getItem(storageKey) ?? "[]"); }
+    catch { collapsed = []; }
+    if ( !collapsed.length ) return;
+    for ( const slotId of collapsed ) {
+      const wrapper = this.element.querySelector(`.hatsu-accordion[data-hatsu-slot="${slotId}"]`);
+      if ( !wrapper ) continue;
+      wrapper.classList.add("collapsed");
+      const body = wrapper.querySelector(".hatsu-accordion-body");
+      if ( body ) body.style.height = "0px";
+    }
+  }
+
+  async _onHatsuToggleUltimato() {
+    if ( !game.user.isGM ) {
+      ui.notifications.warn("Apenas o Mestre pode ativar/desativar o Ultimato.");
+      return;
+    }
+    const current = !!this.actor.getFlag("hunter-system", "hatsuUltimatoUnlocked");
+    await this.actor.setFlag("hunter-system", "hatsuUltimatoUnlocked", !current);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: !current
+        ? `⭐ <strong>${this.actor.name}</strong> alcançou o <strong>Ultimato</strong>!`
+        : `<strong>${this.actor.name}</strong> não está mais no Ultimato.`
+    });
+  }
+
+  async _onHatsuReqChange(itemId, index, field, rawValue) {
+    const item = this.actor.items.get(itemId);
+    if ( !item || Number.isNaN(index) ) return;
+    const reqs = foundry.utils.deepClone(item.getFlag("hunter-system", "hatsu.requirements") ?? []);
+    if ( !reqs[index] ) return;
+    if ( field === "level" ) {
+      const v = Math.max(1, Math.min(10, parseInt(rawValue) || 1));
+      reqs[index].level = v;
+    } else if ( field === "category" ) {
+      reqs[index].category = String(rawValue);
+    }
+    await item.setFlag("hunter-system", "hatsu", {
+      ...(item.getFlag("hunter-system", "hatsu") ?? {}),
+      requirements: reqs
     });
   }
 
@@ -2299,6 +3176,10 @@ new foundry.applications.ux.ContextMenu.implementation(
 
   /** @inheritDoc */
   _onClickAction(event, target) {
+  // Bloqueia disparo em botões não-primários (right/middle click).
+  // Teclado (Enter/Space) chega como event.button === 0 ou undefined em PointerEvent.
+  if ( event?.button > 0 ) return;
+
   const action = target.dataset.action;
 
   if ( action === "unlockManipulation" ) {
@@ -2335,6 +3216,17 @@ new foundry.applications.ux.ContextMenu.implementation(
   if ( action === "trainNenCategory" ) {
     return this._onTrainNenCategory(target.dataset.category);
   }
+  if ( action === "hatsu-roll" )            return this._onHatsuRoll(target.dataset.itemId);
+  if ( action === "hatsu-edit" )            return this._onHatsuEdit(target.dataset.itemId);
+  if ( action === "hatsu-unassign-manif" )  return this._onHatsuUnassign(target.dataset.slot, "manif");
+  if ( action === "hatsu-unassign-tecnica" )return this._onHatsuUnassignTecnica(target.dataset.itemId);
+  if ( action === "hatsu-create-manif" )    return this._onHatsuCreateManif(target.dataset.slot);
+  if ( action === "hatsu-create-tecnica" )  return this._onHatsuCreateTecnica(target.dataset.slot);
+  if ( action === "hatsu-req-add" )         return this._onHatsuReqAdd(target.dataset.itemId);
+  if ( action === "hatsu-req-remove" )      return this._onHatsuReqRemove(target.dataset.itemId, parseInt(target.dataset.index));
+  if ( action === "hatsu-toggle-ultimato" ) return this._onHatsuToggleUltimato();
+  if ( action === "hatsu-toggle-section" )  return this._onHatsuToggleSection(target.dataset.slot);
+  if ( action === "jj-toggle-pin" )         return this._onTogglePinSidebar(target.dataset.pin);
 
   return super._onClickAction(event, target);
 }
@@ -3113,7 +4005,6 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       <label class="jj-mod-check" title="Metade"><input type="checkbox" data-mod="half"> ½</label>
       <label class="jj-mod-check" title="Um quarto"><input type="checkbox" data-mod="quarter"> ¼</label>
       <label class="jj-mod-check jj-crit-check" title="Crítico — rola dados novamente"><input type="checkbox" data-mod="crit"> Crit</label>
-      <label class="jj-mod-check jj-kokusen" title="Fulgor Negro ×2,5"><input type="checkbox" data-mod="kokusen"> K <i class="fas fa-bolt"></i></label>
     </div>
     <span class="jj-footer-total">Total <strong id="jj-total-display">0</strong></span>
     <button class="jj-apply-btn" data-action="jj-apply-damage">Aplicar</button>
@@ -3287,11 +4178,20 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     const isSpell      = card.dataset.isSpell === "true";
     const resultsEl    = card.querySelector(".jj-damage-results");
 
+    // Hatsu: passo de dado de dano +1 para técnicas em Ultimato
+    const hatsuTier = actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
+    const ultimatoActive = isSpell && (hatsuTier === "ultimato");
+    const _stepUpFormulaDice = f => {
+      const STEP = { "4": "6", "6": "8", "8": "10", "10": "12", "12": "12" };
+      return String(f).replace(/(\d*)d(\d+)/g, (m, n, d) => `${n}d${STEP[d] ?? d}`);
+    };
+
     const rolls = [];
     // Avaliar todos os rolls de dano em paralelo
     const rollPromises = damageParts.map(async (part, i) => {
       const lbl     = damageLabels[i];
-      const formula = lbl?.formula ?? _buildDamageFormula(part, actor);
+      let   formula = lbl?.formula ?? _buildDamageFormula(part, actor);
+      if ( ultimatoActive ) formula = _stepUpFormulaDice(formula);
       const label   = lbl?.label ?? _damageTypeLabel(part.types);
       const roll    = await new Roll(formula, rollData).evaluate();
       return { roll, part, label };
@@ -3304,20 +4204,60 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       paRollPromise = new Roll(`${paGastos}d${paDenomination}`, rollData).evaluate();
     }
 
+    // Foco Agressivo: +1d4 (ou +1d6 com Fluxo Constante) em ataques comuns (não-magia)
+    const focoAgressivoAtivo = !!actor.getFlag("hunter-system", "focoAgressivoAtivo");
+    const fluxoConstante     = !!actor.system.manipulation?.abilities?.fluxoConstante?.unlocked;
+    let focoRollPromise = null;
+    if ( focoAgressivoAtivo && !isSpell ) {
+      const focoDie = fluxoConstante ? "1d6" : "1d4";
+      focoRollPromise = new Roll(focoDie, rollData).evaluate();
+    }
+
+    // Estágio de Foco — Aumento de Potência: +N dados de dano em técnicas
+    // N = grau (level) declarado, OU dados do slot do Hatsu (inata=5, m1=3, m2=5, m3=8) se sem grau
+    const estagioFocoAtivo = !!actor.getFlag("hunter-system", "hatsuEstagioFocoAtivo");
+    let estagioRollPromise = null;
+    let estagioDieFace = null;
+    let estagioGrade = null;
+    if ( estagioFocoAtivo && isSpell ) {
+      const HATSU_SLOT_DICE = { inata: 5, m1: 3, m2: 5, m3: 8 };
+      const hatsuSlot = item.getFlag("hunter-system", "hatsu.slot")
+                     ?? item.getFlag("hunter-system", "hatsu.parent");
+      const declaredLevel = item.system?.level ?? 0;
+      if ( declaredLevel > 0 ) estagioGrade = declaredLevel;
+      else if ( hatsuSlot && HATSU_SLOT_DICE[hatsuSlot] ) estagioGrade = HATSU_SLOT_DICE[hatsuSlot];
+      else estagioGrade = 1;
+
+      // Usa o passo de dado já potencializado (Ultimato faz step automático na primeira parte)
+      const baseDie = damageParts[0]?.denomination;
+      if ( baseDie ) {
+        const STEP = { 4: 6, 6: 8, 8: 10, 10: 12, 12: 12 };
+        estagioDieFace = ultimatoActive ? (STEP[baseDie] ?? baseDie) : baseDie;
+        estagioRollPromise = new Roll(`${estagioGrade}d${estagioDieFace}`, rollData).evaluate();
+      }
+    }
+
     const resolvedRolls = await Promise.all(rollPromises);
     rolls.push(...resolvedRolls);
     let paRoll = paRollPromise ? await paRollPromise : null;
+    let focoRoll = focoRollPromise ? await focoRollPromise : null;
+    let estagioRoll = estagioRollPromise ? await estagioRollPromise : null;
 
     // Animar todos os dados simultaneamente (sem await — resultado já está calculado)
     if ( game.dice3d ) {
-      const allRolls = [...resolvedRolls.map(r => r.roll), ...(paRoll ? [paRoll] : [])];
+      const allRolls = [...resolvedRolls.map(r => r.roll),
+                        ...(paRoll ? [paRoll] : []),
+                        ...(focoRoll ? [focoRoll] : []),
+                        ...(estagioRoll ? [estagioRoll] : [])];
       Promise.all(allRolls.map(r => game.dice3d.showForRoll(r, game.user, true)));
     }
 
     // Total geral de dano
-    const totalBase = rolls.reduce((sum, { roll }) => sum + roll.total, 0);
-    const totalPA   = paRoll?.total ?? 0;
-    const totalDmg  = totalBase + totalPA;
+    const totalBase    = rolls.reduce((sum, { roll }) => sum + roll.total, 0);
+    const totalPA      = paRoll?.total ?? 0;
+    const totalFoco    = focoRoll?.total ?? 0;
+    const totalEstagio = estagioRoll?.total ?? 0;
+    const totalDmg     = totalBase + totalPA + totalFoco + totalEstagio;
     card.dataset.totalDmg = totalDmg;
 
     // Guardar fórmula de dados puros para o crítico (apenas dados, sem modificadores fixos)
@@ -3330,6 +4270,12 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     if ( paGastos > 0 ) {
       const paDen = isSpell ? (damageParts[0]?.denomination ?? 6) : 4;
       critParts.push(`${paGastos}d${paDen}`);
+    }
+    if ( focoRoll ) {
+      critParts.push(fluxoConstante ? "1d6" : "1d4");
+    }
+    if ( estagioRoll && estagioDieFace && estagioGrade ) {
+      critParts.push(`${estagioGrade}d${estagioDieFace}`);
     }
     card.dataset.critFormula = critParts.join(" + ");
 
@@ -3348,6 +4294,12 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       dmgBreak.innerHTML = rolls.map(({ roll }) => _buildBreakdown(roll)).join('<span class="jj-mod-pip"> + </span>');
       if ( paRoll ) {
         dmgBreak.innerHTML += `<span class="jj-mod-pip"> + </span>${_buildBreakdown(paRoll)}<span class="jj-pa-badge">PA</span>`;
+      }
+      if ( focoRoll ) {
+        dmgBreak.innerHTML += `<span class="jj-mod-pip"> + </span>${_buildBreakdown(focoRoll)}<span class="jj-pa-badge">FOCO</span>`;
+      }
+      if ( estagioRoll ) {
+        dmgBreak.innerHTML += `<span class="jj-mod-pip"> + </span>${_buildBreakdown(estagioRoll)}<span class="jj-pa-badge">ESTÁGIO</span>`;
       }
     }
 
@@ -3478,30 +4430,30 @@ await this._syncTrainingEffect(trainingId, rank + 1);
   }
 
 function _buildBreakdown(roll) {
-    return roll.terms.map(term => {
+    const diceParts = [];
+    const modParts  = [];
+
+    for ( const term of roll.terms ) {
       if ( term.results ) {
-        // Vantagem/desvantagem: múltiplos dados, um descartado
-        if ( term.results.length > 1 ) {
-          const parts = term.results.map(r => {
-            const active = !r.discarded;
-            const cls = active
-              ? (r.result === term.faces ? "jj-die max" : r.result === 1 ? "jj-die min" : "jj-die active")
-              : "jj-die discarded";
-            return `<span class="${cls}">${r.result}</span>`;
-          });
-          return parts.join('<span class="jj-mod-pip"> | </span>');
-        }
-        // Dado único normal
-        return term.results.map(r => {
-          const cls = r.result === term.faces ? "jj-die max" : r.result === 1 ? "jj-die min" : "jj-die";
+        const spans = term.results.map(r => {
+          const active = !r.discarded;
+          let cls;
+          if ( !active )                       cls = "jj-die discarded";
+          else if ( r.result === term.faces )  cls = "jj-die max";
+          else if ( r.result === 1 )           cls = "jj-die min";
+          else                                 cls = "jj-die active";
           return `<span class="${cls}">${r.result}</span>`;
-        }).join("");
+        });
+        diceParts.push(spans.join('<span class="jj-mod-pip">, </span>'));
+      } else if ( typeof term.number === "number" && term.number !== 0 ) {
+        modParts.push(`<span class="jj-mod-pip">${term.number > 0 ? "+" : ""}${term.number}</span>`);
       }
-      if ( typeof term.number === "number" && term.number !== 0 ) {
-        return `<span class="jj-mod-pip">${term.number > 0 ? "+" : ""}${term.number}</span>`;
-      }
-      return "";
-    }).join("");
+    }
+
+    const diceHtml = diceParts.length
+      ? `<span class="jj-break-bracket">[</span>${diceParts.join('<span class="jj-mod-pip">, </span>')}<span class="jj-break-bracket">]</span>`
+      : "";
+    return diceHtml + modParts.join("");
   }
 
   async function _updateCardMessage(message, cardHTML) {
@@ -3878,24 +4830,66 @@ if ( expDefPendente > 0 ) {
             </button>`;
           dmgFooter.querySelector("[data-action='jj-save-damage']").addEventListener("click", async () => {
             const dmgLabels = item.labels?.damages ?? [];
+
+            // Hatsu: passo de dado +1 em técnicas (spells) quando em Ultimato
+            const hatsuTier = actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
+            const ultimatoActive = (hatsuTier === "ultimato");
+            const _stepUpFormulaDice = f => {
+              const STEP = { "4": "6", "6": "8", "8": "10", "10": "12", "12": "12" };
+              return String(f).replace(/(\d*)d(\d+)/g, (m, n, d) => `${n}d${STEP[d] ?? d}`);
+            };
+
             const dmgRolls  = await Promise.all(damageParts.map(async (part, i) => {
               const lbl     = dmgLabels[i];
-              const formula = lbl?.formula ?? _buildDmgFormula(part, actor);
+              let   formula = lbl?.formula ?? _buildDmgFormula(part, actor);
+              if ( ultimatoActive ) formula = _stepUpFormulaDice(formula);
               const label   = lbl?.label ?? "Dano";
               const r       = await new Roll(formula, rollData).evaluate();
               return { r, label };
             }));
-            if ( game.dice3d ) Promise.all(dmgRolls.map(({ r }) => game.dice3d.showForRoll(r, game.user, true)));
-            const totalDmg = dmgRolls.reduce((s, { r }) => s + r.total, 0);
+
+            // Estágio de Foco — Aumento de Potência
+            const estagioFocoAtivo = !!actor.getFlag("hunter-system", "hatsuEstagioFocoAtivo");
+            let estagioRoll = null;
+            if ( estagioFocoAtivo ) {
+              const HATSU_SLOT_DICE = { inata: 5, m1: 3, m2: 5, m3: 8 };
+              const hatsuSlot = item.getFlag("hunter-system", "hatsu.slot")
+                             ?? item.getFlag("hunter-system", "hatsu.parent");
+              const declaredLevel = item.system?.level ?? 0;
+              let grade;
+              if ( declaredLevel > 0 ) grade = declaredLevel;
+              else if ( hatsuSlot && HATSU_SLOT_DICE[hatsuSlot] ) grade = HATSU_SLOT_DICE[hatsuSlot];
+              else grade = 1;
+
+              const baseDie = damageParts[0]?.denomination;
+              if ( baseDie ) {
+                const STEP_NUM = { 4: 6, 6: 8, 8: 10, 10: 12, 12: 12 };
+                const dieFace = ultimatoActive ? (STEP_NUM[baseDie] ?? baseDie) : baseDie;
+                estagioRoll = await new Roll(`${grade}d${dieFace}`, rollData).evaluate();
+              }
+            }
+
+            if ( game.dice3d ) {
+              Promise.all([
+                ...dmgRolls.map(({ r }) => game.dice3d.showForRoll(r, game.user, true)),
+                ...(estagioRoll ? [game.dice3d.showForRoll(estagioRoll, game.user, true)] : [])
+              ]);
+            }
+            const totalDmg = dmgRolls.reduce((s, { r }) => s + r.total, 0)
+                          + (estagioRoll?.total ?? 0);
 
             const dmgPanel = document.createElement("div");
             dmgPanel.className = "jj-panels";
             dmgPanel.style.cssText = "margin-top:6px;grid-template-columns:1fr;";
+            const breakdownHtml = dmgRolls.map(({ r }) => _buildBreakdown(r)).join('<span class="jj-mod-pip"> + </span>')
+              + (estagioRoll
+                  ? `<span class="jj-mod-pip"> + </span>${_buildBreakdown(estagioRoll)}<span class="jj-pa-badge">ESTÁGIO</span>`
+                  : "");
             dmgPanel.innerHTML = `
               <div class="jj-panel visible">
                 <div class="jj-panel-label">Dano</div>
                 <div class="jj-panel-val dmg">${totalDmg}</div>
-                <div class="jj-panel-breakdown">${dmgRolls.map(({ r }) => _buildBreakdown(r)).join('<span class="jj-mod-pip"> + </span>')}</div>
+                <div class="jj-panel-breakdown">${breakdownHtml}</div>
               </div>`;
             card.appendChild(dmgPanel);
 
@@ -4004,26 +4998,29 @@ if ( expDefPendente > 0 ) {
   }
 
   function _buildBreakdown(roll) {
-    return roll.terms.map(term => {
+    const diceParts = [];
+    const modParts  = [];
+
+    for ( const term of roll.terms ) {
       if ( term.results ) {
-        if ( term.results.length > 1 ) {
-          return term.results.map(r => {
-            const cls = !r.discarded
-              ? (r.result === term.faces ? "jj-die max" : r.result === 1 ? "jj-die min" : "jj-die active")
-              : "jj-die discarded";
-            return `<span class="${cls}">${r.result}</span>`;
-          }).join('<span class="jj-mod-pip"> | </span>');
-        }
-        return term.results.map(r => {
-          const cls = r.result === term.faces ? "jj-die max" : r.result === 1 ? "jj-die min" : "jj-die";
+        const spans = term.results.map(r => {
+          let cls;
+          if ( r.discarded )                   cls = "jj-die discarded";
+          else if ( r.result === term.faces )  cls = "jj-die max";
+          else if ( r.result === 1 )           cls = "jj-die min";
+          else                                 cls = "jj-die active";
           return `<span class="${cls}">${r.result}</span>`;
-        }).join("");
+        });
+        diceParts.push(spans.join('<span class="jj-mod-pip">, </span>'));
+      } else if ( typeof term.number === "number" && term.number !== 0 ) {
+        modParts.push(`<span class="jj-mod-pip">${term.number > 0 ? "+" : ""}${term.number}</span>`);
       }
-      if ( typeof term.number === "number" && term.number !== 0 ) {
-        return `<span class="jj-mod-pip">${term.number > 0 ? "+" : ""}${term.number}</span>`;
-      }
-      return "";
-    }).join("");
+    }
+
+    const diceHtml = diceParts.length
+      ? `<span class="jj-break-bracket">[</span>${diceParts.join('<span class="jj-mod-pip">, </span>')}<span class="jj-break-bracket">]</span>`
+      : "";
+    return diceHtml + modParts.join("");
   }
 
   function _applyMod(base, mod) {
@@ -4093,7 +5090,7 @@ if ( expDefPendente > 0 ) {
  * CONDIÇÕES DO SISTEMA JUJUTSU LEGACY
  * ============================================================ */
 
-const JJ_CONDITIONS = [
+export const JJ_CONDITIONS = [
   { id: "jj-agarrado",        label: "Agarrado",         icon: "fas fa-hand-grab",         desc: "Deslocamento 0. Encerra se quem agarrou ficar incapacitado ou soltar.", reference: "Compendium.hunter-system.conteudo.JournalEntry.ZI4IYTRv7YQVnMpf.JournalEntryPage.mlfBihj1WTMnp8tt" },
   { id: "jj-alucinado",       label: "Alucinado",        icon: "fas fa-brain",             desc: "Ataca qualquer criatura próxima indiscriminadamente. ND −2.", reference: "Compendium.hunter-system.conteudo.JournalEntry.ZI4IYTRv7YQVnMpf.JournalEntryPage.g0jKKMfi2ShUJ3lm" },
   { id: "jj-amedrontado",     label: "Amedrontado",      icon: "fas fa-person-running",    desc: "Desvantagem em testes e ataques enquanto fonte do medo estiver visível.", reference: "Compendium.hunter-system.conteudo.JournalEntry.ZI4IYTRv7YQVnMpf.JournalEntryPage.8AbcrNaNNfIbQs4G" },
@@ -4133,7 +5130,7 @@ const JJ_CONDITIONS = [
  * Injeta a seção de condições Jujutsu na aba Effects.
  * Chamada dentro do _onRender da CharacterActorSheet.
  */
-function _injectJJConditions(element, actor) {
+export function _injectJJConditions(element, actor) {
   // Só age na aba effects
   const effectsTab = element.querySelector('[data-tab="effects"]');
   if ( !effectsTab ) return;
@@ -4163,7 +5160,7 @@ function _injectJJConditions(element, actor) {
   section.innerHTML = `
     <div class="jj-cond-header">
       <span>Condições</span>
-      <button class="jj-cond-custom-btn" title="Condição customizada">
+      <button type="button" class="jj-cond-custom-btn" title="Condição customizada">
         <i class="fas fa-plus"></i>
       </button>
     </div>
@@ -4822,6 +5819,53 @@ function _registerSeiOlhosTurnHook(actor) {
 }
 
 /* ============================================================
+   ESTÁGIO DE FOCO — Hook de turno (Ultimato)
+   ============================================================ */
+function _registerEstagioFocoHook(actor) {
+  if ( actor._estagioFocoHookId ) Hooks.off("combatTurnChange", actor._estagioFocoHookId);
+
+  actor._estagioFocoHookId = Hooks.on("combatTurnChange", async (combat, prior, current) => {
+    const combatant = combat.combatants.get(current?.combatantId);
+    if ( combatant?.actor?.id !== actor.id ) return;
+
+    if ( !actor.getFlag("hunter-system", "hatsuEstagioFocoAtivo") ) {
+      _unregisterEstagioFocoHook(actor);
+      return;
+    }
+
+    const energyTotal = actor.system.energy?.total ?? 0;
+    const energyGen   = actor.system.energy?.generated ?? 0;
+    const energyMax   = actor.system.energy?.max ?? 0;
+
+    if ( energyTotal < 2 ) {
+      await actor.setFlag("hunter-system", "hatsuEstagioFocoAtivo", false);
+      _unregisterEstagioFocoHook(actor);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `🔥 <strong>${actor.name}</strong> saiu do <strong>Estágio de Foco</strong> (PA insuficiente).`
+      });
+      return;
+    }
+
+    await actor.update({
+      "system.energy.total":     Math.max(0, energyTotal - 2),
+      "system.energy.generated": Math.min(energyMax, energyGen + 10)
+    });
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `🔥 <strong>${actor.name}</strong> Estágio de Foco: <strong>-2 PA Total</strong>, <strong>+10 PA Gerada</strong>.`
+    });
+  });
+}
+
+function _unregisterEstagioFocoHook(actor) {
+  if ( actor._estagioFocoHookId ) {
+    Hooks.off("combatTurnChange", actor._estagioFocoHookId);
+    actor._estagioFocoHookId = null;
+  }
+}
+
+/* ============================================================
    SOCKET — Geração de Energia (Personagem e NPC)
    ============================================================ */
 Hooks.on("ready", () => {
@@ -4855,15 +5899,20 @@ Hooks.on("ready", () => {
       const actor = game.actors.get(data.actorId);
       if ( !actor ) return;
       const nd = actor.system.details?.cr ?? 1;
+      const trainingBonus = (actor.system.energy?.bonuses?.generatedEnergy ?? 0)
+                          + (actor.system.energy?.intensiveTraining?.generatedEnergy ?? 0);
+      const fmt = n => trainingBonus > 0 ? `${n} (${nd}×N + ${trainingBonus})` : `${n}`;
       setTimeout(async () => {
         const multiplicador = await foundry.applications.api.DialogV2.wait({
           window: { title: `⚡ Geração de Energia — ${actor.name}` },
-          content: `<p style="margin:0 0 10px;">Quantas vezes o ND (<strong>${nd}</strong>) deseja gerar?</p>`,
+          content: `
+            <p style="margin:0 0 4px;">Quantas vezes o ND (<strong>${nd}</strong>) deseja gerar?</p>
+            ${trainingBonus > 0 ? `<p style="margin:0 0 10px;font-size:11px;color:#7090b0;">+${trainingBonus} PA de bônus de treinamento</p>` : ""}`,
           buttons: [
-            { label: `2× (${nd * 2} PA)`, action: "2", default: true },
-            { label: `3× (${nd * 3} PA)`, action: "3" },
-            { label: `4× (${nd * 4} PA)`, action: "4" },
-            { label: "Pular",             action: "skip" }
+            { label: `2× (${fmt(nd * 2 + trainingBonus)} PA)`, action: "2", default: true },
+            { label: `3× (${fmt(nd * 3 + trainingBonus)} PA)`, action: "3" },
+            { label: `4× (${fmt(nd * 4 + trainingBonus)} PA)`, action: "4" },
+            { label: "Pular",                                  action: "skip" }
           ],
           rejectClose: false,
           close: () => "skip"
@@ -4873,7 +5922,8 @@ Hooks.on("ready", () => {
           action: "npcEnergyChoices",
           actorId: data.actorId,
           nd,
-          multiplicador
+          multiplicador,
+          trainingBonus
         });
       }, 100);
     }
@@ -4882,7 +5932,10 @@ Hooks.on("ready", () => {
     if ( data.action === "npcEnergyChoices" && game.user.isGM ) {
       const actor = game.actors.get(data.actorId);
       if ( !actor ) return;
-      const alvo        = data.nd * Number(data.multiplicador);
+      const tBonus = data.trainingBonus
+                  ?? (actor.system.energy?.bonuses?.generatedEnergy ?? 0)
+                   + (actor.system.energy?.intensiveTraining?.generatedEnergy ?? 0);
+      const alvo        = (data.nd * Number(data.multiplicador)) + tBonus;
       const geradaAtual = actor.system.energy.generated ?? 0;
       const totalAtual  = actor.system.energy.total ?? 0;
       if ( alvo <= geradaAtual ) {

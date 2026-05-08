@@ -103,69 +103,69 @@
 }
 
 /* ════════════════════════════════════════
-   TABS BASE
+   TABS BASE  (escopado às fichas; senão vaza pra sidebar do Foundry)
    ════════════════════════════════════════ */
-.tab[data-tab] {
+.sheet .tab[data-tab] {
   background: transparent;
 }
 
-.tab[data-tab] .items-section > header,
-.tab[data-tab] .items-section > .items-header {
+.sheet .tab[data-tab] .items-section > header,
+.sheet .tab[data-tab] .items-section > .items-header {
   background: linear-gradient(90deg, #1c1c30, #161628);
   border-bottom: 1px solid var(--jj-border);
 }
 
-.tab[data-tab] .items-section > header *,
-.tab[data-tab] .items-section > .items-header * {
+.sheet .tab[data-tab] .items-section > header *,
+.sheet .tab[data-tab] .items-section > .items-header * {
   color: var(--jj-primary-soft);
 }
 
-.tab[data-tab] .items-section {
+.sheet .tab[data-tab] .items-section {
   background: rgba(10,10,20,0.6);
   border-color: var(--jj-border-soft);
 }
 
 /* Tabs específicas */
-.tab[data-tab="effects"],
-.tab[data-tab="features"],
-.tab[data-tab="spells"] {
+.sheet .tab[data-tab="effects"],
+.sheet .tab[data-tab="features"],
+.sheet .tab[data-tab="spells"] {
   background: transparent;
 }
 
-.tab[data-tab="effects"] .items-section,
-.tab[data-tab="features"] .items-section,
-.tab[data-tab="spells"] .items-section {
+.sheet .tab[data-tab="effects"] .items-section,
+.sheet .tab[data-tab="features"] .items-section,
+.sheet .tab[data-tab="spells"] .items-section {
   background: rgba(10,10,20,0.6);
   border-color: var(--jj-border-soft);
 }
 
-.tab[data-tab="effects"] .items-section > header,
-.tab[data-tab="features"] .items-section > header,
-.tab[data-tab="spells"] .items-section > header,
-.tab[data-tab="effects"] .items-header,
-.tab[data-tab="features"] .items-header,
-.tab[data-tab="spells"] .items-header {
+.sheet .tab[data-tab="effects"] .items-section > header,
+.sheet .tab[data-tab="features"] .items-section > header,
+.sheet .tab[data-tab="spells"] .items-section > header,
+.sheet .tab[data-tab="effects"] .items-header,
+.sheet .tab[data-tab="features"] .items-header,
+.sheet .tab[data-tab="spells"] .items-header {
   background: linear-gradient(90deg, #1c1c30, #161628);
   border-bottom: 1px solid var(--jj-border);
 }
 
-.tab[data-tab="effects"] h3,
-.tab[data-tab="features"] h3,
-.tab[data-tab="spells"] h3 {
+.sheet .tab[data-tab="effects"] h3,
+.sheet .tab[data-tab="features"] h3,
+.sheet .tab[data-tab="spells"] h3 {
   color: var(--jj-primary-soft);
   text-shadow: 0 0 8px rgba(120,80,255,0.3);
 }
 
-.tab[data-tab="features"] .item:hover,
-.tab[data-tab="effects"] .item:hover {
+.sheet .tab[data-tab="features"] .item:hover,
+.sheet .tab[data-tab="effects"] .item:hover {
   background: rgba(80,60,180,0.08);
 }
 
 /* ════════════════════════════════════════
    EFFECTS FIX
    ════════════════════════════════════════ */
-.effects-element .items-header,
-.tab[data-tab="effects"] .items-section > header {
+.sheet .effects-element .items-header,
+.sheet .tab[data-tab="effects"] .items-section > header {
   background: linear-gradient(90deg, #1c1c30, #161628) !important;
   border-bottom: 1px solid var(--jj-border) !important;
 }

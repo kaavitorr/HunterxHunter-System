@@ -26,12 +26,15 @@
         </div>
     </fieldset>
     <fieldset style="margin-top: 12px;">
-        <legend class="roboto-condensed-upper">PA Atual</legend>
+        <legend class="roboto-condensed-upper">PA Atual / Máximo</legend>
         <div class="form-group">
             <label>PA Total</label>
             <div class="form-fields">
                 <input type="number" name="system.energy.total"
                        value="{{ source.total }}" min="0">
+                <span>&sol;</span>
+                <input type="number" name="system.energy.max"
+                       value="{{ source.max }}" min="0" placeholder="máx">
             </div>
         </div>
         <div class="form-group">
@@ -39,6 +42,9 @@
             <div class="form-fields">
                 <input type="number" name="system.energy.generated"
                        value="{{ source.generated }}" min="0">
+                <span>&sol;</span>
+                <input type="number" name="system.energy.genMax"
+                       value="{{ source.genMax }}" min="0" placeholder="máx">
             </div>
         </div>
     </fieldset>
