@@ -1,0 +1,652 @@
+<div class="hunter-creation-frame flexcol">
+
+  {{!-- ═══════════════ HEADER / STEPPER ═══════════════ --}}
+  <header class="hc-header flexcol">
+    <menu class="hc-nav flexrow">
+      {{#each steps as |step|}}
+      <li class="hc-step flexcol {{#if step.isActive}}is-active{{/if}} {{#if step.isDone}}is-done{{/if}}"
+          data-step="{{step.id}}" data-action="changeStep">
+        <span class="hc-step-num">{{step.numeral}}</span>
+        <span class="hc-step-label">{{step.label}}</span>
+      </li>
+      {{/each}}
+    </menu>
+    <input id="hunter-creation-name" type="text" name="name" value="{{charname}}"
+           placeholder="Nome do Personagem" autocomplete="off">
+    <button type="button" class="hc-exit plain" data-action="cancel" title="Sair">
+      <i class="fas fa-xmark" inert></i> Sair
+    </button>
+  </header>
+
+  {{!-- ═══════════════ BODY (passo ativo) ═══════════════ --}}
+  <div class="hc-body flexcol scrollable">
+
+    {{#if isSpecies}}
+    <section class="hc-step-pane hc-species3 flexrow">
+      <menu class="hc-option-menu">
+        {{#each speciesList as |sp|}}
+        <li class="hc-option flexrow {{#if sp.selected}}is-selected{{/if}}" style="--cat-color:#7da7d9"
+            data-action="chooseSpecies" data-species-id="{{sp.id}}">
+          {{#if sp.img}}<img class="hc-option-img" src="{{sp.img}}" alt="{{sp.name}}">{{/if}}
+          <h4 class="hc-option-name">{{sp.name}}</h4>
+        </li>
+        {{/each}}
+        {{#unless speciesAvailable}}
+        <li class="hc-option"><h4 class="hc-option-name">Nenhuma espécie ainda.</h4></li>
+        {{/unless}}
+        {{#if isGM}}
+        <li class="hc-option hc-option-add flexrow" data-action="addSpecies">
+          <div class="hc-option-kanji hc-random-kanji"><i class="fas fa-plus" inert></i></div>
+          <h4 class="hc-option-name">Adicionar espécie</h4>
+        </li>
+        {{/if}}
+      </menu>
+
+      <div class="hc-center scrollable">
+        {{#unless chosenSpecies}}
+        <p class="hc-detail-intro">Escolha a <strong>espécie</strong> do seu personagem.{{#if isGM}} Como Narrador, você pode criar/editar espécies (salvas para todos).{{/if}}</p>
+        <p class="hc-detail-empty">Selecione uma espécie ao lado.</p>
+        {{/unless}}
+        {{#if chosenSpecies}}
+        {{#if chosenSpecies.editable}}
+        <div class="hc-detail-card hc-sp-editor" style="--cat-color:#7da7d9">
+          <div class="hc-sp-edit-head flexrow">
+            <img class="hc-detail-icon" src="{{chosenSpecies.img}}" alt="{{chosenSpecies.name}}">
+            <button type="button" class="hc-btn hc-btn-secondary" data-action="speciesImage"><i class="fas fa-image" inert></i> Trocar imagem</button>
+          </div>
+          <label class="hc-sp-field">Nome
+            <input type="text" class="hc-sp-name" value="{{chosenSpecies.name}}">
+          </label>
+          <label class="hc-sp-field">Descrição
+            <prose-mirror class="hc-sp-desc" name="hc-sp-desc" value="{{chosenSpecies.desc}}"
+                          {{#if actorUuid}}document-uuid="{{actorUuid}}"{{/if}}></prose-mirror>
+          </label>
+          <div class="hc-sp-actions flexrow">
+            <button type="button" class="hc-btn hc-btn-primary" data-action="saveSpecies"><i class="fas fa-floppy-disk" inert></i> Salvar</button>
+            <button type="button" class="hc-btn hc-btn-danger" data-action="deleteSpecies"><i class="fas fa-trash" inert></i> Excluir</button>
+          </div>
+        </div>
+        {{else}}
+        <h2 class="hc-center-title">{{chosenSpecies.name}}</h2>
+        <div class="hc-guide-text hc-species-desc">{{{chosenSpecies.desc}}}</div>
+
+        <p class="hc-talent-note"><i class="fas fa-star" inert></i> Toda espécie concede pelo menos <strong>1 talento</strong>.</p>
+
+          <div class="hc-guide-block">
+            <h3 class="hc-guide-title">Ajuste de Atributo — {{chosenSpecies.abilityAdjust.left}}/{{chosenSpecies.abilityAdjust.total}} ponto(s) restante(s)</h3>
+            <p class="hc-attr-hint">Distribua {{chosenSpecies.abilityAdjust.total}} ponto(s) entre os atributos (pode pôr os dois no mesmo).</p>
+            <div class="hc-adjust-grid">
+              {{#each chosenSpecies.abilityAdjust.rows as |r|}}
+              <div class="hc-adjust-row {{#if r.add}}has-bonus{{/if}}">
+                <span class="hc-adjust-abbr">{{r.abbr}}</span>
+                <button type="button" class="hc-adjust-btn" data-action="bonusDec" data-ability="{{r.key}}" {{#unless r.canDec}}disabled{{/unless}}>−</button>
+                <span class="hc-adjust-val">{{r.value}}{{#if r.add}} <small>(+{{r.add}})</small>{{/if}}</span>
+                <button type="button" class="hc-adjust-btn" data-action="bonusInc" data-ability="{{r.key}}" {{#unless r.canInc}}disabled{{/unless}}>+</button>
+              </div>
+              {{/each}}
+            </div>
+          </div>
+
+          {{#if chosenSpecies.traits}}
+          <div class="hc-guide-block">
+            <h3 class="hc-guide-title">Traços Animais</h3>
+            {{#if chosenSpecies.traits.available}}
+            <p class="hc-attr-hint">
+              Comuns: <strong>{{chosenSpecies.traits.countCommon}}/{{chosenSpecies.traits.maxCommon}}</strong> ·
+              Específicos: <strong>{{chosenSpecies.traits.countSpecific}}/{{chosenSpecies.traits.maxSpecific}}</strong>
+            </p>
+            {{#if chosenSpecies.traits.appearance}}
+            <p class="hc-variant-note"><strong>Aparência: {{chosenSpecies.traits.appearance.label}}</strong> — {{chosenSpecies.traits.appearance.note}}</p>
+            {{/if}}
+
+            <h4 class="hc-trait-grouptitle">Comuns (até {{chosenSpecies.traits.maxCommon}})</h4>
+            <div class="hc-trait-grid">
+              {{#each chosenSpecies.traits.common as |t|}}
+              <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
+                      data-action="toggleTrait" data-group="common" data-trait-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
+                {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+              </button>
+              {{/each}}
+            </div>
+
+            <h4 class="hc-trait-grouptitle">Específicos (até {{chosenSpecies.traits.maxSpecific}})</h4>
+            <div class="hc-trait-grid">
+              {{#each chosenSpecies.traits.specific as |t|}}
+              <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
+                      data-action="toggleTrait" data-group="specific" data-trait-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
+                {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+              </button>
+              {{/each}}
+            </div>
+            {{else}}
+            <p class="hc-detail-empty">Traços não encontrados. Pastas que o sistema enxerga:</p>
+            <ul class="hc-debug-list">
+              {{#each chosenSpecies.traits.debug as |d|}}<li>{{d}}</li>{{/each}}
+            </ul>
+            {{/if}}
+          </div>
+          {{else}}
+          {{#if chosenSpecies.choice}}
+          <div class="hc-guide-block">
+            <h3 class="hc-guide-title">{{chosenSpecies.choice.title}}</h3>
+            <select class="hc-sp-variant">
+              <option value="">— escolher —</option>
+              {{#each chosenSpecies.choice.options as |o|}}
+              <option value="{{o.id}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>
+              {{/each}}
+            </select>
+            {{#if chosenSpecies.choice.selectedNote}}
+            <p class="hc-variant-note">{{chosenSpecies.choice.selectedNote}}</p>
+            {{/if}}
+          </div>
+          {{/if}}
+          {{/if}}
+
+          <div class="hc-guide-block">
+            <h3 class="hc-guide-title">Talentos — {{chosenSpecies.talentCount}}/{{chosenSpecies.talentLimit}} escolhido(s)</h3>
+            <p class="hc-attr-hint">Escolha até <strong>{{chosenSpecies.talentLimit}}</strong> talento(s) (base 2 da Adaptação + bônus da variante/aparência).</p>
+
+            {{#if chosenSpecies.speciesTalents.length}}
+            <h4 class="hc-trait-grouptitle">Talentos de Espécie</h4>
+            <div class="hc-trait-grid hc-talent-grid">
+              {{#each chosenSpecies.speciesTalents as |t|}}
+              <button type="button" class="hc-trait hc-talent-species {{#if t.selected}}is-selected{{/if}}"
+                      data-action="toggleTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
+                {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+              </button>
+              {{/each}}
+            </div>
+            {{/if}}
+
+            {{#if chosenSpecies.commonTalents.length}}
+            <h4 class="hc-trait-grouptitle">Talentos Comuns</h4>
+            <div class="hc-trait-grid hc-talent-grid">
+              {{#each chosenSpecies.commonTalents as |t|}}
+              <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
+                      data-action="toggleTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
+                {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+              </button>
+              {{/each}}
+            </div>
+            {{/if}}
+          </div>
+        {{/if}}
+        {{/if}}
+      </div>
+
+      {{#if chosenSpecies}}{{#unless chosenSpecies.editable}}{{#if chosenSpecies.img}}
+      <figure class="hc-portrait flexcol">
+        <img src="{{chosenSpecies.img}}" alt="{{chosenSpecies.name}}">
+        <figcaption>Exemplo de {{chosenSpecies.name}}</figcaption>
+      </figure>
+      {{/if}}{{/unless}}{{/if}}
+    </section>
+    {{/if}}
+
+    {{#if isCategory}}
+    <section class="hc-step-pane hc-species3 flexrow">
+      <menu class="hc-option-menu">
+        {{#each categories as |cat|}}
+        <li class="hc-option flexrow {{#if cat.selected}}is-selected{{/if}}" style="--cat-color:{{cat.color}}"
+            data-action="chooseCategory" data-category-id="{{cat.id}}">
+          {{#if cat.img}}
+          <img class="hc-option-img" src="{{cat.img}}" alt="{{cat.label}}">
+          {{else}}
+          <div class="hc-option-kanji" style="background:{{cat.color}}">{{cat.kanji}}</div>
+          {{/if}}
+          <h4 class="hc-option-name">{{cat.label}}</h4>
+        </li>
+        {{/each}}
+        {{#if levelup}}
+        <li class="hc-option hc-option-random flexrow {{#if randomSelected}}is-selected{{/if}}"
+            data-action="randomCategory">
+          <div class="hc-option-kanji hc-random-kanji"><i class="fas fa-dice" inert></i></div>
+          <h4 class="hc-option-name">Aleatória</h4>
+        </li>
+        {{/if}}
+      </menu>
+
+      <div class="hc-center scrollable">
+        {{#unless chosenCategory}}
+        <p class="hc-detail-intro">
+          Todo Hunter começa <strong>Sem Categoria</strong>. Sua categoria Nen é definida quando você atinge o
+          <strong>nível 2</strong>. Escolha qual pretende seguir — ou deixe no <strong>Aleatória</strong> para sortear.
+        </p>
+        <p class="hc-detail-empty">Selecione uma categoria ao lado.</p>
+        {{/unless}}
+        {{#if chosenCategory}}
+        {{#unless chosenCategory.longDesc}}
+        <h2 class="hc-center-title" {{#if chosenCategory.color}}style="color:{{chosenCategory.color}}"{{/if}}>{{chosenCategory.label}}</h2>
+        {{/unless}}
+        <div class="hc-detail-desc {{#unless chosenCategory.longDesc}}hc-detail-center{{/unless}}">{{{chosenCategory.desc}}}</div>
+
+        {{#if chosenCategory.primary}}
+        <div class="hc-cat-meta">
+          <span class="hc-cat-meta-item">
+            <i class="fas fa-star" inert></i> Atributo Principal:
+            <select class="hc-primary-select">
+              <option value="">— escolher —</option>
+              {{#each chosenCategory.primary.options as |o|}}
+              <option value="{{o.key}}" {{#if o.selected}}selected{{/if}} {{#if o.disabled}}disabled{{/if}}>{{o.label}}</option>
+              {{/each}}
+            </select>
+          </span>
+          {{#unless semChoices}}{{#if chosenCategory.saves.length}}
+          <span class="hc-cat-meta-sep">·</span>
+          <span class="hc-cat-meta-item"><i class="fas fa-shield-halved" inert></i> Salvaguarda: <strong>{{#each chosenCategory.saves as |s|}}{{#unless @first}}, {{/unless}}{{s}}{{/each}}</strong></span>
+          {{/if}}{{/unless}}
+        </div>
+        {{else}}{{#if chosenCategory.saves.length}}
+        <div class="hc-cat-meta">
+          <span class="hc-cat-meta-item"><i class="fas fa-shield-halved" inert></i> Salvaguarda: <strong>{{#each chosenCategory.saves as |s|}}{{#unless @first}}, {{/unless}}{{s}}{{/each}}</strong></span>
+        </div>
+        {{/if}}{{/if}}
+
+        {{#if semChoices}}
+        <div class="hc-guide-block">
+          <h3 class="hc-guide-title">Salvaguardas — escolha 2 ({{semChoices.saves.chosen}}/{{semChoices.saves.count}})</h3>
+          <div class="hc-skill-grid">
+            {{#each semChoices.saves.options as |s|}}
+            <button type="button" class="hc-skill {{#if s.selected}}is-selected{{/if}}"
+                    data-action="toggleSemSave" data-save="{{s.key}}" {{#if s.disabled}}disabled{{/if}}>{{s.label}}</button>
+            {{/each}}
+          </div>
+        </div>
+        <div class="hc-guide-block">
+          <h3 class="hc-guide-title">Talento à escolha</h3>
+          <div class="hc-trait-grid hc-talent-grid">
+            {{#each semChoices.talents as |t|}}
+            <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
+                    data-action="chooseSemTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
+              {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if hb.available}}
+        <div class="hc-guide-block hc-hb-block">
+          <h3 class="hc-guide-title">Habilidades Básicas</h3>
+          {{#if hb.showRestricted}}
+          <p class="hc-hb-label">Escolha 1:</p>
+          <div class="hc-trait-grid hc-hb-grid">
+            {{#each hb.restricted as |h|}}
+            <button type="button" class="hc-trait {{#if h.selected}}is-selected{{/if}}"
+                    data-action="chooseHBRestricted" data-hb-id="{{h.id}}" data-tip-uuid="{{h.uuid}}" title="{{h.name}}">
+              {{#if h.img}}<img src="{{h.img}}" alt="{{h.name}}">{{/if}}<span>{{h.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+          {{/if}}
+          <p class="hc-hb-label">{{#if hb.showRestricted}}Mais 1 à sua escolha{{else}}Escolha 1 à sua escolha{{/if}} — {{hb.freeCount}}/{{hb.freeLimit}}:</p>
+          <div class="hc-trait-grid hc-hb-grid hc-talent-grid">
+            {{#each hb.free as |h|}}
+            <button type="button" class="hc-trait {{#if h.selected}}is-selected{{/if}}"
+                    data-action="toggleHBFree" data-hb-id="{{h.id}}" data-tip-uuid="{{h.uuid}}" title="{{h.name}}"
+                    {{#if h.disabled}}disabled{{/if}}>
+              {{#if h.img}}<img src="{{h.img}}" alt="{{h.name}}">{{/if}}<span>{{h.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if chosenCategory.features.length}}
+        <div class="hc-guide-block" {{#if chosenCategory.color}}style="--cat-color:{{chosenCategory.color}}"{{/if}}>
+          <h3 class="hc-guide-title">Características da Categoria</h3>
+          <div class="hc-feature-list">
+            {{#each chosenCategory.features as |f|}}
+            <div class="hc-feature" data-feat-idx="{{@index}}">
+              <span class="hc-feature-lvl">Nv {{f.level}}</span>
+              <span class="hc-feature-name">{{f.name}}</span>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if chosenCategory.inclinations.length}}
+        <div class="hc-guide-block">
+          <h3 class="hc-guide-title">Inclinamento para outra categoria</h3>
+          <ul class="hc-inclinations">
+            {{#each chosenCategory.inclinations as |inc|}}
+            <li><strong>{{inc.name}}:</strong> {{inc.desc}}</li>
+            {{/each}}
+          </ul>
+        </div>
+        {{/if}}
+        {{#if chosenCategory.extra}}
+        <div class="hc-guide-block">
+          <h3 class="hc-guide-title">{{chosenCategory.extra.title}}</h3>
+          <p class="hc-guide-text">{{{chosenCategory.extra.html}}}</p>
+        </div>
+        {{/if}}
+        {{/if}}
+      </div>
+
+      {{#if chosenCategory.img}}
+      <figure class="hc-portrait flexcol">
+        <img src="{{chosenCategory.img}}" alt="{{chosenCategory.label}}">
+        <figcaption>{{chosenCategory.label}}</figcaption>
+      </figure>
+      {{else}}
+      <div class="hc-portrait hc-portrait-empty" aria-hidden="true"></div>
+      {{/if}}
+    </section>
+    {{/if}}
+
+    {{#if isAttributes}}
+    <section class="hc-step-pane hc-attributes flexcol">
+      {{#unless attrMethod}}
+      <div class="hc-attr-empty flexcol">
+        <h2 class="hc-center-title">Atributos</h2>
+        <p class="hc-attr-lead">Escolha como definir seus atributos. Em ambos, <strong>você decide</strong> onde colocar cada valor.</p>
+        <div class="hc-attr-methods flexrow">
+          <button type="button" class="hc-method-card flexcol" data-action="useStandardArray">
+            <i class="fas fa-table-list" inert></i>
+            <strong>Usar Padrão</strong>
+            <span>15 · 14 · 13 · 12 · 10 · 8</span>
+          </button>
+          <button type="button" class="hc-method-card flexcol" data-action="rollAttributes">
+            <i class="fas fa-dice-d6" inert></i>
+            <strong>Rolagem</strong>
+            <span>6× 4d6, descarta o menor<br>(o resultado vai pro chat)</span>
+          </button>
+        </div>
+      </div>
+      {{else}}
+      <div class="hc-attr-bar flexrow">
+        <span class="hc-attr-method-label">{{methodLabel}}</span>
+        <div class="hc-attr-actions flexrow">
+          {{#if methodRoll}}
+          <button type="button" class="hc-chip-btn" data-action="rollAttributes"><i class="fas fa-dice-d6" inert></i> Rolar de novo</button>
+          {{/if}}
+          <button type="button" class="hc-chip-btn" data-action="clearAttributes"><i class="fas fa-rotate-left" inert></i> Limpar</button>
+          <button type="button" class="hc-chip-btn" data-action="resetAttrMethod"><i class="fas fa-arrows-rotate" inert></i> Trocar método</button>
+        </div>
+      </div>
+
+      <div class="hc-hex">
+        <svg class="hc-hex-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polygon points="50,8 86,29 86,71 50,92 14,71 14,29" />
+        </svg>
+        {{#each attrNodes as |n|}}
+        <button type="button" class="hc-hex-node hc-hex-{{n.pos}} {{#if n.assigned}}filled{{/if}}"
+                data-action="assignAttr" data-ability="{{n.key}}" title="{{n.label}}">
+          <span class="hc-hex-abbr">{{n.abbr}}</span>
+          <span class="hc-hex-value">{{#if n.assigned}}{{n.value}}{{else}}—{{/if}}</span>
+          <span class="hc-hex-name">{{n.label}}</span>
+        </button>
+        {{/each}}
+
+        <div class="hc-hex-center flexcol">
+          <span class="hc-hex-hint">
+            {{#if attrPickActive}}<i class="fas fa-hand-pointer" inert></i> Clique num atributo{{else}}Selecione um valor{{/if}}
+          </span>
+          <div class="hc-hex-pool">
+            {{#each poolOrbs as |p|}}
+            <button type="button" class="hc-pool-orb {{#if p.used}}used{{/if}} {{#if p.picked}}picked{{/if}}"
+                    data-action="pickPoolValue" data-pool-idx="{{p.idx}}" {{#if p.used}}disabled{{/if}}>{{p.value}}</button>
+            {{/each}}
+          </div>
+          <span class="hc-pool-sum">Soma <strong>{{rolledSum}}</strong></span>
+        </div>
+      </div>
+
+      {{#unless allAssigned}}
+      <p class="hc-attr-warn"><i class="fas fa-circle-exclamation" inert></i> Atribua todos os 6 valores para continuar.</p>
+      {{/unless}}
+      {{/unless}}
+    </section>
+    {{/if}}
+
+    {{#if isCombat}}
+    <section class="hc-step-pane hc-species3 flexrow">
+      <div class="hc-combat-left">
+        <div class="hc-combat-branches flexrow">
+          {{#each combatBranches as |b|}}
+          <button type="button" class="hc-branch-btn {{#if b.selected}}is-selected{{/if}}"
+                  data-action="chooseCombatBranch" data-branch="{{b.id}}">
+            <strong>{{b.label}}</strong><small>{{b.count}} métodos</small>
+          </button>
+          {{/each}}
+        </div>
+
+        {{#unless combatHasData}}<p class="hc-detail-empty">Nenhum método de combate encontrado no compêndio.</p>{{/unless}}
+        {{#unless combatBranch}}
+        {{#if combatHasData}}<p class="hc-detail-intro">Escolha um ramo acima — <strong>Divergente</strong> ou <strong>Especialista</strong>. Você só pode ter métodos de um ramo.</p>{{/if}}
+        {{/unless}}
+
+        {{#if combatBranch}}
+        <p class="hc-combat-counter">Escolha {{combatMax}} métodos — {{combatCount}}/{{combatMax}}</p>
+        <div class="hc-combat-list scrollable">
+          {{#each combatGroups as |g|}}
+          <h4 class="hc-trait-grouptitle">{{g.weapon}}</h4>
+          <div class="hc-combat-methods">
+            {{#each g.items as |m|}}
+            <div class="hc-method {{#if m.selected}}is-selected{{/if}} {{#if m.focused}}is-focused{{/if}}">
+              <button type="button" class="hc-method-body" data-action="focusCombatMethod" data-method-id="{{m.id}}" title="{{m.name}}">
+                {{#if m.img}}<img src="{{m.img}}" alt="{{m.name}}">{{/if}}
+                <span>{{m.name}}</span>
+              </button>
+              <button type="button" class="hc-method-toggle {{#if m.selected}}is-on{{/if}}"
+                      data-action="toggleCombatMethod" data-method-id="{{m.id}}"
+                      {{#unless m.selected}}{{#if m.disabled}}disabled{{/if}}{{/unless}}
+                      title="{{#if m.selected}}Remover{{else}}Escolher método{{/if}}">
+                <i class="fas {{#if m.selected}}fa-check{{else}}fa-plus{{/if}}" inert></i>
+              </button>
+            </div>
+            {{/each}}
+          </div>
+          {{/each}}
+        </div>
+        {{/if}}
+      </div>
+
+      <div class="hc-center scrollable">
+        {{#unless combatDetail}}
+        <p class="hc-detail-empty">Clique em um método para ver o texto e a técnica.</p>
+        {{/unless}}
+        {{#if combatDetail}}
+        <h2 class="hc-center-title">{{combatDetail.name}}</h2>
+        {{#if combatDetail.selected}}<p class="hc-method-status"><i class="fas fa-check" inert></i> Método escolhido</p>{{/if}}
+        <div class="hc-detail-desc">{{{combatDetail.desc}}}</div>
+        {{/if}}
+      </div>
+
+      {{#if combatDetail.technique}}
+      <aside class="hc-tech-card flexcol">
+        <h4 class="hc-tech-label">Técnica</h4>
+        <div class="hc-tech-inner">
+          <div class="hc-tech-head flexcol">
+            {{#if combatDetail.technique.img}}<img src="{{combatDetail.technique.img}}" alt="{{combatDetail.technique.name}}">{{/if}}
+            <strong>{{combatDetail.technique.name}}</strong>
+          </div>
+          <div class="hc-tech-desc">{{{combatDetail.technique.desc}}}</div>
+        </div>
+      </aside>
+      {{/if}}
+    </section>
+    {{/if}}
+
+    {{#if isOrigin}}
+    <section class="hc-step-pane hc-species3 flexrow">
+      <menu class="hc-option-menu">
+        {{#each origins as |o|}}
+        <li class="hc-option flexrow {{#if o.selected}}is-selected{{/if}}"
+            data-action="chooseOrigin" data-origin-id="{{o.id}}">
+          {{#if o.img}}<img class="hc-option-img" src="{{o.img}}" alt="{{o.name}}">{{/if}}
+          <h4 class="hc-option-name">{{o.name}}</h4>
+        </li>
+        {{/each}}
+      </menu>
+
+      <div class="hc-center scrollable">
+        {{#unless hasOrigins}}
+        <p class="hc-detail-empty">Nenhuma origem encontrada no compêndio.</p>
+        {{/unless}}
+        {{#unless chosenOrigin}}
+        {{#if hasOrigins}}
+        <p class="hc-detail-intro">
+          Sua <strong>origem</strong> conta de onde você veio e concede perícias, idiomas e um talento inicial.
+          Escolha uma ao lado.
+        </p>
+        {{/if}}
+        {{/unless}}
+        {{#if chosenOrigin}}
+        <h2 class="hc-center-title">{{chosenOrigin.name}}</h2>
+        <div class="hc-detail-desc">{{{chosenOrigin.desc}}}</div>
+        {{#if chosenOrigin.grants.length}}
+        <div class="hc-guide-block">
+          <h3 class="hc-guide-title">O que concede</h3>
+          <ul class="hc-inclinations">
+            {{#each chosenOrigin.grants as |g|}}<li>{{g}}</li>{{/each}}
+          </ul>
+        </div>
+        {{/if}}
+
+        <div class="hc-guide-block">
+          <h3 class="hc-guide-title">Proficiência em Salvaguarda</h3>
+          <select class="hc-origin-save">
+            <option value="">— escolher salvaguarda —</option>
+            {{#each originSaves as |s|}}<option value="{{s.key}}" {{#if s.selected}}selected{{/if}}>{{s.label}}</option>{{/each}}
+          </select>
+        </div>
+
+        {{#if originGrantedSkills.length}}
+        <div class="hc-guide-block">
+          <h3 class="hc-guide-title">Perícias concedidas</h3>
+          <ul class="hc-inclinations">{{#each originGrantedSkills as |s|}}<li>{{s}}</li>{{/each}}</ul>
+        </div>
+        {{/if}}
+
+        {{#if originSkills}}
+        <div class="hc-guide-block">
+          <h3 class="hc-guide-title">Perícias — escolha {{originSkills.count}} ({{originSkills.left}} restante(s))</h3>
+          <div class="hc-skill-grid">
+            {{#each originSkills.options as |sk|}}
+            <button type="button" class="hc-skill {{#if sk.selected}}is-selected{{/if}}"
+                    data-action="toggleOriginSkill" data-skill="{{sk.key}}" {{#if sk.disabled}}disabled{{/if}}>
+              {{sk.label}}
+            </button>
+            {{/each}}
+          </div>
+        </div>
+        {{/if}}
+        {{/if}}
+      </div>
+
+      <aside class="hc-attr-column flexcol">
+        <h4 class="hc-attr-column-title">Seus Atributos</h4>
+        <p class="hc-attr-points">{{originPoints.left}}/{{originPoints.total}} ponto(s) da origem para distribuir</p>
+        {{#each currentAbilities as |ab|}}
+        <div class="hc-attr-pill flexrow {{#if ab.originAdd}}has-bonus{{/if}}">
+          <span class="hc-attr-pill-abbr">{{ab.abbr}}</span>
+          <span class="hc-attr-pill-label">{{ab.label}}</span>
+          <button type="button" class="hc-adjust-btn" data-action="originBonusDec" data-ability="{{ab.key}}" {{#unless ab.canDec}}disabled{{/unless}}>−</button>
+          <span class="hc-attr-pill-val">{{ab.value}}</span>
+          <button type="button" class="hc-adjust-btn" data-action="originBonusInc" data-ability="{{ab.key}}" {{#unless ab.canInc}}disabled{{/unless}}>+</button>
+        </div>
+        {{/each}}
+      </aside>
+    </section>
+    {{/if}}
+
+    {{#if isCustomization}}
+    <section class="hc-step-pane hc-custom flexcol">
+      <header class="hc-custom-head">
+        <h2 class="hc-center-title">Personalização</h2>
+        <p class="hc-detail-intro">
+          Escolha <strong>defeitos</strong> para ganhar personalidade e, a cada <strong>2 pontos</strong> de defeito,
+          liberar <strong>1 talento</strong> adicional.
+        </p>
+      </header>
+
+      <div class="hc-custom-cols flexrow">
+        <div class="hc-custom-defeitos">
+          <h3 class="hc-guide-title">Defeitos — {{defeitoCount}}/{{defeitoMax}} · {{defeitoPoints}} ponto(s) · libera {{customTalentSlots}} talento(s)</h3>
+          {{#unless defeitoHasAny}}<p class="hc-detail-empty">Nenhum defeito encontrado no compêndio.</p>{{/unless}}
+          {{#each defeitoGroups as |g|}}
+          <h4 class="hc-trait-grouptitle">Defeitos de {{g.points}} ponto(s)</h4>
+          <div class="hc-trait-grid hc-talent-grid">
+            {{#each g.items as |d|}}
+            <button type="button" class="hc-trait {{#if d.selected}}is-selected{{/if}}"
+                    data-action="toggleDefeito" data-defeito-id="{{d.id}}" data-tip-uuid="{{d.uuid}}" title="{{d.name}}"
+                    {{#if d.disabled}}disabled{{/if}}>
+              {{#if d.img}}<img src="{{d.img}}" alt="{{d.name}}">{{/if}}<span>{{d.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+          {{/each}}
+        </div>
+
+        <div class="hc-custom-talents">
+          <h3 class="hc-guide-title">Talentos — {{customTalentUsed}}/{{customTalentSlots}} ({{customTalentLeft}} restante(s))</h3>
+          {{#if customTalentSlots}}
+          <div class="hc-trait-grid hc-talent-grid">
+            {{#each customTalents as |t|}}
+            <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
+                    data-action="toggleCustomTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}"
+                    {{#if t.disabled}}disabled{{/if}}>
+              {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+          {{else}}
+          <p class="hc-detail-empty">Pegue defeitos (2 pontos = 1 talento) para liberar talentos.</p>
+          {{/if}}
+        </div>
+      </div>
+    </section>
+    {{/if}}
+
+    {{#if isToken}}
+    <section class="hc-step-pane hc-token flexcol">
+      <h2 class="hc-center-title">Imagem & Token</h2>
+      <p class="hc-attr-lead">Escolha a <strong>imagem de perfil</strong> da ficha e a <strong>imagem do token</strong> que aparece na cena.</p>
+
+      <div class="hc-token-cards flexrow">
+        <div class="hc-token-card flexcol">
+          <h3 class="hc-guide-title">Imagem de Perfil</h3>
+          <button type="button" class="hc-img-frame" data-action="pickProfileImg" title="Escolher imagem de perfil">
+            <img src="{{profileImg}}" alt="Perfil">
+            <span class="hc-img-edit"><i class="fas fa-pen" inert></i></span>
+          </button>
+          <button type="button" class="hc-chip-btn" data-action="pickProfileImg"><i class="fas fa-image" inert></i> Escolher imagem</button>
+        </div>
+
+        <div class="hc-token-card flexcol">
+          <h3 class="hc-guide-title">Imagem do Token</h3>
+          <button type="button" class="hc-img-frame hc-img-token" data-action="pickTokenImg" title="Escolher imagem do token">
+            <img src="{{tokenImg}}" alt="Token">
+            <span class="hc-img-edit"><i class="fas fa-pen" inert></i></span>
+          </button>
+          <button type="button" class="hc-chip-btn" data-action="pickTokenImg"><i class="fas fa-image" inert></i> Escolher imagem</button>
+          <button type="button" class="hc-chip-btn" data-action="useImgAsToken"><i class="fas fa-copy" inert></i> Usar a de perfil</button>
+        </div>
+      </div>
+
+      <p class="hc-token-hint">Você pode trocar o nome no campo acima a qualquer momento.</p>
+    </section>
+    {{/if}}
+
+  </div>
+
+  {{!-- ═══════════════ FOOTER / NAV ═══════════════ --}}
+  <footer class="hc-footer flexrow">
+    <button type="button" class="hc-btn hc-btn-secondary" data-action="prev" {{#if isFirst}}disabled{{/if}}>
+      <i class="fas fa-arrow-left" inert></i> Voltar
+    </button>
+    {{#if isLast}}
+    <button type="button" class="hc-btn hc-btn-primary" data-action="complete">
+      <i class="fas fa-check" inert></i> Criar Personagem
+    </button>
+    {{else}}
+    <button type="button" class="hc-btn hc-btn-primary" data-action="next">
+      Próximo <i class="fas fa-arrow-right" inert></i>
+    </button>
+    {{/if}}
+  </footer>
+
+</div>

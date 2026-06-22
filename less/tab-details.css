@@ -541,3 +541,36 @@ filigree-box.jj-foco-defensivo-box {
   height: 32px !important;
   font-size: var(--font-size-16) !important;
 }
+
+/* ── Barra de Pontos de Vitalidade (substitui a Vida em Zetsu/aura esgotada) ── */
+.hc-vitality-bar .progress::before {
+  background: linear-gradient(to right, #1f8a70 0%, #2ec9a3 100%) !important;
+  border-inline-end-color: #28b48f !important;
+}
+.hc-vitality-bar { border: 1px solid #2ec9a3 !important; }
+
+/* ── Toggle de Aura / Zetsu (ícone de redemoinho + interruptor) ── */
+.hc-aura-toggle {
+  display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto;
+  width: auto; height: 16px; padding: 0; margin: 0; border: none; background: none; cursor: pointer;
+}
+.hc-aura-toggle i { font-size: 11px; color: #828892; transition: color .15s, filter .15s; }
+.hc-aura-toggle.is-on i { color: #e0902f; filter: drop-shadow(0 0 3px rgba(224,144,47,0.6)); }
+.hc-aura-switch {
+  position: relative; width: 26px; height: 14px; border-radius: 999px;
+  background: #34343d; border: 1px solid rgba(255,255,255,0.12);
+  transition: background .15s, border-color .15s;
+}
+.hc-aura-knob {
+  position: absolute; top: 1px; left: 1px; width: 10px; height: 10px; border-radius: 50%;
+  background: #9aa0ac; transition: left .15s, background .15s;
+}
+.hc-aura-toggle.is-on .hc-aura-switch { background: rgba(200,168,75,0.35); border-color: rgba(200,168,75,0.6); }
+.hc-aura-toggle.is-on .hc-aura-knob { left: 13px; background: #f4e4bf; }
+.hc-aura-toggle:hover:not(:disabled) .hc-aura-switch { border-color: rgba(255,255,255,0.3); }
+.hc-aura-toggle:disabled { opacity: .4; cursor: default; }
+/* O botão não deve esticar a linha do título nem afastá-lo da barra. */
+.hc-hp-label { min-height: 0 !important; margin-bottom: 0 !important; line-height: 1.1 !important; align-items: flex-end !important; }
+.hc-hp-label .hc-aura-toggle { box-sizing: border-box; }
+/* Puxa a barra de Vida/Vitalidade pra perto do título. */
+.hc-hp-bars { margin-top: -1px !important; }

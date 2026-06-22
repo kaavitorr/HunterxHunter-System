@@ -56,7 +56,8 @@
     { "src": "less/tab-effects.css" },
     { "src": "less/tab-manipulation.css" },
     { "src": "less/tab-trainings.css" },
-    { "src": "less/tab-hatsu.css" }
+    { "src": "less/tab-hatsu.css" },
+    { "src": "less/character-creation.css" }
   ],
   "documentTypes": {
     "ActiveEffect": {

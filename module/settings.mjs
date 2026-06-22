@@ -59,6 +59,15 @@ export function registerSystemSettings() {
     default: ""
   });
 
+  // Espécies customizadas (editor da Criação de Personagem — só Narrador edita).
+  // Array de { id, name, img, desc }. Persistente/mundo → oficial para todos.
+  game.settings.register("hunter-system", "customSpecies", {
+    scope: "world",
+    config: false,
+    type: Array,
+    default: []
+  });
+
   // Polymorph Settings
   game.settings.register("hunter-system", "transformationSettings", {
     scope: "client",

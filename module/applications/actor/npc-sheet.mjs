@@ -279,15 +279,15 @@ export default class NPCActorSheet extends BaseActorSheet {
       agressivoUnlocked: !!ab.focoAgressivo?.unlocked,
       defensivoUnlocked: !!ab.focoDefensivo?.unlocked,
       agressivoAtivo:    !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo"),
-      defensivoAtivo:    !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo"),
+      // defensivoAtivo é derivado de armorPoints.value > 0 — fonte única.
+      defensivoAtivo:    (this.actor.system.armorPoints?.value ?? 0) > 0,
       fluxoVeloz:        !!ab.fluxoVeloz?.unlocked,
       fluxoConstante:    !!ab.fluxoConstante?.unlocked
     };
     context.foco.agressivoDie = context.foco.fluxoConstante ? "1d6" : "1d4";
-    const baseTemp = context.foco.fluxoConstante ? 40 : 20;
-    const resistUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
-    const aprimLvl = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
-    context.foco.defensivoTemp = baseTemp + (resistUnlocked ? aprimLvl * 3 : 0);
+    // Pontos de Armadura do Foco Defensivo (derivado em character.mjs/npc.mjs).
+    context.foco.defensivoArmorMax = this.actor.system.armorPoints?.max ?? 0;
+    context.foco.defensivoArmorValue = this.actor.system.armorPoints?.value ?? 0;
 
     const hatsuTier = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
     context.estagioFoco = {
@@ -822,6 +822,8 @@ export default class NPCActorSheet extends BaseActorSheet {
     context.nenGridRings = gridRings;
     context.nenAxes = axes;
     context.nenLabels = labels;
+    // Perímetro do hexágono ligando os 6 nós das categorias (moldura forte)
+    context.nenOuterPoints = labels.map(l => `${l.lx},${l.ly}`).join(" ");
     context.nenPrimaryCategory = npcPrimaryCategory;
     context.nenPrimaryColor = nenPrimaryColor;
     console.log("NPCSheet | _prepareTrainingsContext | categories:", nenCategories.length);
@@ -928,13 +930,11 @@ export default class NPCActorSheet extends BaseActorSheet {
   async _onToggleFoco(focoType) {
     const ab = this.actor.system.manipulation?.abilities ?? {};
     const flagAgressivo  = !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo");
-    const flagDefensivo  = !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo");
+    // defensivoAtivo é derivado: armorPoints.value > 0
+    const flagDefensivo  = (this.actor.system.armorPoints?.value ?? 0) > 0;
     const fluxoVeloz     = !!ab.fluxoVeloz?.unlocked;
     const fluxoConstante = !!ab.fluxoConstante?.unlocked;
-    const baseAmount     = fluxoConstante ? 40 : 20;
-    const resistUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
-    const aprimLvl       = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
-    const tempAmount     = baseAmount + (resistUnlocked ? aprimLvl * 3 : 0);
+    const tempAmount     = this.actor.system.armorPoints?.max ?? 0; // mantido por compat
     const dieFace        = fluxoConstante ? 6 : 4;
 
     if ( focoType === "agressivo" ) {
@@ -966,23 +966,38 @@ export default class NPCActorSheet extends BaseActorSheet {
     }
   }
 
+  /**
+   * Ativa o Foco Defensivo enchendo os Pontos de Armadura até o máximo derivado.
+   * O estado "ativo" é representado por `armorPoints.value > 0` (fonte única).
+   */
   async _ativarFocoDefensivo(amount) {
-    const cur = this.actor.system.attributes?.hp?.temp ?? 0;
-    await this.actor.update({ "system.attributes.hp.temp": cur + amount });
-    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", true);
-    await this.actor.setFlag("hunter-system", "focoDefensivoTempHpGranted", amount);
+    const max = this.actor.system.armorPoints?.max ?? 0;
+    if ( max <= 0 ) {
+      ui.notifications.warn("Foco Defensivo não está disponível (habilidade não desbloqueada).");
+      return;
+    }
+    await this.actor.update({ "system.armorPoints.value": max });
+    if ( this.actor.getFlag("hunter-system", "focoDefensivoAtivo") !== undefined ) {
+      await this.actor.unsetFlag("hunter-system", "focoDefensivoAtivo");
+    }
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> (+${amount} PV temporários).`
+      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> — recebe <strong>${max} Pontos de Armadura</strong>!`
     });
   }
 
   async _desativarFocoDefensivo({ silent = false } = {}) {
-    const granted = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
-    const cur = this.actor.system.attributes?.hp?.temp ?? 0;
-    await this.actor.update({ "system.attributes.hp.temp": Math.max(0, cur - granted) });
-    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", false);
-    await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    const updates = { "system.armorPoints.value": 0 };
+    const grantedLegacy = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
+    if ( grantedLegacy > 0 ) {
+      const cur = this.actor.system.attributes?.hp?.temp ?? 0;
+      updates["system.attributes.hp.temp"] = Math.max(0, cur - grantedLegacy);
+    }
+    await this.actor.update(updates);
+    if ( grantedLegacy > 0 ) await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    if ( this.actor.getFlag("hunter-system", "focoDefensivoAtivo") !== undefined ) {
+      await this.actor.unsetFlag("hunter-system", "focoDefensivoAtivo");
+    }
     if ( !silent ) ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `🛡️ <strong>${this.actor.name}</strong> desativou o <strong>Foco Defensivo</strong>.`

@@ -4440,6 +4440,9 @@ DND5E.activityTypes = {
     documentClass: activities.OrderActivity,
     configurable: false
   },
+  reduction: {
+    documentClass: activities.ReductionActivity
+  },
   save: {
     documentClass: activities.SaveActivity
   },

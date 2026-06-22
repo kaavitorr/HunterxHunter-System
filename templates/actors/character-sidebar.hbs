@@ -15,7 +15,7 @@
         <div class="portrait {{#if portrait.token}}token{{/if}}">
             {{#if editable}}
             <label class="slide-toggle roboto-upper">
-                <input type="checkbox" name="flags.HunterLegacy.showTokenPortrait" {{ checked portrait.token }}>
+                <input type="checkbox" name="flags.hunter-system.showTokenPortrait" {{ checked portrait.token }}>
                 {{#if portrait.token}}
                 <i class="fas fa-toggle-on" inert></i>
                 {{ localize "DOCUMENT.Token" }}
@@ -126,17 +126,27 @@
 
            {{!-- Hit Points --}}
 <div class="meter-group">
-  <div class="label roboto-condensed-upper">
-    <span>{{ localize "DND5E.HitPoints" }}</span>
-    {{#if editable}}
-    <button type="button" class="config-button unbutton" data-action="showConfiguration"
-            data-config="hitPoints" data-tooltip="DND5E.HitPointsConfig"
-            aria-label="{{ localize 'DND5E.HitPointsConfig' }}">
-      <i class="fas fa-cog" inert></i>
-    </button>
-    {{/if}}
+  <div class="label roboto-condensed-upper hc-hp-label" style="display:flex; justify-content:space-between; align-items:center;">
+    <span>{{#if system.attributes.auraOn}}{{ localize "DND5E.HitPoints" }}{{else}}Pontos de Vitalidade{{/if}}</span>
+    <span style="display:flex; gap:6px; align-items:center;">
+      <button type="button" class="hc-aura-toggle {{#if system.attributes.auraActive}}is-on{{/if}}"
+              data-action="toggleAura"
+              data-tooltip="{{#if system.attributes.auraActive}}Aura ativa — clique para Zetsu{{else}}Em Zetsu — clique para ativar a aura{{/if}}"
+              {{#if system.attributes.auraExhausted}}disabled{{/if}}>
+        <i class="fas fa-fire-flame-curved" inert></i>
+        <span class="hc-aura-switch"><span class="hc-aura-knob"></span></span>
+      </button>
+      {{#if editable}}
+      <button type="button" class="config-button unbutton" data-action="showConfiguration"
+              data-config="hitPoints" data-tooltip="DND5E.HitPointsConfig"
+              aria-label="{{ localize 'DND5E.HitPointsConfig' }}">
+        <i class="fas fa-cog" inert></i>
+      </button>
+      {{/if}}
+    </span>
   </div>
-  <div style="display: flex; gap: 4px;">
+  <div class="hc-hp-bars" style="display: flex; gap: 4px;">
+    {{#if system.attributes.auraOn}}
     {{#with system.attributes.hp}}
     <div class="meter sectioned hit-points" style="flex: 1;">
       <div class="progress hit-points
@@ -163,6 +173,22 @@
       </div>
     </div>
     {{/with}}
+    {{else}}
+    {{#with system.attributes.pve}}
+    <div class="meter sectioned hit-points hc-vitality-bar" style="flex: 1;">
+      <div class="progress hit-points" role="meter" aria-valuemin="0" aria-valuenow="{{ value }}"
+           aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+        <div class="label">
+          <span class="value">{{ value }}</span>
+          <span class="separator">&sol;</span>
+          <span class="max">{{ max }}</span>
+        </div>
+        <input type="text" name="system.attributes.pve.value" data-dtype="Number"
+               data-max="{{ max }}" placeholder="0" value="{{ value }}" hidden>
+      </div>
+    </div>
+    {{/with}}
+    {{/if}}
 
   </div>
 </div>
@@ -206,6 +232,30 @@
     {{/with}}
   </div>
 </div>
+
+{{!-- Pontos de Armadura (Foco Defensivo) — só aparece se max > 0 --}}
+{{#if system.armorPoints.max}}
+<div class="meter-group">
+  <div class="label roboto-condensed-upper">
+    <span>Pontos de Armadura</span>
+  </div>
+  <div style="display: flex; gap: 4px;">
+    {{#with system.armorPoints}}
+    <div class="meter sectioned hit-points armor-points-bar" style="flex:1; --dnd5e-color-hp-1: #4a5a6a; --dnd5e-color-hp-2: #8a9aaa; --dnd5e-color-hp-3: #6a7a8a;" role="meter" aria-valuemin="0" aria-valuenow="{{ value }}" aria-valuemax="{{ max }}">
+      <div class="progress hit-points armor-points-bar" role="meter" style="--bar-percentage: {{ @root.armorPct }}%; --dnd5e-color-hp-1: #4a5a6a; --dnd5e-color-hp-2: #8a9aaa; --dnd5e-color-hp-3: #6a7a8a;">
+        <div class="label">
+          <span class="value">{{ value }}</span>
+          <span class="separator">&sol;</span>
+          <span class="max">{{ max }}</span>
+        </div>
+        <input type="text" name="system.armorPoints.value" data-dtype="Number"
+               data-max="{{ max }}" placeholder="0" value="{{ value }}" hidden>
+      </div>
+    </div>
+    {{/with}}
+  </div>
+</div>
+{{/if}}
 
             {{!-- Dice Row --}}
             <div class="meter-group">

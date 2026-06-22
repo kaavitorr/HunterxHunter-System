@@ -4,6 +4,131 @@
    ══════════════════════════════════════════════════════ */
 
 /* ════════════════════════════════════════
+   TREINAR ATRIBUTO — Card no topo
+   ════════════════════════════════════════ */
+.attr-train-card {
+  margin: 6px 8px 10px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #161020 0%, #0e0a16 100%);
+  border: 1px solid #3a2e4a;
+  border-radius: 8px;
+}
+
+.attr-train-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1c1428;
+}
+
+.attr-train-header i {
+  font-size: 14px;
+  color: #c8a84b;
+}
+
+.attr-train-title {
+  flex: 1 1 auto;
+  font: 700 13px var(--dnd5e-font-roboto-slab, serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d0c0e8;
+}
+
+.attr-train-pt {
+  font-size: 11px;
+  color: #8a8aa6;
+}
+.attr-train-pt strong {
+  color: #c8a84b;
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+.attr-train-list {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.attr-train-pip {
+  flex: 0 1 auto;
+  min-width: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  background: #0e0a16;
+  border: 1px solid #2a2238;
+  border-radius: 5px;
+  color: #d0c0e8;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.attr-train-pip:hover:not(:disabled) {
+  border-color: #5a4a72;
+  background: #14102a;
+}
+
+.attr-train-pip.selected {
+  background: #1a1430;
+  border-color: #8a6cc8;
+  box-shadow: 0 0 8px rgba(140, 100, 200, 0.4);
+}
+
+.attr-train-pip.maxed,
+.attr-train-pip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+.attr-train-pip.unaffordable {
+  opacity: 0.55;
+}
+.attr-train-pip.unaffordable .attr-train-value { color: #a08070; }
+.attr-train-pip.unaffordable.selected { opacity: 0.85; }
+
+.attr-train-abbr {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #a090c0;
+}
+
+.attr-train-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f0e0c8;
+}
+
+.attr-train-btn {
+  flex: 0 1 auto;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(180deg, #6a5230 0%, #4a3a20 100%);
+  border: 1px solid #8a6e40;
+  border-radius: 5px;
+  color: #f0e0c0;
+  font: 700 11px var(--dnd5e-font-roboto-slab, serif);
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.attr-train-btn:hover {
+  background: linear-gradient(180deg, #8a6e40 0%, #6a5230 100%);
+  color: #fff5d0;
+  box-shadow: 0 0 8px rgba(200, 168, 75, 0.4);
+}
+
+/* ════════════════════════════════════════
    PT BAR — Pontos de Treinamento
    ════════════════════════════════════════ */
 .nen-pt-bar {
@@ -692,3 +817,60 @@
   color: rgba(255,200,50,0.6);
   margin: 6px 0 0;
 }
+
+/* ══════════════ Categoria Híbrida ══════════════ */
+.nen-hybrid-gm {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(180,140,255,0.35);
+  border-radius: 8px;
+  background: rgba(120,80,200,0.10);
+}
+.nen-hybrid-gm-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #c8a8ff;
+  margin-bottom: 8px;
+}
+.nen-hybrid-gm-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.nen-hybrid-select {
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+.nen-hybrid-reveal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #ddd;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.nen-hybrid-hint {
+  font-size: 10px;
+  color: #9a90b5;
+  margin: 8px 0 0;
+}
+.nen-hybrid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 10px 0;
+  padding: 7px 14px;
+  border: 1px solid rgba(180,140,255,0.45);
+  border-radius: 999px;
+  background: rgba(120,80,200,0.14);
+  font-size: 13px;
+  color: #e6dcff;
+}
+.nen-hybrid-badge strong { color: #fff; }

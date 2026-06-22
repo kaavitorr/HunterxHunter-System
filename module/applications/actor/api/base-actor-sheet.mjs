@@ -563,7 +563,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
       if ( key in spellbook ) return;
       const label = config?.getLabel({ level }) ?? game.i18n.localize("DND5E.CAST.SECTIONS.Spellbook");
       const method = config?.key ?? key;
-      const order = level === 0 ? 0 : (config?.order ?? 1000);
+      const order = level === 0 ? 0 : (config?.order ?? 1000) + (level ?? 0);
       const usesSlots = config?.slots && (level !== 0);
       const section = spellbook[key] = {
         label, columns, order, usesSlots,

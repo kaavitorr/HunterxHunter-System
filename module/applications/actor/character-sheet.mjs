@@ -5,10 +5,18 @@ import { EnergySystem } from "../../systems/energy.mjs";
 import CompendiumBrowser from "../compendium-browser.mjs";
 import ContextMenu5e from "../context-menu.mjs";
 import BaseActorSheet from "./api/base-actor-sheet.mjs";
-import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, prepareTrainings, canUnlockAbility, MANIPULATION_ABILITIES } from "../../systems/manipulation-data.mjs";
-import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory, getUnlockedMinorAbilities, getAvailableMajorAbilities } from "../../systems/nen-categories-data.mjs";
+import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, prepareTrainings, canUnlockAbility, MANIPULATION_ABILITIES, PRINCIPLES_DATA } from "../../systems/manipulation-data.mjs";
+import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory, getUnlockedMinorAbilities, getAvailableMajorAbilities, NEN_HYBRIDS, NEN_HYBRID_OPTIONS_BY_PRIMARY, getHybridSecondary } from "../../systems/nen-categories-data.mjs";
 import Item5e from "../../documents/item.mjs";
 import * as Trait from "../../documents/actor/trait.mjs";
+
+// ── Módulos JJ (port progressivo do jujutsu-system) ──
+import "./jj/reducao-dano.mjs";
+import "./jj/constant-cost.mjs";
+import "./jj/combat-sacrifice-hud.mjs";
+import "./jj/heal-limit.mjs";
+import { chooseJJScale, applyScaleChoice, promptJJScale } from "./jj/jj-scale.mjs";
+import { resetHealLimitsByTechnique } from "./jj/heal-limit.mjs";
 
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
@@ -29,6 +37,7 @@ export default class CharacterActorSheet extends BaseActorSheet {
       deleteOccupant: CharacterActorSheet.#deleteOccupant,
       findItem: CharacterActorSheet.#findItem,
       setSpellcastingAbility: CharacterActorSheet.#setSpellcastingAbility,
+      toggleAura: CharacterActorSheet.#toggleAura,
       toggleDeathTray: CharacterActorSheet.#toggleDeathTray,
       toggleInspiration: CharacterActorSheet.#toggleInspiration,
       useFacility: CharacterActorSheet.#useFacility,
@@ -589,13 +598,28 @@ context.skills = skillsSorted;
 
   /** @inheritDoc */
   async _prepareInventoryContext(context, options) {
-    context.itemCategories.inventory = context.itemCategories.inventory?.filter(i => i.type !== "container");
     context = await super._prepareInventoryContext(context, options);
     context.size = {
       label: CONFIG.DND5E.actorSizes[this.actor.system.traits.size]?.label ?? this.actor.system.traits.size,
       abbr: CONFIG.DND5E.actorSizes[this.actor.system.traits.size]?.abbreviation ?? "—",
       mod: this.actor.system.attributes.encumbrance.mod
     };
+
+    // Mochila equipada — só a primeira container com equipped=true
+    const equipped = this.actor.items.find(i => i.type === "container" && i.system?.equipped);
+    if ( equipped ) {
+      const cap = await equipped.system.computeCapacity();
+      context.equippedBackpack = {
+        id: equipped.id,
+        uuid: equipped.uuid,
+        name: equipped.name,
+        img: equipped.img,
+        capacityPct: cap?.pct ?? 0,
+        capacityValue: cap?.value ?? 0,
+        capacityMax: Number.isFinite(cap?.max) ? cap.max : "∞"
+      };
+    }
+
     return context;
   }
 
@@ -623,6 +647,9 @@ context.energyDicePct = ed?.max > 0 ? ((ed.value / ed.max) * 100).toFixed(2) : 0
 
 const energy = this.actor.system.energy;
 context.energyPct = energy?.max > 0 ? ((energy.total / energy.max) * 100).toFixed(2) : 0;
+
+const armor = this.actor.system.armorPoints;
+context.armorPct = armor?.max > 0 ? ((armor.value / armor.max) * 100).toFixed(2) : 0;
     for ( const deathSave of ["success", "failure"] ) {
       context.death[deathSave] = [];
       for ( let i = 1; i < 4; i++ ) {
@@ -692,15 +719,16 @@ context.energyPct = energy?.max > 0 ? ((energy.total / energy.max) * 100).toFixe
       agressivoUnlocked: !!ab.focoAgressivo?.unlocked,
       defensivoUnlocked: !!ab.focoDefensivo?.unlocked,
       agressivoAtivo:    !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo"),
-      defensivoAtivo:    !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo"),
+      // defensivoAtivo é derivado de armorPoints.value > 0 — fonte única da verdade.
+      defensivoAtivo:    (this.actor.system.armorPoints?.value ?? 0) > 0,
       fluxoVeloz:        !!ab.fluxoVeloz?.unlocked,
       fluxoConstante:    !!ab.fluxoConstante?.unlocked
     };
     context.foco.agressivoDie = context.foco.fluxoConstante ? "1d6" : "1d4";
-    const baseTemp = context.foco.fluxoConstante ? 40 : 20;
-    const resistUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
-    const aprimLvl = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
-    context.foco.defensivoTemp = baseTemp + (resistUnlocked ? aprimLvl * 3 : 0);
+    // Total de Pontos de Armadura do Foco Defensivo (deriva de armorPoints.max
+    // calculado em character.mjs prepareDerivedData).
+    context.foco.defensivoArmorMax = this.actor.system.armorPoints?.max ?? 0;
+    context.foco.defensivoArmorValue = this.actor.system.armorPoints?.value ?? 0;
 
     const hatsuTier = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
     context.estagioFoco = {
@@ -1152,6 +1180,38 @@ new foundry.applications.ux.ContextMenu.implementation(
       }
     }, 150);
 
+    // Rodas dos Princípios: posiciona habilidades no anel + raios SVG, e abre/fecha no clique.
+    this.element.querySelectorAll(".nen-wheel").forEach(wheel => {
+      const orbits = [...wheel.querySelectorAll(".nen-orbit")];
+      const svg = wheel.querySelector(".nen-wheel-svg");
+      const n = orbits.length;
+      let lines = "";
+      const R = 38; // raio em %
+      orbits.forEach((o, i) => {
+        const ang = (-90 + i * (360 / n)) * Math.PI / 180;
+        const x = 50 + R * Math.cos(ang);
+        const y = 50 + R * Math.sin(ang);
+        o.style.left = `${x.toFixed(2)}%`;
+        o.style.top = `${y.toFixed(2)}%`;
+        lines += `<line x1="50" y1="50" x2="${x.toFixed(2)}" y2="${y.toFixed(2)}" class="${o.classList.contains("is-unlocked") ? "on" : ""}"></line>`;
+      });
+      if ( svg ) svg.innerHTML = lines;
+
+      const hub = wheel.querySelector(".nen-hub[data-wheel-toggle]");
+      if ( hub && !hub.dataset.bound ) {
+        hub.dataset.bound = "1";
+        hub.addEventListener("click", e => {
+          if ( e.target.closest("[data-action]") ) return; // mini desbloquear/desfazer do princípio
+          e.preventDefault();
+          wheel.classList.toggle("is-open");
+        });
+      }
+      // Já desbloqueado (ou com habilidade desbloqueada) → começa aberto.
+      if ( wheel.classList.contains("pr-on") || orbits.some(o => o.classList.contains("is-unlocked")) ) {
+        wheel.classList.add("is-open");
+      }
+    });
+
     // Injetar seção de condições Jujutsu na aba Effects
     _injectJJConditions(this.element, this.actor);
 
@@ -1411,6 +1471,20 @@ new foundry.applications.ux.ContextMenu.implementation(
    */
   static #toggleInspiration(event, target) {
     this.submit({ updateData: { "system.attributes.inspiration": !this.actor.system.attributes.inspiration } });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Alterna a Aura ativa (Zetsu). Com aura ativa mostra-se a Vida; em zetsu/esgotada, a Vitalidade.
+   * @this {CharacterActorSheet}
+   */
+  static #toggleAura(event, target) {
+    if ( this.actor.system.attributes.auraExhausted ) {
+      ui.notifications?.warn("Aura esgotada — não é possível ativar.");
+      return;
+    }
+    this.actor.update({ "system.attributes.auraActive": !this.actor.system.attributes.auraActive });
   }
 
   /* -------------------------------------------- */
@@ -1755,6 +1829,11 @@ new foundry.applications.ux.ContextMenu.implementation(
       const abilitiesResult = prepareManipulationAbilities(this.actor);
       const principlesResult = preparePrinciples(this.actor);
 
+      // Kanji de cada princípio Nen (centro da roda).
+      const NEN_KANJI = {
+        ten: "纏", zetsu: "絶", ren: "練", hatsu: "発",
+        gyo: "凝", in: "隠", en: "円", shu: "周", ken: "堅", ko: "硬", ryu: "流"
+      };
       // Monta sections usando TREE_DATA (estrutura estática com ordem correta)
       const sections = TREE_DATA.map(treeSection => ({
         label: treeSection.section,
@@ -1780,6 +1859,7 @@ new foundry.applications.ux.ContextMenu.implementation(
           return {
             id: pr.id,
             label: pr.label,
+            kanji: NEN_KANJI[pr.id] ?? "",
             description: pr.desc ?? "",
             reference: pr.reference ?? "",
             cost: pr.cost ?? 0,
@@ -1806,6 +1886,84 @@ new foundry.applications.ux.ContextMenu.implementation(
    * Tenta avançar um nível em uma categoria Nen.
    * Rola Teste de Espírito vs CD do nível — sucesso avança, falha reduz CD em 1.
    */
+  /**
+   * Seleciona o atributo a ser treinado (estado em memória, não persistido).
+   */
+  _onSelectAttributeToTrain(abilityId) {
+    if ( !abilityId ) return;
+    this._selectedAttrToTrain = abilityId;
+    // Atualiza UI: marca o pip selecionado
+    this.element.querySelectorAll("[data-action='selectAttributeToTrain']").forEach(b => {
+      b.classList.toggle("selected", b.dataset.ability === abilityId);
+    });
+  }
+
+  /**
+   * Treina o atributo selecionado: gasta PT e aumenta o valor em +1.
+   * Custo: 3 PT até 17→18; 6 PT em 18→19 e 19→20. Cap em 20.
+   */
+  async _onTrainAttribute() {
+    const id = this._selectedAttrToTrain;
+    if ( !id ) {
+      ui.notifications.warn("Selecione um atributo antes de treinar.");
+      return;
+    }
+    const LABELS = { str: "Força", dex: "Agilidade", con: "Constituição",
+                     int: "Inteligência", wis: "Sabedoria", cha: "Presença" };
+    const value = this.actor.system.abilities?.[id]?.value ?? 10;
+    if ( value >= 20 ) {
+      ui.notifications.warn(`${LABELS[id]} já está no máximo (20).`);
+      return;
+    }
+    const cost = value >= 18 ? 6 : 3;
+    const pt = this.actor.system.curseResources?.trainingPoints ?? 0;
+    if ( pt < cost ) {
+      ui.notifications.warn(`PT insuficientes: precisa ${cost}, disponível ${pt}.`);
+      return;
+    }
+
+    // Confirmação antes de gastar PT
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "🏋️ Confirmar Treinamento" },
+      content: `
+        <div style="padding:8px 0; font-size:13px; color:#ccc; line-height:1.6;">
+          <p style="margin:0 0 10px;">Treinar <strong style="color:#c8a84b;">${LABELS[id]}</strong>?</p>
+          <table style="width:100%; border-spacing:0; font-size:12px;">
+            <tr>
+              <td style="padding:4px 8px; color:#8080a0;">Valor:</td>
+              <td style="padding:4px 8px; text-align:right;">
+                <strong>${value}</strong> → <strong style="color:#60c080;">${value + 1}</strong>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px; color:#8080a0;">Custo:</td>
+              <td style="padding:4px 8px; text-align:right;"><strong style="color:#e07050;">${cost} PT</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px; color:#8080a0;">PT restante:</td>
+              <td style="padding:4px 8px; text-align:right;"><strong>${pt - cost}</strong></td>
+            </tr>
+          </table>
+        </div>`,
+      yes: { label: "Confirmar Treinamento", default: true },
+      no:  { label: "Cancelar" }
+    });
+    if ( !ok ) return;
+
+    await this.actor.update({
+      [`system.abilities.${id}.value`]: value + 1,
+      "system.curseResources.trainingPoints": pt - cost
+    });
+
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `🏋️ <strong>${this.actor.name}</strong> treinou <strong>${LABELS[id]}</strong>: ${value} → <strong>${value + 1}</strong> (custo: ${cost} PT).`
+    });
+    ui.notifications.info(`${LABELS[id]} agora é ${value + 1}.`);
+  }
+
+  /* -------------------------------------------- */
+
   async _onTrainNenCategory(categoryId) {
     const cat = NEN_CATEGORIES_DATA[categoryId];
     if ( !cat ) return;
@@ -1913,7 +2071,8 @@ new foundry.applications.ux.ContextMenu.implementation(
   async _onToggleFoco(focoType) {
     const ab = this.actor.system.manipulation?.abilities ?? {};
     const flagAgressivo  = !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo");
-    const flagDefensivo  = !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo");
+    // defensivoAtivo é derivado: armorPoints.value > 0
+    const flagDefensivo  = (this.actor.system.armorPoints?.value ?? 0) > 0;
     const fluxoVeloz     = !!ab.fluxoVeloz?.unlocked;
     const fluxoConstante = !!ab.fluxoConstante?.unlocked;
     const baseAmount     = fluxoConstante ? 40 : 20;
@@ -1958,14 +2117,24 @@ new foundry.applications.ux.ContextMenu.implementation(
     }
   }
 
+  /**
+   * Ativa o Foco Defensivo enchendo os Pontos de Armadura até o máximo derivado.
+   * O estado "ativo" é representado por `armorPoints.value > 0` (fonte única).
+   */
   async _ativarFocoDefensivo(amount) {
-    const currentTemp = this.actor.system.attributes?.hp?.temp ?? 0;
-    await this.actor.update({ "system.attributes.hp.temp": currentTemp + amount });
-    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", true);
-    await this.actor.setFlag("hunter-system", "focoDefensivoTempHpGranted", amount);
+    const max = this.actor.system.armorPoints?.max ?? 0;
+    if ( max <= 0 ) {
+      ui.notifications.warn("Foco Defensivo não está disponível (habilidade não desbloqueada).");
+      return;
+    }
+    await this.actor.update({ "system.armorPoints.value": max });
+    // Limpa flag legada caso ainda exista (compat).
+    if ( this.actor.getFlag("hunter-system", "focoDefensivoAtivo") !== undefined ) {
+      await this.actor.unsetFlag("hunter-system", "focoDefensivoAtivo");
+    }
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> (+${amount} PV temporários).`
+      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> — recebe <strong>${max} Pontos de Armadura</strong>!`
     });
   }
 
@@ -2006,12 +2175,27 @@ new foundry.applications.ux.ContextMenu.implementation(
     }
   }
 
+  /**
+   * Desativa o Foco Defensivo zerando os Pontos de Armadura.
+   * Limpa flags legadas: `focoDefensivoTempHpGranted` (PV temp v1) e
+   * `focoDefensivoAtivo` (estado v2, agora derivado).
+   */
   async _desativarFocoDefensivo({ silent = false } = {}) {
-    const granted = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
-    const currentTemp = this.actor.system.attributes?.hp?.temp ?? 0;
-    await this.actor.update({ "system.attributes.hp.temp": Math.max(0, currentTemp - granted) });
-    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", false);
-    await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    const updates = { "system.armorPoints.value": 0 };
+
+    // Migração: se a versão antiga deixou PV temp pendurado, restaura.
+    const grantedLegacy = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
+    if ( grantedLegacy > 0 ) {
+      const currentTemp = this.actor.system.attributes?.hp?.temp ?? 0;
+      updates["system.attributes.hp.temp"] = Math.max(0, currentTemp - grantedLegacy);
+    }
+
+    await this.actor.update(updates);
+    if ( grantedLegacy > 0 ) await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    if ( this.actor.getFlag("hunter-system", "focoDefensivoAtivo") !== undefined ) {
+      await this.actor.unsetFlag("hunter-system", "focoDefensivoAtivo");
+    }
+
     if ( !silent ) {
       ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -2116,6 +2300,12 @@ new foundry.applications.ux.ContextMenu.implementation(
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `🔓 <strong>${this.actor.name}</strong> desbloqueou o princípio: <strong>${pr.label}</strong>!`
     });
+
+    // Concede técnicas vinculadas ao princípio
+    const principleData = PRINCIPLES_DATA[principleId];
+    if ( principleData?.techniques?.length ) {
+      await this._grantLinkedTechniques(principleData.techniques);
+    }
   }
 
   /* -------------------------------------------- */
@@ -2216,6 +2406,12 @@ new foundry.applications.ux.ContextMenu.implementation(
         (this.actor.system.curseResources?.cursePoints ?? 0) + cost;
     }
     await this.actor.update(updates);
+
+    // Remove técnicas vinculadas ao princípio
+    const principleData = PRINCIPLES_DATA[principleId];
+    if ( principleData?.techniques?.length ) {
+      await this._removeLinkedTechniques(principleData.techniques);
+    }
 
     ui.notifications.info(`Princípio "${thisPr.label}" desfeito.`);
     ChatMessage.create({
@@ -2445,6 +2641,29 @@ new foundry.applications.ux.ContextMenu.implementation(
     if ( !ability.exclusive && nenMajorCount >= nenMajorMax ) {
       ui.notifications.warn(`Limite de habilidades principais atingido (${nenMajorMax}/${nenMajorMax}).`);
       return;
+    }
+
+    // Restrições de Categoria Híbrida
+    const hybridKey = this.actor.system.nenHybrid ?? "";
+    const hyb = hybridKey ? NEN_HYBRIDS[hybridKey] : null;
+    if ( hyb && hyb.categories.includes(categoryId) ) {
+      const lvlNum = parseInt(requiredLvl);
+      if ( categoryId === "especialista" && lvlNum > hyb.majorLevel ) {
+        ui.notifications.warn(`Híbrida ${hyb.label}: de Especialista, só pode pegar a habilidade principal de nível ${hyb.majorLevel}.`);
+        return;
+      }
+      if ( hyb.majorLevel >= 10 && lvlNum === 10 ) {
+        let lvl10 = 0;
+        for ( const cid of hyb.categories ) {
+          const ab10 = NEN_CATEGORIES_DATA[cid]?.major?.[10];
+          const um = this.actor.system.nenCategories?.[cid]?.unlockedMajor ?? {};
+          if ( ab10 && um[ab10.id] ) lvl10++;
+        }
+        if ( lvl10 >= 1 ) {
+          ui.notifications.warn(`Híbrida ${hyb.label}: só pode escolher UMA habilidade principal de nível 10 entre as duas categorias.`);
+          return;
+        }
+      }
     }
 
     await this.actor.update({
@@ -2966,6 +3185,14 @@ new foundry.applications.ux.ContextMenu.implementation(
       manipulador: "MAN",
       especialista: "ESP"
     };
+    const KANJIS = {
+      aprimorador:  "強", // Kyōka — Aprimoramento
+      emissor:      "放", // Hōshutsu — Emissão
+      transmutador: "変", // Henka — Transmutação
+      conjurador:   "具", // Gugenka — Conjuração
+      manipulador:  "操", // Sōsa — Manipulação
+      especialista: "特"  // Tokushitsu — Especialização
+    };
     const COLORS = {
       aprimorador: "#e86800",
       emissor: "#B8860B",
@@ -3032,6 +3259,7 @@ new foundry.applications.ux.ContextMenu.implementation(
         id,
         label: LABELS[id],
         abbrev: ABBREVS[id],
+        kanji: KANJIS[id],
         color: COLORS[id],
         icon: ICONS[id],
         level,
@@ -3092,6 +3320,20 @@ new foundry.applications.ux.ContextMenu.implementation(
     const nenMajorCount = this.actor.system.nenMajorCount ?? 0;
     const nenMajorMax = this._getNenMajorMax();
 
+    // Categoria Híbrida (restrições de habilidade principal)
+    const hybridKey = this.actor.system.nenHybrid ?? "";
+    const hyb = hybridKey ? NEN_HYBRIDS[hybridKey] : null;
+    // Quantas habilidades principais de nível 10 já estão desbloqueadas entre as
+    // duas categorias da híbrida (regra "só uma de nível 10").
+    let hybLvl10Unlocked = 0;
+    if ( hyb ) {
+      for ( const cid of hyb.categories ) {
+        const ab10 = NEN_CATEGORIES_DATA[cid]?.major?.[10];
+        const um = this.actor.system.nenCategories?.[cid]?.unlockedMajor ?? {};
+        if ( ab10 && um[ab10.id] ) hybLvl10Unlocked++;
+      }
+    }
+
     for ( const cat of nenCategories ) {
       const unlockedMajorMap = this.actor.system.nenCategories?.[cat.id]?.unlockedMajor ?? {};
 
@@ -3134,7 +3376,14 @@ new foundry.applications.ux.ContextMenu.implementation(
         const reached = cat.level >= lvl;
         if ( !ab ) return { reached: false, level: lvl, empty: true, categoryId: cat.id };
         const unlocked = unlockedMajorMap[ab.id] ?? false;
-        const canUnlock = reached && !unlocked && (nenMajorCount < nenMajorMax || ab.exclusive);
+        let canUnlock = reached && !unlocked && (nenMajorCount < nenMajorMax || ab.exclusive);
+        // Restrições de Categoria Híbrida (só nas categorias da híbrida)
+        if ( hyb && hyb.categories.includes(cat.id) ) {
+          // Especialista híbrido: só a principal até majorLevel (ex: 3) na 2ª categoria
+          if ( cat.id === "especialista" && lvl > hyb.majorLevel ) canUnlock = false;
+          // Normais: só UMA principal de nível 10 entre as duas categorias
+          if ( hyb.majorLevel >= 10 && lvl === 10 && !unlocked && hybLvl10Unlocked >= 1 ) canUnlock = false;
+        }
         // categoryId pré-calculado para evitar {{../cat.id}} no HBS
         return { ...ab, reached, unlocked, canUnlock, level: lvl, categoryId: cat.id, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
       });
@@ -3167,8 +3416,52 @@ new foundry.applications.ux.ContextMenu.implementation(
     context.nenGridRings = gridRings;
     context.nenAxes = axes;
     context.nenLabels = labels;
+    // Perímetro do hexágono ligando os 6 nós das categorias (moldura forte)
+    context.nenOuterPoints = labels.map(l => `${l.lx},${l.ly}`).join(" ");
     context.nenPrimaryCategory = nenPrimaryCategory;
     context.nenPrimaryColor = nenPrimaryColor;
+
+    // ── Categoria Híbrida (Narrador) ──
+    const isGM = game.user.isGM;
+    context.isGM = isGM;
+    const hybridOptionKeys = NEN_HYBRID_OPTIONS_BY_PRIMARY[nenPrimaryCategory] ?? [];
+    const primaryLabel = NEN_CATEGORIES_DATA[nenPrimaryCategory]?.label ?? "—";
+    context.nenHybridKey = hybridKey;
+    context.nenHybridRevealed = !!this.actor.system.nenHybridRevealed;
+    context.nenHybridLabel = hyb?.label ?? "";
+    // Só faz sentido oferecer híbrida se a principal tiver opções (Especialista não tem).
+    context.nenHybridCanHave = !!nenPrimaryCategory && hybridOptionKeys.length > 0;
+    context.nenHybridOptions = [
+      { value: "", label: primaryLabel, selected: !hybridKey },
+      ...hybridOptionKeys.map(k => ({ value: k, label: NEN_HYBRIDS[k].label, selected: hybridKey === k }))
+    ];
+    // Jogador só vê o rótulo se o Narrador revelou.
+    context.nenHybridShowPlayer = !!hybridKey && context.nenHybridRevealed;
+
+    // ── Treinar Atributo ──
+    // Custo: 3 PT por +1 até 18; 6 PT por +1 entre 18 e 20. Cap em 20.
+    const ABILITY_ORDER = ["str", "dex", "con", "int", "wis", "cha"];
+    const ABILITY_ABBR = { str: "FOR", dex: "AGI", con: "CON", int: "ESP", wis: "SAB", cha: "PRE" };
+    const trainingPts = context.nenTrainingPoints;
+    const _nextCost = v => v >= 20 ? Infinity : (v >= 18 ? 6 : 3);
+    const selectedAttr = this._selectedAttrToTrain ?? null;
+    context.attributeTraining = {
+      pt: trainingPts,
+      abilities: ABILITY_ORDER.map(id => {
+        const value = this.actor.system.abilities?.[id]?.value ?? 10;
+        const cost  = _nextCost(value);
+        return {
+          id,
+          abbr:     ABILITY_ABBR[id],
+          value,
+          cost:     Number.isFinite(cost) ? cost : null,
+          maxed:    value >= 20,
+          canTrain: value < 20 && trainingPts >= cost,
+          selected: id === selectedAttr
+        };
+      })
+    };
+
     return context;
   }
 
@@ -3215,6 +3508,12 @@ new foundry.applications.ux.ContextMenu.implementation(
   }
   if ( action === "trainNenCategory" ) {
     return this._onTrainNenCategory(target.dataset.category);
+  }
+  if ( action === "selectAttributeToTrain" ) {
+    return this._onSelectAttributeToTrain(target.dataset.ability);
+  }
+  if ( action === "trainAttribute" ) {
+    return this._onTrainAttribute();
   }
   if ( action === "hatsu-roll" )            return this._onHatsuRoll(target.dataset.itemId);
   if ( action === "hatsu-edit" )            return this._onHatsuEdit(target.dataset.itemId);
@@ -3509,22 +3808,33 @@ new foundry.applications.ux.ContextMenu.implementation(
    * Tenta conceder automaticamente técnicas vinculadas a partir do compêndio.
    */
   async _grantLinkedTechniques(techniqueNames) {
+    const itemPacks = game.packs.filter(p => p.metadata.type === "Item" && p.metadata.system === "hunter-system");
     for ( const name of techniqueNames ) {
-      // Busca no compêndio do sistema
-      const pack = game.packs.find(p => p.metadata.type === "Item");
-      if ( !pack ) continue;
-      await pack.getIndex();
-      const entry = pack.index.find(i => i.name === name);
-      if ( !entry ) continue;
-      const item = await pack.getDocument(entry._id);
-      if ( item && !this.actor.items.find(i => i.name === name) ) {
-        await this.actor.createEmbeddedDocuments("Item", [item.toObject()]);
-        ui.notifications.info(`Técnica "${name}" adicionada automaticamente.`);
+      if ( this.actor.items.find(i => i.name === name) ) continue;
+      let item = null;
+      for ( const pack of itemPacks ) {
+        await pack.getIndex();
+        const entry = pack.index.find(i => i.name === name);
+        if ( !entry ) continue;
+        item = await pack.getDocument(entry._id);
+        if ( item ) break;
       }
+      if ( !item ) continue;
+      await this.actor.createEmbeddedDocuments("Item", [item.toObject()]);
+      ui.notifications.info(`Técnica "${name}" adicionada automaticamente.`);
     }
   }
 
   /* -------------------------------------------- */
+
+  async _removeLinkedTechniques(techniqueNames) {
+    for ( const name of techniqueNames ) {
+      const item = this.actor.items.find(i => i.name === name);
+      if ( !item ) continue;
+      await item.delete();
+      ui.notifications.info(`Técnica "${name}" removida.`);
+    }
+  }
 
   /* -------------------------------------------- */
 
@@ -3850,6 +4160,206 @@ await this._syncTrainingEffect(trainingId, rank + 1);
  * INTEGRAÇÃO: adicionar ao final do character-sheet.mjs (como o consumo de PA)
  */
 
+/**
+ * Aplica dano a UM actor passando por todas as camadas de absorção do Hunter:
+ *  0. Explosão Defensiva pendente
+ *  0.5. Redução de Dano (activity "reduction")
+ *  0.75. Pontos de Armadura (Foco Defensivo) — resistência 2:1, exceto Verdadeiro
+ *  1. PV temporário
+ *  2. PV
+ * Tudo num único `actor.update` por token, com 1 mensagem de chat. Compartilhado
+ * entre os IIFEs de chat-card e extra-cards (escopo de módulo).
+ */
+async function _applyLayeredDamageToActor(actor, amount, { soVerdadeiro = false, cardMeta = null } = {}) {
+  if ( !actor ) return;
+  const hp = actor.system?.attributes?.hp;
+  if ( hp === undefined ) return;
+
+  // ── Pontos de Vitalidade prevalecem (aura inativa/esgotada): regra própria ──
+  if ( _pvePrevails(actor) ) { await _applyPVEDamage(actor, amount, cardMeta); return; }
+
+  let restante = amount;
+  const partes = [];
+  const updates = {};
+
+  // 0. Explosão Defensiva pendente
+  const expDefFlag = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
+  const expDefPendente = expDefFlag?.reducao ?? 0;
+  if ( expDefPendente > 0 && restante > 0 ) {
+    const reducao = Math.min(expDefPendente, restante);
+    restante = Math.max(0, restante - reducao);
+    updates["flags.hunter-system.-=explosaoDefensivaPendente"] = null;
+    partes.push(`Explosão Defensiva reduziu <strong>${reducao}</strong>`);
+  }
+
+  // 0.5. Redução de Dano (activity tipo "reduction")
+  const redFlag = actor.getFlag("hunter-system", "reducaoDano") ?? null;
+  const redPendente = redFlag?.valor ?? 0;
+  if ( redPendente > 0 && restante > 0 ) {
+    const reducao = Math.min(redPendente, restante);
+    restante = Math.max(0, restante - reducao);
+    if ( !redFlag.persistente ) updates["flags.hunter-system.-=reducaoDano"] = null;
+    partes.push(`Redução de Dano reduziu <strong>${reducao}</strong>`);
+  }
+
+  // 0.75. Pontos de Armadura — resistência 2:1, exceto Verdadeiro (force) que passa direto.
+  const armorAtual = actor.system?.armorPoints?.value ?? 0;
+  if ( armorAtual > 0 && restante > 0 && !soVerdadeiro ) {
+    const maxAbsorvivel = armorAtual * 2;
+    const absorvido    = Math.min(restante, maxAbsorvivel);
+    const paGasto      = Math.ceil(absorvido / 2);
+    restante = Math.max(0, restante - absorvido);
+    updates["system.armorPoints.value"] = Math.max(0, armorAtual - paGasto);
+    const sobrouResist = absorvido - paGasto;
+    const extra = sobrouResist > 0 ? `, resistência evitou ${sobrouResist} a mais` : "";
+    partes.push(`Pontos de Armadura absorveram <strong>${absorvido}</strong> (${paGasto} PA${extra})`);
+  } else if ( soVerdadeiro && armorAtual > 0 ) {
+    partes.push(`Dano <strong>Verdadeiro</strong> ignorou a armadura`);
+  }
+
+  // 1. Consumir PV temporário
+  const tempAtual = hp.temp ?? 0;
+  if ( tempAtual > 0 && restante > 0 ) {
+    const consumido = Math.min(tempAtual, restante);
+    restante -= consumido;
+    updates["system.attributes.hp.temp"] = tempAtual - consumido;
+    partes.push(`PV temporário absorveu <strong>${consumido}</strong>`);
+  }
+
+  // 2. Aplicar restante nos PV normais
+  if ( restante > 0 ) {
+    updates["system.attributes.hp.value"] = Math.max(0, (hp.value ?? 0) - restante);
+    partes.push(`PV recebeu <strong>${restante}</strong>`);
+  }
+
+  if ( !foundry.utils.isEmpty(updates) ) await actor.update(updates);
+  if ( partes.length ) {
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `🛡️ <strong>${actor.name}</strong> (${amount} de dano): ${partes.join("; ")}.`
+    });
+  }
+}
+
+/* ============================================================
+ * PONTOS DE VITALIDADE (PVE) — dano sob aura inativa
+ * ============================================================ */
+
+/** A Vitalidade prevalece quando o personagem está com a aura desligada (zetsu/esgotada). */
+function _pvePrevails(actor) {
+  return actor?.type === "character" && actor.system?.attributes?.auraOn === false;
+}
+
+/** Quanto de PV (atuais e máx) se perde por PVE perdido em zetsu. */
+const PVE_HP_RATIO = 15;
+
+/** Diálogo dos modificadores da regra de Vitalidade (pré-marca o crítico vindo do card). */
+function _promptPVE(actor, cardMeta = null) {
+  const crit = !!cardMeta?.crit;
+  const grade = Number(cardMeta?.techniqueGrade ?? 0);
+  const isTech = grade > 0;
+  const row = "display:flex; align-items:center; gap:8px;";
+  const chk = "display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid var(--color-border-light-tertiary,#4441); border-radius:6px;";
+  const x2  = "margin-left:auto; font-weight:700; color:#c8a84b;";
+  const content = `
+    <div style="display:flex; flex-direction:column; gap:10px; padding:6px 0;">
+      <p style="margin:0;">${actor.name} está com a <strong>aura inativa</strong> — o dano atinge a <strong>Vitalidade</strong>.</p>
+      <div style="${row}">
+        <label style="flex:0 0 100px;">Tipo de dano</label>
+        <select id="pve-src" style="flex:1;">
+          <option value="normal" ${!isTech ? "selected" : ""}>Normal — 1 PVE</option>
+          <option value="firearm">Arma de Fogo — 2 PVE</option>
+          <option value="technique" ${isTech ? "selected" : ""}>Técnica — grau em PVE</option>
+        </select>
+      </div>
+      <div id="pve-grade-row" style="${row} ${isTech ? "" : "display:none;"}">
+        <label style="flex:0 0 100px;">Grau da técnica</label>
+        <input type="number" id="pve-grade" value="${grade || 1}" min="1" step="1" style="width:70px; text-align:center;">
+      </div>
+      <label style="${chk}"><input type="checkbox" id="pve-crit" ${crit ? "checked" : ""}> Crítico <span style="${x2}">×2</span></label>
+      <label style="${chk}"><input type="checkbox" id="pve-aura"> Ataque com Aura <span style="${x2}">×2</span></label>
+      <label style="${chk} border-color:rgba(214,75,75,.5);"><input type="checkbox" id="pve-nat20"> Nat 20 — morte instantânea (com aura)</label>
+    </div>`;
+  return foundry.applications.api.DialogV2.wait({
+    window: { title: `🌀 Vitalidade — ${actor.name}` },
+    content,
+    render: (event, dialog) => {
+      const el = dialog.element;
+      const src = el.querySelector("#pve-src");
+      const gr  = el.querySelector("#pve-grade-row");
+      src?.addEventListener("change", () => { gr.style.display = src.value === "technique" ? "" : "none"; });
+    },
+    buttons: [
+      {
+        action: "ok", label: "Aplicar", default: true, icon: "fas fa-check",
+        callback: (event, button, dialog) => {
+          const el = dialog.element;
+          const src = el.querySelector("#pve-src").value;
+          return {
+            firearm: src === "firearm",
+            techniqueGrade: src === "technique" ? Math.max(1, Number(el.querySelector("#pve-grade").value) || 1) : 0,
+            crit: el.querySelector("#pve-crit").checked,
+            aura: el.querySelector("#pve-aura").checked,
+            nat20: el.querySelector("#pve-nat20").checked
+          };
+        }
+      },
+      { action: "cancel", label: "Cancelar", icon: "fas fa-xmark", callback: () => null }
+    ],
+    rejectClose: false,
+    close: () => null
+  });
+}
+
+/** Aplica a perda de Vitalidade (e o acoplamento 15:1 de PV) conforme as regras. */
+async function _applyPVEDamage(actor, amount, cardMeta = null) {
+  const meta = await _promptPVE(actor, cardMeta);
+  if ( meta === null ) return; // cancelado
+
+  // Morte instantânea: acerto natural 20 com aura.
+  if ( meta.nat20 && meta.aura ) {
+    await actor.update({ "system.attributes.hp.value": 0, "system.attributes.pve.value": 0 });
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `💀 <strong>${actor.name}</strong> — acerto <strong>natural 20 com aura</strong>: morte instantânea.`
+    });
+    return;
+  }
+
+  // Perda de PVE: base 1 · arma de fogo 2 · técnica = grau; ×2 por crítico e por aura.
+  let loss = meta.techniqueGrade > 0 ? meta.techniqueGrade : (meta.firearm ? 2 : 1);
+  if ( meta.crit ) loss *= 2;
+  if ( meta.aura ) loss *= 2;
+
+  const pve = actor.system.attributes.pve;
+  const cur = pve.value ?? pve.max ?? 0;
+  const newPve = Math.max(0, cur - loss);
+  const lost = cur - newPve;
+  if ( lost <= 0 ) {
+    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `🌀 <strong>${actor.name}</strong>: Vitalidade já está em 0.` });
+    return;
+  }
+
+  const updates = { "system.attributes.pve.value": newPve };
+  const partes = [`perdeu <strong>${lost}</strong> Ponto(s) de Vitalidade`];
+  // Acoplamento 15:1 só no ZETSU deliberado (não na aura esgotada).
+  const inZetsu = actor.system.attributes.auraActive === false;
+  if ( inZetsu ) {
+    const hp = actor.system.attributes.hp;
+    const hpSrc = actor.system._source.attributes.hp;
+    const drop = PVE_HP_RATIO * lost;
+    updates["system.attributes.hp.value"] = Math.max(0, (hp.value ?? 0) - drop);
+    updates["system.attributes.hp.tempmax"] = (hpSrc.tempmax ?? 0) - drop;
+    partes.push(`−${drop} PV (atuais e máximos)`);
+  }
+
+  await actor.update(updates);
+  ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `🌀 <strong>${actor.name}</strong> (Vitalidade): ${partes.join("; ")}.`
+  });
+}
+
 (function _registerJujutsuChatCard() {
 
   // ── HOOK PRINCIPAL: intercepta o uso de qualquer atividade ──────────────────
@@ -4104,6 +4614,11 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     const { actor, activity, item, profBonus, paBonus } = _resolveCardData(card);
     if ( !actor || !activity ) return;
 
+    // 1º — Escala de Energia: dropdown ANTES da Explosão Ofensiva. Apenas
+    //      escolhe (não deduz) para permitir cancelar tudo sem gastar PA.
+    const escolhaEscala = await chooseJJScale({ actor, activity });
+    if ( escolhaEscala === null ) return; // cancelado
+
     // Dialog de PA — escolha feita ANTES do ataque, dados adicionados ao DANO depois
     const paGastos = await _paDialog(actor, profBonus, paBonus);
     if ( paGastos === null ) return; // cancelado
@@ -4113,6 +4628,10 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       const ok = await _consumePA(actor, paGastos);
       if ( !ok ) return;
     }
+
+    // Agora sim deduz o PA da Escala e guarda o bônus reservado p/ a rolagem de dano
+    const escala = await applyScaleChoice({ actor, activity, incrementos: escolhaEscala.incrementos });
+    card.dataset.jjScaleBonus = escala.bonusFormula ?? "";
 
     // Guardar PA gastos no card para usar automaticamente no dano
     card.dataset.paGastos = paGastos;
@@ -4148,6 +4667,9 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       atkBreak.innerHTML = _buildBreakdown(roll) + modeLabel;
       if ( paGastos > 0 ) {
         atkBreak.innerHTML += `<span class="jj-pa-badge">⚡ +${paGastos}d${paBonus} no dano</span>`;
+      }
+      if ( card.dataset.jjScaleBonus ) {
+        atkBreak.innerHTML += `<span class="jj-pa-badge" style="color:#c0a0ff;border-color:#6040a0;">⚡ +${card.dataset.jjScaleBonus} (escala)</span>`;
       }
     }
 
@@ -4237,18 +4759,24 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       }
     }
 
+    // Escala de Energia — bônus reservado no "Acerto", rolado aqui
+    const jjScaleBonus = card.dataset.jjScaleBonus || "";
+    const escalaRollPromise = jjScaleBonus ? new Roll(jjScaleBonus, rollData).evaluate() : null;
+
     const resolvedRolls = await Promise.all(rollPromises);
     rolls.push(...resolvedRolls);
     let paRoll = paRollPromise ? await paRollPromise : null;
     let focoRoll = focoRollPromise ? await focoRollPromise : null;
     let estagioRoll = estagioRollPromise ? await estagioRollPromise : null;
+    let escalaRoll = escalaRollPromise ? await escalaRollPromise : null;
 
     // Animar todos os dados simultaneamente (sem await — resultado já está calculado)
     if ( game.dice3d ) {
       const allRolls = [...resolvedRolls.map(r => r.roll),
                         ...(paRoll ? [paRoll] : []),
                         ...(focoRoll ? [focoRoll] : []),
-                        ...(estagioRoll ? [estagioRoll] : [])];
+                        ...(estagioRoll ? [estagioRoll] : []),
+                        ...(escalaRoll ? [escalaRoll] : [])];
       Promise.all(allRolls.map(r => game.dice3d.showForRoll(r, game.user, true)));
     }
 
@@ -4257,7 +4785,8 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     const totalPA      = paRoll?.total ?? 0;
     const totalFoco    = focoRoll?.total ?? 0;
     const totalEstagio = estagioRoll?.total ?? 0;
-    const totalDmg     = totalBase + totalPA + totalFoco + totalEstagio;
+    const totalEscala  = escalaRoll?.total ?? 0;
+    const totalDmg     = totalBase + totalPA + totalFoco + totalEstagio + totalEscala;
     card.dataset.totalDmg = totalDmg;
 
     // Guardar fórmula de dados puros para o crítico (apenas dados, sem modificadores fixos)
@@ -4277,7 +4806,16 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     if ( estagioRoll && estagioDieFace && estagioGrade ) {
       critParts.push(`${estagioGrade}d${estagioDieFace}`);
     }
+    if ( jjScaleBonus ) {
+      // Só os DADOS da escala entram no crítico (sem a parte fixa), como base/PA
+      const diceOnly = jjScaleBonus.split("+").map(t => t.trim()).filter(t => /^\d*d\d+$/i.test(t)).join(" + ");
+      if ( diceOnly ) critParts.push(diceOnly);
+    }
     card.dataset.critFormula = critParts.join(" + ");
+
+    // Tipos de dano (para detectar "Verdadeiro" — dano força — na aplicação)
+    const allTypes = damageParts.flatMap(p => p.types ?? []);
+    card.dataset.damageTypes = allTypes.join(",");
 
     // Label do tipo de dano (todos juntos ou primeiro)
     const dmgLabel = rolls.map(r => r.label).join(" + ");
@@ -4300,6 +4838,9 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       }
       if ( estagioRoll ) {
         dmgBreak.innerHTML += `<span class="jj-mod-pip"> + </span>${_buildBreakdown(estagioRoll)}<span class="jj-pa-badge">ESTÁGIO</span>`;
+      }
+      if ( escalaRoll ) {
+        dmgBreak.innerHTML += `<span class="jj-mod-pip"> + </span>${_buildBreakdown(escalaRoll)}<span class="jj-pa-badge" style="color:#c0a0ff;border-color:#6040a0;">ESCALA</span>`;
       }
     }
 
@@ -4497,40 +5038,14 @@ function _buildBreakdown(roll) {
       return;
     }
 
+    // Tipos de dano (para detectar "Verdadeiro" — todos force — uma só vez por aplicação)
+    const damageTypesStr = card?.dataset?.damageTypes ?? "";
+    const damageTypes = damageTypesStr ? damageTypesStr.split(",").filter(Boolean) : [];
+    const soVerdadeiro = damageTypes.length > 0 && damageTypes.every(t => t === "force");
+    const cardMeta = { crit: !!card?.querySelector('.jj-mod-check input[data-mod="crit"]:checked') };
+
     for ( const token of tokens ) {
-      const actor = token.actor;
-      if ( !actor ) continue;
-      const hp = actor.system?.attributes?.hp;
-      if ( hp === undefined ) continue;
-
-      let restante = amount;
-
-      // 0. Verificar Explosão Defensiva pendente
-const expDefFlag = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
-const expDefPendente = expDefFlag?.reducao ?? 0;
-if ( expDefPendente > 0 ) {
-  const reducao = Math.min(expDefPendente, restante);
-        restante = Math.max(0, restante - reducao);
-        await actor.unsetFlag("hunter-system", "explosaoDefensivaPendente");
-        ChatMessage.create({
-          speaker: ChatMessage.getSpeaker({ actor }),
-          content: `🛡️ <strong>${actor.name}</strong> reduziu <strong>${reducao}</strong> de dano com Explosão Defensiva!`
-        });
-      }
-
-      // 1. Consumir PV temporário primeiro
-      const tempAtual = hp.temp ?? 0;
-      if ( tempAtual > 0 ) {
-        const consumido = Math.min(tempAtual, restante);
-        restante -= consumido;
-        await actor.update({ "system.attributes.hp.temp": tempAtual - consumido });
-      }
-
-      // 2. Aplicar restante nos PV normais
-      if ( restante > 0 ) {
-        const novoHP = Math.max(0, (hp.value ?? 0) - restante);
-        await actor.update({ "system.attributes.hp.value": novoHP });
-      }
+      await _applyLayeredDamageToActor(token.actor, amount, { soVerdadeiro, cardMeta });
     }
 
     const nomes = tokens.map(t => t.name).join(", ");
@@ -4560,6 +5075,15 @@ if ( expDefPendente > 0 ) {
     const item = activity.item;
     if ( !item ) return;
     if ( !CARD_TYPES.has(activity.type) ) return;
+    // Limite de Cura: bloqueia heal esgotado antes de postar o card (não desperdiça ação).
+    if ( activity.type === "heal" ) {
+      const lim = activity.getHealLimit?.();
+      if ( lim?.enabled && lim.remaining <= 0 ) {
+        ui.notifications.warn(`${item.name}: limite de cura esgotado — resete para curar novamente.`);
+        return false;
+      }
+    }
+    resetHealLimitsByTechnique(activity); // reset-por-técnica (o return false abaixo barraria o listener global)
     _postExtraCard(activity, item);
     return false;
   });
@@ -4720,6 +5244,18 @@ if ( expDefPendente > 0 ) {
     });
   });
 
+  // Limite de Cura: capa a cura ao saldo restante e consome (o card customizado
+  // não passa pelo rollDamage padrão, então aplicamos o limite aqui).
+  async function _applyHealLimit(activity, type, total) {
+    if ( type !== "heal" ) return total;
+    const lim = activity?.getHealLimit?.();
+    if ( !lim?.enabled ) return total;
+    const aplicado = Math.max(0, Math.min(total, lim.remaining));
+    if ( aplicado < total ) ui.notifications.info(`Cura limitada a ${aplicado} (saldo do Limite de Cura).`);
+    if ( aplicado > 0 ) await activity.update({ "healLimit.spent": Math.min(lim.max, lim.spent + aplicado) });
+    return aplicado;
+  }
+
   // ── HANDLER PRINCIPAL ────────────────────────────────────────────────────────
   async function _handleExtraRoll(card, message) {
     const actorId    = card.dataset.actorId;
@@ -4740,6 +5276,17 @@ if ( expDefPendente > 0 ) {
     const labelEl  = card.querySelector("#jj-extra-label");
 
     if ( type === "damage" || type === "heal" ) {
+      // Escala de Energia — deduz PA e devolve o bônus a somar (rolagem/flat)
+      const escala = await promptJJScale({ actor, activity });
+      if ( escala === null ) return; // cancelado
+      const escalaFormula = escala?.bonusFormula || "";
+      const escalaRoll = escalaFormula ? await new Roll(escalaFormula, rollData).evaluate() : null;
+      if ( escalaRoll ) game.dice3d?.showForRoll(escalaRoll, game.user, true);
+      const escalaTotal = escalaRoll?.total ?? 0;
+      const escalaBreak = escalaRoll
+        ? `<span class="jj-mod-pip"> + </span>${_buildBreakdown(escalaRoll)}<span class="jj-pa-badge" style="color:#c0a0ff;border-color:#6040a0;">ESCALA</span>`
+        : "";
+
       const damageParts  = activity?.damage?.parts ?? [];
       const damageLabels = item.labels?.damages ?? [];
 
@@ -4748,12 +5295,12 @@ if ( expDefPendente > 0 ) {
         const healFormula = activity?.healing?.formula ?? "1d6";
         const roll = await new Roll(healFormula, rollData).evaluate();
         game.dice3d?.showForRoll(roll, game.user, true);
-        const total = roll.total;
+        const total = await _applyHealLimit(activity, type, roll.total + escalaTotal);
         card.dataset.totalDmg = total;
         if ( panel ) panel.classList.add("visible");
         if ( labelEl ) labelEl.textContent = "Cura";
         if ( valEl ) { valEl.textContent = total; valEl.className = "jj-panel-val jj-heal-val"; }
-        if ( breakEl ) breakEl.innerHTML = _buildBreakdown(roll);
+        if ( breakEl ) breakEl.innerHTML = _buildBreakdown(roll) + escalaBreak;
         _showHealFooter(card, total);
         return;
       }
@@ -4769,12 +5316,15 @@ if ( expDefPendente > 0 ) {
       const resolved = await Promise.all(rollPromises);
       if ( game.dice3d ) Promise.all(resolved.map(r => game.dice3d.showForRoll(r.roll, game.user, true)));
 
-      const total = resolved.reduce((s, r) => s + r.roll.total, 0);
+      const total = await _applyHealLimit(activity, type, resolved.reduce((s, r) => s + r.roll.total, 0) + escalaTotal);
       card.dataset.totalDmg = total;
+      // Tipos de dano agregados (para detectar "Verdadeiro" na aplicação)
+      const allTypes = damageParts.flatMap(p => p.types ?? []);
+      card.dataset.damageTypes = allTypes.join(",");
       if ( panel ) panel.classList.add("visible");
       if ( labelEl ) labelEl.textContent = resolved.map(r => r.label).join(" + ") || (type === "heal" ? "Cura" : "Dano");
       if ( valEl ) { valEl.textContent = total; valEl.className = `jj-panel-val ${type === "heal" ? "jj-heal-val" : "dmg"}`; }
-      if ( breakEl ) breakEl.innerHTML = resolved.map(r => _buildBreakdown(r.roll)).join('<span class="jj-mod-pip"> + </span>');
+      if ( breakEl ) breakEl.innerHTML = resolved.map(r => _buildBreakdown(r.roll)).join('<span class="jj-mod-pip"> + </span>') + escalaBreak;
 
       if ( type === "damage" ) {
         const footer = card.querySelector("#jj-extra-footer");
@@ -4816,7 +5366,15 @@ if ( expDefPendente > 0 ) {
         }
         if ( breakEl ) breakEl.innerHTML = _buildBreakdown(roll)
           + `<span class="jj-mod-pip"> vs CD ${dc} — ${success ? "✓ Sucesso" : "✗ Falha"}</span>`;
+      } else {
+        if ( panel ) panel.classList.add("visible");
+        if ( labelEl ) labelEl.textContent = `Salv. ${abilityLabel}`;
+        if ( valEl ) { valEl.textContent = `CD ${dc}`; valEl.className = "jj-panel-val"; valEl.style.fontSize = "28px"; }
+        if ( breakEl ) breakEl.innerHTML = `<span class="jj-mod-pip">CD ${dc} — selecione um alvo para rolar</span>`;
+      }
 
+      // Botão de dano — sempre visível se houver damageParts, independente de alvo
+      {
         // Se tiver dano, injetar botão de rolar dano
         const damageParts = activity?.damage?.parts ?? [];
         if ( damageParts.length && !card.querySelector("[data-action='jj-save-damage']") ) {
@@ -4830,6 +5388,12 @@ if ( expDefPendente > 0 ) {
             </button>`;
           dmgFooter.querySelector("[data-action='jj-save-damage']").addEventListener("click", async () => {
             const dmgLabels = item.labels?.damages ?? [];
+
+            // Escala de Energia — deduz PA e devolve o bônus a somar
+            const escala = await promptJJScale({ actor, activity });
+            if ( escala === null ) return; // cancelado
+            const escalaFormula = escala?.bonusFormula || "";
+            const escalaRoll = escalaFormula ? await new Roll(escalaFormula, rollData).evaluate() : null;
 
             // Hatsu: passo de dado +1 em técnicas (spells) quando em Ultimato
             const hatsuTier = actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
@@ -4872,11 +5436,13 @@ if ( expDefPendente > 0 ) {
             if ( game.dice3d ) {
               Promise.all([
                 ...dmgRolls.map(({ r }) => game.dice3d.showForRoll(r, game.user, true)),
-                ...(estagioRoll ? [game.dice3d.showForRoll(estagioRoll, game.user, true)] : [])
+                ...(estagioRoll ? [game.dice3d.showForRoll(estagioRoll, game.user, true)] : []),
+                ...(escalaRoll ? [game.dice3d.showForRoll(escalaRoll, game.user, true)] : [])
               ]);
             }
             const totalDmg = dmgRolls.reduce((s, { r }) => s + r.total, 0)
-                          + (estagioRoll?.total ?? 0);
+                          + (estagioRoll?.total ?? 0)
+                          + (escalaRoll?.total ?? 0);
 
             const dmgPanel = document.createElement("div");
             dmgPanel.className = "jj-panels";
@@ -4884,6 +5450,9 @@ if ( expDefPendente > 0 ) {
             const breakdownHtml = dmgRolls.map(({ r }) => _buildBreakdown(r)).join('<span class="jj-mod-pip"> + </span>')
               + (estagioRoll
                   ? `<span class="jj-mod-pip"> + </span>${_buildBreakdown(estagioRoll)}<span class="jj-pa-badge">ESTÁGIO</span>`
+                  : "")
+              + (escalaRoll
+                  ? `<span class="jj-mod-pip"> + </span>${_buildBreakdown(escalaRoll)}<span class="jj-pa-badge" style="color:#c0a0ff;border-color:#6040a0;">ESCALA</span>`
                   : "");
             dmgPanel.innerHTML = `
               <div class="jj-panel visible">
@@ -4918,11 +5487,6 @@ if ( expDefPendente > 0 ) {
           });
           card.appendChild(dmgFooter);
         }
-      } else {
-        if ( panel ) panel.classList.add("visible");
-        if ( labelEl ) labelEl.textContent = `Salv. ${abilityLabel}`;
-        if ( valEl ) { valEl.textContent = `CD ${dc}`; valEl.className = "jj-panel-val"; valEl.style.fontSize = "28px"; }
-        if ( breakEl ) breakEl.innerHTML = `<span class="jj-mod-pip">CD ${dc} — selecione um alvo para rolar</span>`;
       }
 
     } else if ( type === "check" ) {
@@ -5033,12 +5597,15 @@ if ( expDefPendente > 0 ) {
   async function _applyDmg(amount, card) {
     const tokens = canvas.tokens?.controlled ?? [];
     if ( !tokens.length ) { ui.notifications.warn("Selecione um ou mais tokens no canvas."); return; }
+
+    // Tipos de dano (para detectar "Verdadeiro" — todos force — uma só vez por aplicação)
+    const damageTypesStr = card?.dataset?.damageTypes ?? "";
+    const damageTypes = damageTypesStr ? damageTypesStr.split(",").filter(Boolean) : [];
+    const soVerdadeiro = damageTypes.length > 0 && damageTypes.every(t => t === "force");
+    const cardMeta = { crit: !!card?.querySelector('.jj-mod-check input[data-mod="crit"]:checked') };
+
     for ( const token of tokens ) {
-      const a  = token.actor;
-      if ( !a ) continue;
-      const hp = a.system?.attributes?.hp;
-      if ( !hp ) continue;
-      await a.update({ "system.attributes.hp.value": Math.max(0, (hp.value ?? 0) - amount) });
+      await _applyLayeredDamageToActor(token.actor, amount, { soVerdadeiro, cardMeta });
     }
     ui.notifications.info(`${amount} de dano aplicado em: ${tokens.map(t => t.name).join(", ")}`);
     const btn = card.querySelector("[data-action='jj-extra-apply']");
@@ -5956,4 +6523,47 @@ Hooks.on("ready", () => {
       if ( sheet?.rendered ) sheet.render();
     }
   });
+});
+
+/* ============================================================
+   MOCHILA (Container equipável) — regras de negócio
+   ============================================================ */
+
+// Apenas uma mochila (container) pode estar equipada por vez.
+Hooks.on("preUpdateItem", (item, changes) => {
+  if ( item.type !== "container" ) return;
+  const willEquip = foundry.utils.getProperty(changes, "system.equipped");
+  if ( willEquip !== true ) return;
+  const actor = item.parent;
+  if ( !actor ) return;
+  const jaEquipada = actor.items.find(i =>
+    (i.type === "container") && (i.id !== item.id) && i.system?.equipped
+  );
+  if ( jaEquipada ) {
+    ui.notifications.warn(`Você já tem uma mochila equipada: "${jaEquipada.name}". Desequipe-a antes.`);
+    return false; // cancela o equip
+  }
+});
+
+// Ao deletar uma mochila: se vazia, deleta direto; se tiver itens, pede confirmação.
+Hooks.on("preDeleteItem", (item, options) => {
+  if ( item.type !== "container" ) return;
+  if ( options?._mochilaConfirmada ) return; // já confirmado, segue a deleção
+
+  const conteudo = item.system?.contents;
+  const qtd = conteudo?.size ?? (Array.isArray(conteudo) ? conteudo.length : 0);
+  if ( qtd <= 0 ) return; // vazia → deleta normalmente
+
+  // Tem itens — bloqueia e pergunta
+  foundry.applications.api.DialogV2.confirm({
+    window: { title: "Apagar Mochila" },
+    content: `<p>A mochila <strong>${item.name}</strong> contém <strong>${qtd}</strong> item(ns).</p>
+              <p>Deseja apagá-la mesmo assim? <em>Os itens dentro também serão removidos.</em></p>`,
+    yes: { label: "Apagar Mesmo Assim" },
+    no:  { label: "Cancelar" }
+  }).then(confirmado => {
+    if ( confirmado ) item.delete({ _mochilaConfirmada: true });
+  });
+
+  return false; // cancela esta deleção; será refeita se confirmado
 });

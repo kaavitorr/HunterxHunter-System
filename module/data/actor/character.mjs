@@ -17,6 +17,9 @@ const {
 } = foundry.data.fields;
 import MappingField from "../fields/mapping-field.mjs";
 
+/** PV base por espécie (Pontos de Vitalidade) — somado ao mod. de Constituição. */
+const SPECIES_BASE_PV = { humano: 3, kiriko: 4, formiga: 6, quimera: 6 };
+
 /**
  * @import { ActorFavorites5e, CharacterActorSystemData, ResourceData } from "./_types.mjs";
  */
@@ -78,7 +81,13 @@ export default class CharacterData extends CreatureTemplate {
             save: new FormulaField({ required: true, label: "DND5E.DeathSaveBonus" })
           })
         }, { label: "DND5E.DeathSave" }),
-        inspiration: new BooleanField({ required: true, label: "DND5E.Inspiration" })
+        inspiration: new BooleanField({ required: true, label: "DND5E.Inspiration" }),
+        // Pontos de Vitalidade (PVE): PV da espécie + mod. de Constituição (max derivado).
+        pve: new SchemaField({
+          value: new NumberField({ required: true, nullable: true, integer: true, min: 0, initial: null })
+        }, { label: "Pontos de Vitalidade" }),
+        // Aura ativa (botão). Em zetsu/esgotada, a Vitalidade prevalece sobre a Vida.
+        auraActive: new BooleanField({ required: true, initial: true, label: "Aura Ativa" })
       }, { label: "DND5E.Attributes" }),
       bastion: new SchemaField({
         name: new StringField({ required: true }),
@@ -257,6 +266,11 @@ export default class CharacterData extends CreatureTemplate {
       }),
       // Contador de habilidades principais desbloqueadas
       nenMajorCount: new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }),
+      // Categoria Híbrida — definida SÓ pelo Narrador. "" = nenhuma (categoria pura).
+      nenHybrid: new StringField({ required: true, blank: true, initial: "" }),
+      // Revelar a híbrida ao jogador (só o Narrador alterna). Se false, o jogador
+      // não vê o rótulo; os efeitos mecânicos (treino) valem assim que definida.
+      nenHybridRevealed: new BooleanField({ required: true, initial: false }),
       energyDice: new SchemaField({
         value: new NumberField({
           required: true, nullable: false, integer: true, min: 0, initial: 0,
@@ -275,6 +289,15 @@ export default class CharacterData extends CreatureTemplate {
           label: "JUJUTSU.EnergyDice.Denomination"
         })
       }, { label: "JUJUTSU.EnergyDice.Label" }),
+      // Pontos de Armadura (Foco Defensivo). Máximo é derivado das habilidades;
+      // valor atual armazenado aqui. A resistência (2:1) é aplicada apenas na
+      // camada de PA ao receber dano (damage application) — NÃO entra em traits.dr.
+      armorPoints: new SchemaField({
+        value: new NumberField({
+          required: true, nullable: false, integer: true, min: 0, initial: 0,
+          label: "Pontos de Armadura"
+        })
+      }, { label: "Pontos de Armadura" }),
       favorites: new ArrayField(new SchemaField({
         type: new StringField({ required: true, blank: false }),
         id: new StringField({ required: true, blank: false }),
@@ -385,8 +408,44 @@ export default class CharacterData extends CreatureTemplate {
     }
     AttributesFields.prepareHitPoints.call(this, this.attributes.hp, hpOptions);
 
+    // ── Pontos de Vitalidade (PVE) ──
+    // Máx = PV base da espécie (Formiga 6 · Humano 3 · Kiriko 4) + mod. de Constituição.
+    const pve = this.attributes.pve;
+    const conMod = this.abilities?.con?.mod ?? 0;
+    const _n = s => (s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+    const race = this.parent.items?.find(i => i.type === "race");
+    const rn = _n(race?.name);
+    let basePV = 0;
+    for ( const [k, v] of Object.entries(SPECIES_BASE_PV) ) if ( rn.includes(k) ) { basePV = v; break; }
+    pve.max = Math.max(0, basePV + conMod);
+    if ( pve.value === null || pve.value === undefined ) pve.value = pve.max;
+    pve.value = Math.clamp(pve.value, 0, pve.max);
+    pve.pct = pve.max > 0 ? Math.round((pve.value / pve.max) * 100) : 0;
+    // Estado da aura: esgotada quando total e gerada estão zeradas.
+    const energy = this.energy ?? {};
+    this.attributes.auraExhausted = ((energy.total ?? 0) <= 0) && ((energy.generated ?? 0) <= 0);
+    // Aura "ligada" (mostra Vida) só se ativada manualmente E não esgotada; senão prevalece a Vitalidade.
+    this.attributes.auraOn = !!this.attributes.auraActive && !this.attributes.auraExhausted;
+
     const level = this.details?.level ?? 1;
     this.energyDice.max = (level * 2) + (this.energyDice.bonus ?? 0);
+
+    // Pontos de Armadura (Foco Defensivo) — máximo derivado das habilidades:
+    //  • Foco Defensivo desbloqueado → 20
+    //  • Fluxo Constante desbloqueado → +20 adicionais
+    //  • Resistência Aprimorada → +3 × nível de Aprimorador
+    const ab = this.manipulation?.abilities ?? {};
+    let armorMax = 0;
+    if ( ab.focoDefensivo?.unlocked ) {
+      armorMax += 20;
+      if ( ab.fluxoConstante?.unlocked ) armorMax += 20;
+      const resistUnlocked = !!this.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
+      const aprimLvl = this.nenCategories?.aprimorador?.level ?? 0;
+      if ( resistUnlocked && aprimLvl > 0 ) armorMax += aprimLvl * 3;
+    }
+    this.armorPoints ??= {};
+    this.armorPoints.max = armorMax;
+    this.armorPoints.value = Math.min(this.armorPoints.value ?? 0, armorMax);
 
     const bonusOverall = simplifyBonus(this.energy.bonuses?.overall, rollData);
     const bonusLevel = simplifyBonus(this.energy.bonuses?.level, rollData) * level;

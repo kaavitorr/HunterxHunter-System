@@ -207,6 +207,13 @@ export default class NPCData extends CreatureTemplate {
       nenMajorCount: new NumberField({
         required: true, nullable: false, integer: true, min: 0, initial: 0
       }),
+      // Pontos de Armadura (Foco Defensivo) — máximo derivado das habilidades.
+      armorPoints: new SchemaField({
+        value: new NumberField({
+          required: true, nullable: false, integer: true, min: 0, initial: 0,
+          label: "Pontos de Armadura"
+        })
+      }, { label: "Pontos de Armadura" }),
       traits: new SchemaField({
         ...TraitsFields.common,
         ...TraitsFields.creature,
@@ -534,6 +541,20 @@ export default class NPCData extends CreatureTemplate {
         "DND5E.LegendaryResistance.LairUses", { normal: formatNumber(max), lair: formatNumber(max + 1) }
       ) : `${formatNumber(max)}/${CONFIG.DND5E.limitedUsePeriods.day?.label ?? ""}`;
     }
+
+    // Pontos de Armadura (Foco Defensivo) — máximo derivado das habilidades
+    const ab = this.manipulation?.abilities ?? {};
+    let armorMax = 0;
+    if ( ab.focoDefensivo?.unlocked ) {
+      armorMax += 20;
+      if ( ab.fluxoConstante?.unlocked ) armorMax += 20;
+      const resistUnlocked = !!this.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
+      const aprimLvl = this.nenCategories?.aprimorador?.level ?? 0;
+      if ( resistUnlocked && aprimLvl > 0 ) armorMax += aprimLvl * 3;
+    }
+    this.armorPoints ??= {};
+    this.armorPoints.max = armorMax;
+    this.armorPoints.value = Math.min(this.armorPoints.value ?? 0, armorMax);
   }
 
   /* -------------------------------------------- */

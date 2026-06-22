@@ -56,7 +56,9 @@ export default class ActivitySheet extends PseudoDocumentSheet {
       templates: [
         "systems/hunter-system/templates/activity/parts/activity-effects.hbs",
         "systems/hunter-system/templates/activity/parts/activity-effect-level-limit.hbs",
-        "systems/hunter-system/templates/activity/parts/activity-effect-settings.hbs"
+        "systems/hunter-system/templates/activity/parts/activity-effect-settings.hbs",
+        "systems/hunter-system/templates/activity/parts/jj-scale.hbs",
+        "systems/hunter-system/templates/activity/parts/constant-cost.hbs"
       ]
     }
   };

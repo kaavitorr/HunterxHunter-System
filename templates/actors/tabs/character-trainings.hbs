@@ -25,6 +25,33 @@
   </div>
   {{/if}}
 
+  {{!-- ══════════════════════════ TREINAR ATRIBUTO ══════════════════════════ --}}
+  <div class="attr-train-card">
+    <header class="attr-train-header">
+      <i class="fas fa-dumbbell" inert></i>
+      <span class="attr-train-title">Treinar Atributo</span>
+      <span class="attr-train-pt">PT disponível: <strong>{{ attributeTraining.pt }}</strong></span>
+    </header>
+    <div class="attr-train-list">
+      {{#each attributeTraining.abilities as |ab|}}
+      <button type="button"
+              class="attr-train-pip {{#if ab.selected}}selected{{/if}} {{#if ab.maxed}}maxed{{/if}} {{#unless ab.canTrain}}unaffordable{{/unless}}"
+              data-action="selectAttributeToTrain" data-ability="{{ ab.id }}"
+              {{#if ab.maxed}}disabled{{/if}}
+              data-tooltip="{{#if ab.maxed}}Máximo (20){{else}}{{#if ab.canTrain}}{{ ab.cost }} PT para +1{{else}}Precisa {{ ab.cost }} PT (insuficiente){{/if}}{{/if}}">
+        <span class="attr-train-abbr">{{ ab.abbr }}</span>
+        <span class="attr-train-value">{{ ab.value }}</span>
+      </button>
+      {{/each}}
+      <button type="button" class="attr-train-btn"
+              data-action="trainAttribute"
+              data-tooltip="Treinar o atributo selecionado">
+        <i class="fas fa-dumbbell" inert></i>
+        <span>TREINAR</span>
+      </button>
+    </div>
+  </div>
+
   {{!-- ══════════════════════════ PONTOS DE TREINAMENTO ══════════════════════════ --}}
   <div class="nen-pt-bar">
     <div class="nen-pt-field">
@@ -43,40 +70,61 @@
     </div>
   </div>
 
+  {{!-- ══════════════════════════ CATEGORIA HÍBRIDA ══════════════════════════ --}}
+  {{#if isGM}}
+    {{#if nenHybridCanHave}}
+    <div class="nen-hybrid-gm">
+      <label class="nen-hybrid-gm-title"><i class="fas fa-user-secret" inert></i> Categoria Híbrida (só o Narrador vê)</label>
+      <div class="nen-hybrid-gm-row">
+        <select name="system.nenHybrid" class="nen-hybrid-select">
+          {{#each nenHybridOptions as |o|}}
+          <option value="{{o.value}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>
+          {{/each}}
+        </select>
+        <label class="nen-hybrid-reveal" data-tooltip="Quando marcado, o jogador passa a ver a híbrida escolhida (e só ela).">
+          <input type="checkbox" name="system.nenHybridRevealed" {{#if nenHybridRevealed}}checked{{/if}}>
+          <i class="fas fa-eye" inert></i> Revelar ao jogador
+        </label>
+      </div>
+      <p class="nen-hybrid-hint">A híbrida permite treinar a 2ª categoria até o teto dela. {{#if nenHybridKey}}Atual: <strong>{{nenHybridLabel}}</strong>{{#unless nenHybridRevealed}} (oculta do jogador){{/unless}}.{{/if}}</p>
+    </div>
+    {{/if}}
+  {{else}}
+    {{#if nenHybridShowPlayer}}
+    <div class="nen-hybrid-badge"><i class="fas fa-dna" inert></i> Categoria Híbrida: <strong>{{nenHybridLabel}}</strong></div>
+    {{/if}}
+  {{/if}}
+
   {{!-- ══════════════════════════ HEXÁGONO NEN ══════════════════════════ --}}
   <div class="nen-hexagon-wrapper">
     <svg class="nen-hexagon-svg" viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg">
 
-      {{!-- Grid circular tracejado --}}
-      <circle cx="160" cy="160" r="125" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4 3"/>
-      <circle cx="160" cy="160" r="100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4 3"/>
-      <circle cx="160" cy="160" r="75"  fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="4 3"/>
-      <circle cx="160" cy="160" r="50"  fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="4 3"/>
-      <circle cx="160" cy="160" r="25"  fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" stroke-dasharray="4 3"/>
-
       {{!-- Eixos na cor de cada categoria --}}
       {{#each nenLabels as |cat|}}
       <line x1="160" y1="160" x2="{{cat.lx}}" y2="{{cat.ly}}"
-        stroke="{{cat.color}}" stroke-width="1" opacity="0.35"/>
+        stroke="{{cat.color}}" stroke-width="1.5" opacity="0.5"/>
       {{/each}}
+
+      {{!-- Moldura hexagonal ligando as categorias (linha forte) --}}
+      <polygon points="{{nenOuterPoints}}" fill="none"
+        stroke="rgba(0,0,0,0.5)" stroke-width="6" stroke-linejoin="round"/>
+      <polygon points="{{nenOuterPoints}}" fill="none"
+        stroke="rgba(236,239,246,0.8)" stroke-width="2.5" stroke-linejoin="round"/>
 
       {{!-- Fill do poligono na cor da categoria principal --}}
       <polygon points="{{nenHexPoints}}"
-        fill="{{nenPrimaryColor}}" fill-opacity="0.18"
-        stroke="{{nenPrimaryColor}}" stroke-opacity="0.85" stroke-width="2"/>
+        fill="{{nenPrimaryColor}}" fill-opacity="0.42"
+        stroke="{{nenPrimaryColor}}" stroke-opacity="1" stroke-width="2.5"/>
 
-      {{!-- Labels e pontos coloridos por categoria --}}
+      {{!-- Labels e pontos coloridos por categoria — Kanji centralizado --}}
       {{#each nenLabels as |cat|}}
       {{!-- Ponto colorido no vertice --}}
       <circle cx="{{cat.lx}}" cy="{{cat.ly}}" r="21"
         fill="{{cat.color}}" opacity="0.92" stroke="rgba(0,0,0,0.6)" stroke-width="1.5"/>
-      {{!-- Abreviacao --}}
+      {{!-- Kanji da categoria --}}
       <text x="{{cat.lx}}" y="{{cat.ly}}" text-anchor="middle" dominant-baseline="central"
-        fill="rgba(0,0,0,0.9)" font-size="13" font-weight="800">{{cat.abbrev}}</text>
-      {{!-- Nivel abaixo do ponto --}}
-      <text x="{{cat.lx}}" y="{{cat.ly2}}" text-anchor="middle" dominant-baseline="central"
-        fill="{{cat.color}}" stroke="rgba(0,0,0,0.8)" stroke-width="2.4" paint-order="stroke"
-        font-size="13" font-weight="800">{{cat.level}}</text>
+        fill="rgba(0,0,0,0.92)" font-size="22" font-weight="800"
+        font-family="'Yu Mincho', 'MS Mincho', 'Hiragino Mincho ProN', serif">{{cat.kanji}}</text>
       {{/each}}
 
       <circle cx="160" cy="160" r="3" fill="rgba(255,255,255,0.5)"/>
