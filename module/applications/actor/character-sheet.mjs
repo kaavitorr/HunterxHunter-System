@@ -4375,6 +4375,18 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
     return false;
   });
 
+  // ── INVOCAÇÕES: quem paga a PA ───────────────────────────────────────────────
+  // Se o ator é uma invocação com "Gasta a PA do invocador" marcado, devolve o
+  // invocador (dono do item que a invocou). Senão, devolve o próprio ator.
+  function _paPayer(actor) {
+    const flags = actor?.flags ?? {};
+    const summon = flags.HunterLegacy?.summon ?? flags["hunter-system"]?.summon;
+    if ( !summon?.origin || summon.consumeSummoner !== true ) return actor;
+    let doc = null;
+    try { doc = fromUuidSync(summon.origin); } catch { doc = null; }
+    return doc?.actor ?? doc?.parent ?? actor;
+  }
+
   // ── CRIAR O CARD CUSTOMIZADO ─────────────────────────────────────────────────
   async function _postJujutsuCard(activity, item) {
     const actor = item.actor;
@@ -4383,6 +4395,7 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
     // Processar consumo de PA configurado na activity (Attribute type)
     // antes de criar o card, já que bloqueamos o processamento nativo
     if ( actor ) {
+      const payer = _paPayer(actor); // invocação → invocador; senão, o próprio
       const targets = activity.consumption?.targets ?? [];
       for ( const target of targets ) {
         const isGerada = target.target === "energy.generated";
@@ -4392,14 +4405,18 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
         if ( custo <= 0 ) continue;
         const campo = isGerada ? "system.energy.generated" : "system.energy.total";
         const atual = isGerada
-          ? (actor.system?.energy?.generated ?? 0)
-          : (actor.system?.energy?.total ?? 0);
+          ? (payer.system?.energy?.generated ?? 0)
+          : (payer.system?.energy?.total ?? 0);
         const label = isGerada ? "PA Gerada" : "PA Total";
         if ( atual < custo ) {
-          ui.notifications.warn(`${actor.name} não tem ${label} suficiente! (${atual} disponível, ${custo} necessário)`);
+          ui.notifications.warn(`${payer.name} não tem ${label} suficiente! (${atual} disponível, ${custo} necessário)`);
           return; // aborta criação do card
         }
-        await actor.update({ [campo]: atual - custo }, { isEnergySystem: true });
+        await payer.update({ [campo]: atual - custo }, { isEnergySystem: true });
+        if ( payer !== actor ) ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor }),
+          content: `🔗 <strong>${actor.name}</strong> (invocação) gastou <strong>${custo} ${label}</strong> de <strong>${payer.name}</strong>.`
+        });
       }
     }
 
@@ -4911,12 +4928,17 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
 
   // ── CONSUMIR PA GERADA ───────────────────────────────────────────────────────
   async function _consumePA(actor, quantidade) {
-    const atual = actor.system?.energy?.generated ?? 0;
+    const payer = _paPayer(actor); // invocação → invocador; senão, o próprio
+    const atual = payer.system?.energy?.generated ?? 0;
     if ( atual < quantidade ) {
-      ui.notifications.warn(`${actor.name} não tem PA Gerada suficiente! (${atual} disponível, ${quantidade} necessário)`);
+      ui.notifications.warn(`${payer.name} não tem PA Gerada suficiente! (${atual} disponível, ${quantidade} necessário)`);
       return false;
     }
-    await actor.update({ "system.energy.generated": atual - quantidade }, { isEnergySystem: true });
+    await payer.update({ "system.energy.generated": atual - quantidade }, { isEnergySystem: true });
+    if ( payer !== actor ) ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `🔗 <strong>${actor.name}</strong> (invocação) gastou <strong>${quantidade} PA Gerada</strong> de <strong>${payer.name}</strong>.`
+    });
     return true;
   }
 
