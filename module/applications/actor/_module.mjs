@@ -1,5 +1,6 @@
 export {default as BastionAttackDialog} from "./bastion-attack-dialog.mjs";
 export {default as CharacterActorSheet} from "./character-sheet.mjs";
+export {default as HunterCharacterCreation} from "./creation/character-creation.mjs";
 export {default as EncounterActorSheet} from "./encounter-sheet.mjs";
 export {default as GroupActorSheet} from "./group-sheet.mjs";
 export {default as NPCActorSheet} from "./npc-sheet.mjs";

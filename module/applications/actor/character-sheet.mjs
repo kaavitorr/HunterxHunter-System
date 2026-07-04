@@ -5,10 +5,19 @@ import { EnergySystem } from "../../systems/energy.mjs";
 import CompendiumBrowser from "../compendium-browser.mjs";
 import ContextMenu5e from "../context-menu.mjs";
 import BaseActorSheet from "./api/base-actor-sheet.mjs";
-import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, prepareTrainings, canUnlockAbility, MANIPULATION_ABILITIES } from "../../systems/manipulation-data.mjs";
-import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory, getUnlockedMinorAbilities, getAvailableMajorAbilities } from "../../systems/nen-categories-data.mjs";
+import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, prepareTrainings, canUnlockAbility, MANIPULATION_ABILITIES, PRINCIPLES_DATA, getAvailableTrainingPoints } from "../../systems/manipulation-data.mjs";
+import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory, getUnlockedMinorAbilities, getAvailableMajorAbilities, NEN_HYBRIDS, NEN_HYBRID_OPTIONS_BY_PRIMARY, getHybridSecondary } from "../../systems/nen-categories-data.mjs";
 import Item5e from "../../documents/item.mjs";
 import * as Trait from "../../documents/actor/trait.mjs";
+import { ensureHatsuPack } from "../../data/item/hatsu-template.mjs";
+
+// ── Módulos JJ (port progressivo do jujutsu-system) ──
+import "./jj/reducao-dano.mjs";
+import "./jj/constant-cost.mjs";
+import { renderSacrificeHud } from "./jj/combat-sacrifice-hud.mjs";
+import "./jj/heal-limit.mjs";
+import { chooseJJScale, applyScaleChoice, promptJJScale } from "./jj/jj-scale.mjs";
+import { resetHealLimitsByTechnique } from "./jj/heal-limit.mjs";
 
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
@@ -28,7 +37,9 @@ export default class CharacterActorSheet extends BaseActorSheet {
       deleteFavorite: CharacterActorSheet.#deleteFavorite,
       deleteOccupant: CharacterActorSheet.#deleteOccupant,
       findItem: CharacterActorSheet.#findItem,
+      generateEnergy: CharacterActorSheet.#generateEnergy,
       setSpellcastingAbility: CharacterActorSheet.#setSpellcastingAbility,
+      toggleAura: CharacterActorSheet.#toggleAura,
       toggleDeathTray: CharacterActorSheet.#toggleDeathTray,
       toggleInspiration: CharacterActorSheet.#toggleInspiration,
       useFacility: CharacterActorSheet.#useFacility,
@@ -582,6 +593,10 @@ context.skills = skillsSorted;
     context.showExperience = false;
     context.showRests = game.user.isGM || this.actor.isOwner;
 
+    // Botão de fixar o HUD de Sacrifícios/Recursos fora de combate (mesma permissão dos descansos)
+    context.showSacrificeToggle = context.showRests;
+    context.sacrificeHudPinned = game.user.getFlag("hunter-system", "sacrificeHudPinnedActorId") === this.actor.id;
+
     return context;
   }
 
@@ -589,13 +604,28 @@ context.skills = skillsSorted;
 
   /** @inheritDoc */
   async _prepareInventoryContext(context, options) {
-    context.itemCategories.inventory = context.itemCategories.inventory?.filter(i => i.type !== "container");
     context = await super._prepareInventoryContext(context, options);
     context.size = {
       label: CONFIG.DND5E.actorSizes[this.actor.system.traits.size]?.label ?? this.actor.system.traits.size,
       abbr: CONFIG.DND5E.actorSizes[this.actor.system.traits.size]?.abbreviation ?? "—",
       mod: this.actor.system.attributes.encumbrance.mod
     };
+
+    // Mochila equipada — só a primeira container com equipped=true
+    const equipped = this.actor.items.find(i => i.type === "container" && i.system?.equipped);
+    if ( equipped ) {
+      const cap = await equipped.system.computeCapacity();
+      context.equippedBackpack = {
+        id: equipped.id,
+        uuid: equipped.uuid,
+        name: equipped.name,
+        img: equipped.img,
+        capacityPct: cap?.pct ?? 0,
+        capacityValue: cap?.value ?? 0,
+        capacityMax: Number.isFinite(cap?.max) ? cap.max : "∞"
+      };
+    }
+
     return context;
   }
 
@@ -623,6 +653,11 @@ context.energyDicePct = ed?.max > 0 ? ((ed.value / ed.max) * 100).toFixed(2) : 0
 
 const energy = this.actor.system.energy;
 context.energyPct = energy?.max > 0 ? ((energy.total / energy.max) * 100).toFixed(2) : 0;
+
+const armor = this.actor.system.armorPoints;
+context.armorPct = armor?.max > 0 ? ((armor.value / armor.max) * 100).toFixed(2) : 0;
+
+context.primaryCategoryColor = this._getPrimaryNenCategory()?.color ?? "#828892";
     for ( const deathSave of ["success", "failure"] ) {
       context.death[deathSave] = [];
       for ( let i = 1; i < 4; i++ ) {
@@ -692,15 +727,16 @@ context.energyPct = energy?.max > 0 ? ((energy.total / energy.max) * 100).toFixe
       agressivoUnlocked: !!ab.focoAgressivo?.unlocked,
       defensivoUnlocked: !!ab.focoDefensivo?.unlocked,
       agressivoAtivo:    !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo"),
-      defensivoAtivo:    !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo"),
+      // defensivoAtivo é derivado de armorPoints.value > 0 — fonte única da verdade.
+      defensivoAtivo:    (this.actor.system.armorPoints?.value ?? 0) > 0,
       fluxoVeloz:        !!ab.fluxoVeloz?.unlocked,
       fluxoConstante:    !!ab.fluxoConstante?.unlocked
     };
     context.foco.agressivoDie = context.foco.fluxoConstante ? "1d6" : "1d4";
-    const baseTemp = context.foco.fluxoConstante ? 40 : 20;
-    const resistUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
-    const aprimLvl = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
-    context.foco.defensivoTemp = baseTemp + (resistUnlocked ? aprimLvl * 3 : 0);
+    // Total de Pontos de Armadura do Foco Defensivo (deriva de armorPoints.max
+    // calculado em character.mjs prepareDerivedData).
+    context.foco.defensivoArmorMax = this.actor.system.armorPoints?.max ?? 0;
+    context.foco.defensivoArmorValue = this.actor.system.armorPoints?.value ?? 0;
 
     const hatsuTier = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
     context.estagioFoco = {
@@ -1087,6 +1123,15 @@ new ContextMenu5e(
 async _onRender(context, options) {
   await super._onRender(context, options);
 
+  // Bolinhas de proficiência (perícias e salvaguardas) e a barra de Pontos de Aura seguem
+  // a cor da categoria principal de Nen. --nen-primary-color é lido via var(...) em tab-details.css
+  // pelas regras .skills/.saves/.tools e .cursed-energy-bar, que antes tinham cores fixas.
+  const primaryNen = this._getPrimaryNenCategory();
+  const nenColor = primaryNen?.color ?? "#828892";
+  this.element.style.setProperty("--nen-primary-color", nenColor);
+  this.element.style.setProperty("--proficiency-cycle-enabled-color", nenColor);
+  this.element.style.setProperty("--proficiency-cycle-disabled-color", nenColor);
+
   if ( !this.actor.limited ) {
     this._renderAttunement(context, options);
     this._renderSpellbook(context, options);
@@ -1128,29 +1173,101 @@ new foundry.applications.ux.ContextMenu.implementation(
       }
     }, 100);
 
-    // Listeners da aba de treinamentos — usa data-bound para evitar duplicatas
+    // Listeners da aba de treinamentos — usa data-bound para evitar duplicatas.
+    // unlockNenMajor/undoNenMajor agora vivem no CARD inteiro (sem botão visível):
+    // clique esquerdo pergunta se quer aprender, clique direito pergunta se quer desfazer.
     setTimeout(() => {
       const actions = [
-        { selector: '[data-action="trainNenCategory"]:not([data-bound])',
+        { selector: '[data-action="trainNenCategory"]:not([data-bound])', event: "click",
           handler: btn => this._onTrainNenCategory(btn.dataset.category) },
-        { selector: '[data-action="unlockNenMajor"]:not([data-bound])',
-          handler: btn => this._onUnlockNenMajor(btn.dataset.category, btn.dataset.ability) },
-        { selector: '[data-action="undoNenMajor"]:not([data-bound])',
-          handler: btn => this._onUndoNenMajor(btn.dataset.category, btn.dataset.ability) }
+        { selector: '[data-action="unlockNenMajor"]:not([data-bound])', event: "click",
+          handler: btn => this._onConfirmUnlockNenMajor(btn.dataset.category, btn.dataset.ability, btn.dataset.label) },
+        { selector: '[data-action="undoNenMajor"]:not([data-bound])', event: "contextmenu",
+          handler: btn => this._onConfirmUndoNenMajor(btn.dataset.category, btn.dataset.ability, btn.dataset.label) }
       ];
-      for ( const { selector, handler } of actions ) {
+      for ( const { selector, event, handler } of actions ) {
         this.element.querySelectorAll(selector).forEach(btn => {
           btn.dataset.bound = "1";
-          btn.addEventListener('click', (e) => {
-            if ( e.button !== 0 ) return;
-            e.stopPropagation();
-            handler(btn);
-          });
-          btn.addEventListener('contextmenu', (e) => { e.preventDefault(); });
+          if ( event === "contextmenu" ) {
+            btn.addEventListener('contextmenu', (e) => { e.preventDefault(); handler(btn); });
+            // Absorve o clique esquerdo sem fazer nada — impede que ele suba até o
+            // dispatch nativo do Foundry (que reagiria a este mesmo data-action).
+            btn.addEventListener('click', (e) => { if ( e.button === 0 ) e.stopPropagation(); });
+          } else {
+            btn.addEventListener('click', (e) => {
+              if ( e.button !== 0 ) return;
+              e.stopPropagation();
+              handler(btn);
+            });
+            btn.addEventListener('contextmenu', (e) => { e.preventDefault(); });
+          }
           btn.addEventListener('auxclick', (e) => { if ( e.button !== 0 ) e.preventDefault(); });
         });
       }
     }, 150);
+
+    // Rodas dos Princípios: posiciona habilidades no anel + raios SVG, e abre/fecha no clique.
+    this.element.querySelectorAll(".nen-wheel").forEach(wheel => {
+      const orbits = [...wheel.querySelectorAll(".nen-orbit")];
+      const svg = wheel.querySelector(".nen-wheel-svg");
+      const n = orbits.length;
+      let lines = "";
+      const R = 38; // raio em %
+      orbits.forEach((o, i) => {
+        const ang = (-90 + i * (360 / n)) * Math.PI / 180;
+        const x = 50 + R * Math.cos(ang);
+        const y = 50 + R * Math.sin(ang);
+        o.style.left = `${x.toFixed(2)}%`;
+        o.style.top = `${y.toFixed(2)}%`;
+        lines += `<line x1="50" y1="50" x2="${x.toFixed(2)}" y2="${y.toFixed(2)}" class="${o.classList.contains("is-unlocked") ? "on" : ""}"></line>`;
+      });
+      if ( svg ) svg.innerHTML = lines;
+
+      const hub = wheel.querySelector(".nen-hub[data-wheel-toggle]");
+      if ( hub && !hub.dataset.bound ) {
+        hub.dataset.bound = "1";
+        hub.addEventListener("click", e => {
+          if ( e.target.closest("[data-action]") ) return; // mini desbloquear/desfazer do princípio
+          e.preventDefault();
+          wheel.classList.toggle("is-open");
+        });
+      }
+      // Já desbloqueado (ou com habilidade desbloqueada) → começa aberto.
+      if ( wheel.classList.contains("pr-on") || orbits.some(o => o.classList.contains("is-unlocked")) ) {
+        wheel.classList.add("is-open");
+      }
+    });
+
+    // Grade de princípios (2 colunas travadas): clique e arraste para revelar rodas fora da largura visível.
+    this.element.querySelectorAll(".nen-wheel-grid").forEach(grid => {
+      if ( grid.dataset.dragBound ) return;
+      grid.dataset.dragBound = "1";
+      let startX = 0, startScroll = 0, moved = false;
+
+      const onMove = e => {
+        const dx = e.pageX - startX;
+        if ( Math.abs(dx) > 4 ) moved = true;
+        grid.scrollLeft = startScroll - dx;
+      };
+      const onUp = () => {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+        grid.classList.remove("is-dragging");
+        if ( moved ) {
+          // Suprime o clique gerado ao soltar, para não acionar a roda/habilidade por baixo do arraste.
+          grid.addEventListener("click", ev => { ev.stopPropagation(); ev.preventDefault(); }, { capture: true, once: true });
+        }
+      };
+      grid.addEventListener("mousedown", e => {
+        if ( e.button !== 0 ) return;
+        startX = e.pageX;
+        startScroll = grid.scrollLeft;
+        moved = false;
+        grid.classList.add("is-dragging");
+        document.addEventListener("mousemove", onMove);
+        document.addEventListener("mouseup", onUp);
+      });
+    });
 
     // Injetar seção de condições Jujutsu na aba Effects
     _injectJJConditions(this.element, this.actor);
@@ -1191,6 +1308,13 @@ new foundry.applications.ux.ContextMenu.implementation(
         const itemId = el.dataset.itemId;
         const index = parseInt(el.dataset.index);
         this._onHatsuReqChange(itemId, index, field, el.value);
+      });
+    });
+
+    // Hatsu — change listener para o Grau de técnicas em manifestação Versátil
+    this.element.querySelectorAll("[data-hatsu-grau]").forEach(el => {
+      el.addEventListener("change", () => {
+        this._onHatsuGrauChange(el.dataset.itemId, el.value);
       });
     });
 
@@ -1255,9 +1379,6 @@ new foundry.applications.ux.ContextMenu.implementation(
 
     // Sincroniza Active Effect da proficiência Hatsu (apenas dono pra evitar conflito)
     if ( this.actor.isOwner ) this._syncHatsuProficiencyEffect();
-
-    // Restaura estado colapsado dos slots Hatsu
-    this._restoreHatsuCollapsedSections();
 
     // Re-registra hook do Estágio de Foco caso flag esteja ativa após reload
     if ( this.actor.isOwner
@@ -1411,6 +1532,31 @@ new foundry.applications.ux.ContextMenu.implementation(
    */
   static #toggleInspiration(event, target) {
     this.submit({ updateData: { "system.attributes.inspiration": !this.actor.system.attributes.inspiration } });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Alterna a Aura ativa (Zetsu). Com aura ativa mostra-se a Vida; em zetsu/esgotada, a Vitalidade.
+   * @this {CharacterActorSheet}
+   */
+  static #toggleAura(event, target) {
+    if ( this.actor.system.attributes.auraExhausted ) {
+      ui.notifications?.warn("Aura esgotada — não é possível ativar.");
+      return;
+    }
+    this.actor.update({ "system.attributes.auraActive": !this.actor.system.attributes.auraActive });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Gera Aura manualmente (mesmo fluxo usado automaticamente na passagem de turno em combate).
+   * @this {CharacterActorSheet}
+   */
+  static async #generateEnergy(event, target) {
+    const choices = await EnergyGenerationDialog.configure(this.actor);
+    if ( choices ) await EnergySystem.processTurnStartWithChoices(this.actor, choices);
   }
 
   /* -------------------------------------------- */
@@ -1574,6 +1720,11 @@ new foundry.applications.ux.ContextMenu.implementation(
 
   /** @inheritDoc */
   async _onDropItem(event, item) {
+    // Instalar Molde Hatsu
+    if ( item.type === "hatsuTemplate" ) {
+      return this._onHatsuInstallTemplate(item);
+    }
+
     // Aba Hatsu: drop em slot de manifestação ou em lista de técnicas
     const hatsuTarget = event.target.closest("[data-hatsu-drop]");
     if ( hatsuTarget && item.type === "spell" ) {
@@ -1755,6 +1906,11 @@ new foundry.applications.ux.ContextMenu.implementation(
       const abilitiesResult = prepareManipulationAbilities(this.actor);
       const principlesResult = preparePrinciples(this.actor);
 
+      // Kanji de cada princípio Nen (centro da roda).
+      const NEN_KANJI = {
+        ten: "纏", zetsu: "絶", ren: "練", hatsu: "発",
+        gyo: "凝", in: "隠", en: "円", shu: "周", ken: "堅", ko: "硬", ryu: "流"
+      };
       // Monta sections usando TREE_DATA (estrutura estática com ordem correta)
       const sections = TREE_DATA.map(treeSection => ({
         label: treeSection.section,
@@ -1780,6 +1936,7 @@ new foundry.applications.ux.ContextMenu.implementation(
           return {
             id: pr.id,
             label: pr.label,
+            kanji: NEN_KANJI[pr.id] ?? "",
             description: pr.desc ?? "",
             reference: pr.reference ?? "",
             cost: pr.cost ?? 0,
@@ -1806,6 +1963,85 @@ new foundry.applications.ux.ContextMenu.implementation(
    * Tenta avançar um nível em uma categoria Nen.
    * Rola Teste de Espírito vs CD do nível — sucesso avança, falha reduz CD em 1.
    */
+  /**
+   * Seleciona o atributo a ser treinado (estado em memória, não persistido).
+   */
+  _onSelectAttributeToTrain(abilityId) {
+    if ( !abilityId ) return;
+    this._selectedAttrToTrain = abilityId;
+    // Atualiza UI: marca o pip selecionado
+    this.element.querySelectorAll("[data-action='selectAttributeToTrain']").forEach(b => {
+      b.classList.toggle("selected", b.dataset.ability === abilityId);
+    });
+  }
+
+  /**
+   * Treina o atributo selecionado: gasta PT e aumenta o valor em +1.
+   * Custo: 3 PT até 17→18; 6 PT em 18→19 e 19→20. Cap em 20.
+   */
+  async _onTrainAttribute() {
+    const id = this._selectedAttrToTrain;
+    if ( !id ) {
+      ui.notifications.warn("Selecione um atributo antes de treinar.");
+      return;
+    }
+    const LABELS = { str: "Força", dex: "Agilidade", con: "Constituição",
+                     int: "Inteligência", wis: "Sabedoria", cha: "Presença" };
+    const value = this.actor.system.abilities?.[id]?.value ?? 10;
+    if ( value >= 20 ) {
+      ui.notifications.warn(`${LABELS[id]} já está no máximo (20).`);
+      return;
+    }
+    const cost = value >= 18 ? 6 : 3;
+    const pt = getAvailableTrainingPoints(this.actor);
+    if ( pt < cost ) {
+      ui.notifications.warn(`PT insuficientes: precisa ${cost}, disponível ${pt}.`);
+      return;
+    }
+
+    // Confirmação antes de gastar PT
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "🏋️ Confirmar Treinamento" },
+      content: `
+        <div style="padding:8px 0; font-size:13px; color:#ccc; line-height:1.6;">
+          <p style="margin:0 0 10px;">Treinar <strong style="color:#c8a84b;">${LABELS[id]}</strong>?</p>
+          <table style="width:100%; border-spacing:0; font-size:12px;">
+            <tr>
+              <td style="padding:4px 8px; color:#8080a0;">Valor:</td>
+              <td style="padding:4px 8px; text-align:right;">
+                <strong>${value}</strong> → <strong style="color:#60c080;">${value + 1}</strong>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px; color:#8080a0;">Custo:</td>
+              <td style="padding:4px 8px; text-align:right;"><strong style="color:#e07050;">${cost} PT</strong></td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px; color:#8080a0;">PT restante:</td>
+              <td style="padding:4px 8px; text-align:right;"><strong>${pt - cost}</strong></td>
+            </tr>
+          </table>
+        </div>`,
+      yes: { label: "Confirmar Treinamento", default: true },
+      no:  { label: "Cancelar" }
+    });
+    if ( !ok ) return;
+
+    const spentPt = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
+    await this.actor.update({
+      [`system.abilities.${id}.value`]: value + 1,
+      "system.curseResources.spentTrainingPoints": spentPt + cost
+    });
+
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `🏋️ <strong>${this.actor.name}</strong> treinou <strong>${LABELS[id]}</strong>: ${value} → <strong>${value + 1}</strong> (custo: ${cost} PT).`
+    });
+    ui.notifications.info(`${LABELS[id]} agora é ${value + 1}.`);
+  }
+
+  /* -------------------------------------------- */
+
   async _onTrainNenCategory(categoryId) {
     const cat = NEN_CATEGORIES_DATA[categoryId];
     if ( !cat ) return;
@@ -1832,23 +2068,56 @@ new foundry.applications.ux.ContextMenu.implementation(
     const costs = NEN_LEVEL_COSTS[nextLevel];
     if ( !costs ) return;
 
-    // Verificar PT disponíveis
-    const trainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
-    if ( trainingPoints < costs.pt ) {
-      ui.notifications.warn(`PT insuficientes! Precisa de ${costs.pt} PT para o nível ${nextLevel} de ${cat.label}.`);
-      return;
-    }
-
-    // Verificar PA disponíveis
+    const trainingPoints = getAvailableTrainingPoints(this.actor);
     const energyTotal = this.actor.system.energy?.total ?? 0;
-    if ( energyTotal < costs.pa ) {
-      ui.notifications.warn(`PA insuficientes! Precisa de ${costs.pa} PA para o nível ${nextLevel} de ${cat.label}.`);
-      return;
-    }
-
-    // Calcular CD com reduções salvas
     const dcReductions = this.actor.system.nenCategories?.[categoryId]?.dcReductions?.[nextLevel] ?? 0;
     const currentDC = Math.max(1, costs.cd - dcReductions);
+
+    // Entendimento (habilidade principal de Especialista, Nv6): treinar qualquer outra
+    // categoria em um nível abaixo do nível de Especialista custa metade do PT (arredondado
+    // para cima) — só PT, PA e CD não são afetados. Aplicado independentemente ao custo de
+    // rolar e ao custo automático (cada um arredondado para cima a partir do seu próprio
+    // valor base), não encadeado — por isso o automático não é simplesmente o dobro do rolar.
+    const especialistaLevel = this.actor.system.nenCategories?.especialista?.level ?? 0;
+    const hasEntendimento = !!this.actor.system.nenCategories?.especialista?.unlockedMajor?.entendimento;
+    const entendimentoApplies = hasEntendimento && (categoryId !== "especialista") && (nextLevel < especialistaLevel);
+
+    // Automático só está disponível abaixo do nível máximo (10) — nível 10 exige rolagem.
+    const rollPt = entendimentoApplies ? Math.ceil(costs.pt / 2) : costs.pt;
+    const autoPt = entendimentoApplies ? Math.ceil((costs.pt * 2) / 2) : costs.pt * 2;
+    const canRoll = (trainingPoints >= rollPt) && (energyTotal >= costs.pa);
+    const canAuto = (nextLevel < 10) && (trainingPoints >= autoPt) && (energyTotal >= costs.pa);
+
+    const mode = await this._onChooseTrainingMode({
+      cat, nextLevel, costs, rollPt, currentDC, autoPt, canRoll, canAuto, entendimentoApplies
+    });
+    if ( !mode ) return; // cancelado
+
+    if ( mode === "auto" ) {
+      if ( !canAuto ) {
+        ui.notifications.warn(`PT insuficientes! Precisa de ${autoPt} PT para treinar ${cat.label} automaticamente.`);
+        return;
+      }
+      const spentPtAuto = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
+      await this.actor.update({
+        "system.curseResources.spentTrainingPoints": spentPtAuto + autoPt,
+        "system.energy.total": Math.max(0, energyTotal - costs.pa),
+        [`system.nenCategories.${categoryId}.level`]: nextLevel
+      });
+      await this._applyNenMinorEffect(categoryId, nextLevel);
+      console.log(`Hunter | Avançou ${cat.label} para nível ${nextLevel} (automático)`);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `✨ <strong>${this.actor.name}</strong> avançou automaticamente para o <strong>Nível ${nextLevel}</strong> em <strong>${cat.label}</strong> (custo${entendimentoApplies ? " reduzido por Entendimento" : " dobrado"}: ${autoPt} PT).`
+      });
+      return;
+    }
+
+    // mode === "roll"
+    if ( !canRoll ) {
+      ui.notifications.warn(`Recursos insuficientes! Precisa de ${rollPt} PT e ${costs.pa} PA para treinar ${cat.label}.`);
+      return;
+    }
 
     // Rolar Teste de Espírito (Nen) — chave de perícia "nen" (INT), com todos
     // os modificadores aplicados pelo sistema. Sem diálogo (rolagem direta).
@@ -1860,26 +2129,15 @@ new foundry.applications.ux.ContextMenu.implementation(
     const roll = Array.isArray(rollResult) ? rollResult[0] : rollResult;
     if ( !roll ) return; // rolagem cancelada — não deduz PT/PA
 
-    // Deduzir custos somente após o roll ser efetivado
-    await this.actor.update({
-      "system.curseResources.trainingPoints": trainingPoints - costs.pt,
-      "system.energy.total": Math.max(0, energyTotal - costs.pa)
-    });
+    // PA é gasto de qualquer forma; PT só vira "Gastos" (sucesso) ou "Perdidos" (falha) — nunca os dois.
+    await this.actor.update({ "system.energy.total": Math.max(0, energyTotal - costs.pa) });
 
     if ( roll.total >= currentDC ) {
-      // Sucesso — busca a classe pelo nome ou identifier
-      const catLabel = cat.label.toLowerCase();
-      const clsItem = this.actor.items.find(i =>
-        i.type === "class" && (
-          i.identifier === categoryId ||
-          i.system?.identifier === categoryId ||
-          i.name?.toLowerCase() === catLabel ||
-          i.name?.toLowerCase().includes(catLabel)
-        )
-      );
       // Salva o nível diretamente no nenCategories
+      const spentPtRoll = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
       await this.actor.update({
-        [`system.nenCategories.${categoryId}.level`]: nextLevel
+        [`system.nenCategories.${categoryId}.level`]: nextLevel,
+        "system.curseResources.spentTrainingPoints": spentPtRoll + rollPt
       });
       // Aplicar efeito menor automático se atingiu nível 2, 5 ou 8
       await this._applyNenMinorEffect(categoryId, nextLevel);
@@ -1893,13 +2151,93 @@ new foundry.applications.ux.ContextMenu.implementation(
       const currentReduction = this.actor.system.nenCategories?.[categoryId]?.dcReductions?.[nextLevel] ?? 0;
       await this.actor.update({
         [`system.nenCategories.${categoryId}.dcReductions.${nextLevel}`]: currentReduction + 1,
-        "system.curseResources.lostTrainingPoints": (this.actor.system.curseResources?.lostTrainingPoints ?? 0) + costs.pt
+        "system.curseResources.lostTrainingPoints": (this.actor.system.curseResources?.lostTrainingPoints ?? 0) + rollPt
       });
       ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: this.actor }),
         content: `❌ <strong>${this.actor.name}</strong> falhou no treino de <strong>${cat.label}</strong> Nível ${nextLevel}. CD reduzida para ${currentDC - 1} (próxima tentativa).`
       });
     }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Modal de escolha entre rolar o treinamento de categoria ou concluí-lo automaticamente
+   * pagando o dobro de PT. A opção automática não está disponível no nível 10 (máximo).
+   */
+  async _onChooseTrainingMode({ cat, nextLevel, costs, rollPt, currentDC, autoPt, canRoll, canAuto, entendimentoApplies }) {
+    const color = cat.color ?? "#c8a84b";
+    // entendimentoApplies vem pronto do chamador — não re-inferir comparando rollPt com
+    // costs.pt, pois em costs.pt === 1 (nível 1) o arredondamento pra cima não muda o valor
+    // do custo de rolar (ceil(1/2) = 1), o que faria essa inferência falhar silenciosamente
+    // mesmo com o desconto genuinamente ativo (e visível no custo automático, ceil(2/2)=1).
+    const entendimentoHint = entendimentoApplies
+      ? `<div class="jj-train-option-boon">✨ Entendimento reduz o custo de PT pela metade</div>` : "";
+
+    const autoSection = ( nextLevel < 10 ) ? `
+      <label class="jj-train-option" style="--opt-color: ${color}; ${canAuto ? "" : "opacity:0.45;"}">
+        <div class="jj-train-option-icon"><i class="fa-solid fa-forward" inert></i></div>
+        <div class="jj-train-option-info">
+          <strong>Automático</strong>
+          <div class="jj-train-option-desc">Sucesso garantido, sem rolagem. Custo${entendimentoApplies ? "" : " dobrado"}: <strong>${autoPt} PT</strong> + ${costs.pa} PA.</div>
+          ${entendimentoHint}
+          ${canAuto ? "" : `<div class="jj-train-option-warn">⛔ PT insuficientes (precisa de ${autoPt})</div>`}
+        </div>
+      </label>` : `
+      <div class="jj-train-option" style="--opt-color: ${color}; opacity:0.45;">
+        <div class="jj-train-option-icon"><i class="fa-solid fa-ban" inert></i></div>
+        <div class="jj-train-option-info">
+          <strong>Automático indisponível</strong>
+          <div class="jj-train-option-desc">O nível máximo (10) só pode ser alcançado rolando o teste.</div>
+        </div>
+      </div>`;
+
+    const content = `
+      <style>
+        .jj-train-option { display:flex; align-items:flex-start; gap:10px; padding:10px 12px;
+          background:#12121c; border:1px solid rgba(255,255,255,0.08); border-radius:8px; margin-bottom:8px; }
+        .jj-train-option-icon { width:30px; height:30px; border-radius:7px; flex-shrink:0;
+          display:flex; align-items:center; justify-content:center; font-size:13px;
+          background:color-mix(in srgb, var(--opt-color) 18%, transparent);
+          border:1px solid color-mix(in srgb, var(--opt-color) 45%, transparent);
+          color: var(--opt-color); }
+        .jj-train-option-info strong { color:#e8e8f0; font-size:13px; }
+        .jj-train-option-desc { font-size:11px; color:#9098a8; margin-top:2px; line-height:1.4; }
+        .jj-train-option-warn { font-size:11px; color:#e08a6a; margin-top:3px; }
+        .jj-train-option-boon { font-size:11px; color:#8ad0a0; margin-top:3px; }
+      </style>
+      <p style="margin:0 0 10px; font-size:12px; color:#aaa;">
+        Como deseja treinar <strong style="color:${color}">${cat.label}</strong> para o <strong>Nível ${nextLevel}</strong>?
+      </p>
+      <label class="jj-train-option" style="--opt-color: ${color}; ${canRoll ? "" : "opacity:0.45;"}">
+        <div class="jj-train-option-icon"><i class="fa-solid fa-dice-d20" inert></i></div>
+        <div class="jj-train-option-info">
+          <strong>Rolar Treinamento</strong>
+          <div class="jj-train-option-desc">Teste de Espírito (Nen) CD ${currentDC}. Custo: <strong>${rollPt} PT</strong> + ${costs.pa} PA (falha reduz a CD na próxima tentativa).</div>
+          ${entendimentoHint}
+          ${canRoll ? "" : `<div class="jj-train-option-warn">⛔ Recursos insuficientes (precisa de ${rollPt} PT / ${costs.pa} PA)</div>`}
+        </div>
+      </label>
+      ${autoSection}
+    `;
+
+    const buttons = [
+      { label: "Rolar Treinamento", action: "roll", icon: "fa-solid fa-dice-d20", default: true }
+    ];
+    if ( nextLevel < 10 ) {
+      buttons.push({ label: `Automático (${autoPt} PT)`, action: "auto", icon: "fa-solid fa-forward" });
+    }
+    buttons.push({ label: "Cancelar", action: "cancel", icon: "fa-solid fa-xmark" });
+
+    const mode = await foundry.applications.api.DialogV2.wait({
+      window: { title: `Treinar ${cat.label} — Nível ${nextLevel}` },
+      content,
+      buttons,
+      rejectClose: false,
+      close: () => null
+    });
+    return (mode === "cancel") ? null : mode;
   }
 
   /* -------------------------------------------- */
@@ -1913,7 +2251,8 @@ new foundry.applications.ux.ContextMenu.implementation(
   async _onToggleFoco(focoType) {
     const ab = this.actor.system.manipulation?.abilities ?? {};
     const flagAgressivo  = !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo");
-    const flagDefensivo  = !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo");
+    // defensivoAtivo é derivado: armorPoints.value > 0
+    const flagDefensivo  = (this.actor.system.armorPoints?.value ?? 0) > 0;
     const fluxoVeloz     = !!ab.fluxoVeloz?.unlocked;
     const fluxoConstante = !!ab.fluxoConstante?.unlocked;
     const baseAmount     = fluxoConstante ? 40 : 20;
@@ -1958,14 +2297,24 @@ new foundry.applications.ux.ContextMenu.implementation(
     }
   }
 
+  /**
+   * Ativa o Foco Defensivo enchendo os Pontos de Armadura até o máximo derivado.
+   * O estado "ativo" é representado por `armorPoints.value > 0` (fonte única).
+   */
   async _ativarFocoDefensivo(amount) {
-    const currentTemp = this.actor.system.attributes?.hp?.temp ?? 0;
-    await this.actor.update({ "system.attributes.hp.temp": currentTemp + amount });
-    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", true);
-    await this.actor.setFlag("hunter-system", "focoDefensivoTempHpGranted", amount);
+    const max = this.actor.system.armorPoints?.max ?? 0;
+    if ( max <= 0 ) {
+      ui.notifications.warn("Foco Defensivo não está disponível (habilidade não desbloqueada).");
+      return;
+    }
+    await this.actor.update({ "system.armorPoints.value": max });
+    // Limpa flag legada caso ainda exista (compat).
+    if ( this.actor.getFlag("hunter-system", "focoDefensivoAtivo") !== undefined ) {
+      await this.actor.unsetFlag("hunter-system", "focoDefensivoAtivo");
+    }
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> (+${amount} PV temporários).`
+      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> — recebe <strong>${max} Pontos de Armadura</strong>!`
     });
   }
 
@@ -2006,12 +2355,27 @@ new foundry.applications.ux.ContextMenu.implementation(
     }
   }
 
+  /**
+   * Desativa o Foco Defensivo zerando os Pontos de Armadura.
+   * Limpa flags legadas: `focoDefensivoTempHpGranted` (PV temp v1) e
+   * `focoDefensivoAtivo` (estado v2, agora derivado).
+   */
   async _desativarFocoDefensivo({ silent = false } = {}) {
-    const granted = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
-    const currentTemp = this.actor.system.attributes?.hp?.temp ?? 0;
-    await this.actor.update({ "system.attributes.hp.temp": Math.max(0, currentTemp - granted) });
-    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", false);
-    await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    const updates = { "system.armorPoints.value": 0 };
+
+    // Migração: se a versão antiga deixou PV temp pendurado, restaura.
+    const grantedLegacy = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
+    if ( grantedLegacy > 0 ) {
+      const currentTemp = this.actor.system.attributes?.hp?.temp ?? 0;
+      updates["system.attributes.hp.temp"] = Math.max(0, currentTemp - grantedLegacy);
+    }
+
+    await this.actor.update(updates);
+    if ( grantedLegacy > 0 ) await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    if ( this.actor.getFlag("hunter-system", "focoDefensivoAtivo") !== undefined ) {
+      await this.actor.unsetFlag("hunter-system", "focoDefensivoAtivo");
+    }
+
     if ( !silent ) {
       ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -2041,9 +2405,10 @@ new foundry.applications.ux.ContextMenu.implementation(
     const costs = NEN_LEVEL_COSTS[currentLevel];
     const refundPt = costs?.pt ?? 0;
 
+    const spentPtBefore = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
     const updates = {
       [`system.nenCategories.${categoryId}.level`]: newLevel,
-      "system.curseResources.trainingPoints": (this.actor.system.curseResources?.trainingPoints ?? 0) + refundPt
+      "system.curseResources.spentTrainingPoints": Math.max(0, spentPtBefore - refundPt)
     };
 
     // Cascata: remove majors cujo nível requerido fica acima do novo nível
@@ -2080,6 +2445,54 @@ new foundry.applications.ux.ContextMenu.implementation(
   /* -------------------------------------------- */
 
   /**
+   * Busca a entrada (princípio ou habilidade) na TREE_DATA, que é quem guarda
+   * a referência de compêndio usada para o tooltip/card enriquecido.
+   */
+  _findTreeEntry(kind, id) {
+    const principles = TREE_DATA.flatMap(s => s.principles);
+    if ( kind === "principle" ) return principles.find(p => p.id === id);
+    return principles.flatMap(p => p.abilities ?? []).find(a => a.id === id);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Manda a descrição de um princípio/habilidade de Nen já desbloqueada para o chat,
+   * enriquecendo a partir da página de compêndio referenciada quando disponível.
+   */
+  async _onDisplayNenTooltip({ label, description, reference }) {
+    let bodyHtml = "";
+    if ( reference ) {
+      try {
+        const page = await fromUuid(reference);
+        const raw = page?.text?.content;
+        if ( raw ) bodyHtml = await foundry.applications.ux.TextEditor.implementation.enrichHTML(raw, { relativeTo: page });
+      } catch(err) {
+        console.warn("Hunter | Falha ao carregar referência de Nen:", err);
+      }
+    }
+    if ( !bodyHtml ) bodyHtml = `<p>${description ?? ""}</p>`;
+
+    const content = `
+      <div class="chat-card">
+        <section class="card-header description">
+          <header class="summary">
+            <img class="gold-icon" src="icons/svg/aura.svg" alt="${label}">
+            <div class="name-stacked border"><span class="title">${label}</span></div>
+          </header>
+          <section class="details card-content"><div class="wrapper">${bodyHtml}</div></section>
+        </section>
+      </div>`;
+
+    return ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
    * Desbloqueia um princípio Nen (Ten, Zetsu, Ren, etc.)
    */
   async _onUnlockNenPrinciple(principleId) {
@@ -2089,8 +2502,12 @@ new foundry.applications.ux.ContextMenu.implementation(
     if ( !pr ) return;
 
     if ( pr.unlocked ) {
-      ui.notifications.warn("Princípio já desbloqueado.");
-      return;
+      const treePr = this._findTreeEntry("principle", principleId);
+      return this._onDisplayNenTooltip({
+        label: pr.label,
+        description: treePr?.desc ?? pr.description,
+        reference: treePr?.reference ?? ""
+      });
     }
 
     const cost = pr.cost ?? 0;
@@ -2116,6 +2533,12 @@ new foundry.applications.ux.ContextMenu.implementation(
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `🔓 <strong>${this.actor.name}</strong> desbloqueou o princípio: <strong>${pr.label}</strong>!`
     });
+
+    // Concede técnicas vinculadas ao princípio
+    const principleData = PRINCIPLES_DATA[principleId];
+    if ( principleData?.techniques?.length ) {
+      await this._grantLinkedTechniques(principleData.techniques);
+    }
   }
 
   /* -------------------------------------------- */
@@ -2127,6 +2550,15 @@ new foundry.applications.ux.ContextMenu.implementation(
     // Usa as funções já importadas estaticamente
     const def = MANIPULATION_ABILITIES[abilityId];
     if ( !def ) return;
+
+    if ( this.actor.system.manipulation?.abilities?.[abilityId]?.unlocked ) {
+      const treeAb = this._findTreeEntry("ability", abilityId);
+      return this._onDisplayNenTooltip({
+        label: def.label,
+        description: treeAb?.desc ?? def.description,
+        reference: treeAb?.reference ?? ""
+      });
+    }
 
     const { can, reason } = canUnlockAbility(abilityId, this.actor);
     if ( !can ) {
@@ -2216,6 +2648,12 @@ new foundry.applications.ux.ContextMenu.implementation(
         (this.actor.system.curseResources?.cursePoints ?? 0) + cost;
     }
     await this.actor.update(updates);
+
+    // Remove técnicas vinculadas ao princípio
+    const principleData = PRINCIPLES_DATA[principleId];
+    if ( principleData?.techniques?.length ) {
+      await this._removeLinkedTechniques(principleData.techniques);
+    }
 
     ui.notifications.info(`Princípio "${thisPr.label}" desfeito.`);
     ChatMessage.create({
@@ -2374,6 +2812,41 @@ new foundry.applications.ux.ContextMenu.implementation(
   /* -------------------------------------------- */
 
   /**
+   * Clique no card de uma habilidade principal disponível — confirma antes de aprender.
+   * A validação de nível/limite/híbrida continua em _onUnlockNenMajor, que roda depois
+   * da confirmação (serve de rede de segurança mesmo se o estado do card estiver desatualizado).
+   */
+  async _onConfirmUnlockNenMajor(categoryId, abilityId, label) {
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Aprender Habilidade" },
+      content: `<p style="margin:0; padding:4px 0; font-size:13px; color:#ccc;">Aprender <strong style="color:#c8a84b;">${foundry.utils.escapeHTML(label ?? "")}</strong>?</p>`,
+      yes: { label: "Aprender", default: true },
+      no: { label: "Cancelar" }
+    });
+    if ( !ok ) return;
+    return this._onUnlockNenMajor(categoryId, abilityId);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Clique com o botão direito no card de uma habilidade principal desbloqueada —
+   * confirma antes de desfazer.
+   */
+  async _onConfirmUndoNenMajor(categoryId, abilityId, label) {
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Desfazer Habilidade" },
+      content: `<p style="margin:0; padding:4px 0; font-size:13px; color:#ccc;">Desfazer <strong style="color:#c8a84b;">${foundry.utils.escapeHTML(label ?? "")}</strong>? O slot será liberado.</p>`,
+      yes: { label: "Desfazer", default: true },
+      no: { label: "Cancelar" }
+    });
+    if ( !ok ) return;
+    return this._onUndoNenMajor(categoryId, abilityId);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
    * Desfaz o desbloqueio de uma habilidade principal, liberando o slot.
    */
   async _onUndoNenMajor(categoryId, abilityId) {
@@ -2447,6 +2920,29 @@ new foundry.applications.ux.ContextMenu.implementation(
       return;
     }
 
+    // Restrições de Categoria Híbrida
+    const hybridKey = this.actor.system.nenHybrid ?? "";
+    const hyb = hybridKey ? NEN_HYBRIDS[hybridKey] : null;
+    if ( hyb && hyb.categories.includes(categoryId) ) {
+      const lvlNum = parseInt(requiredLvl);
+      if ( categoryId === "especialista" && lvlNum > hyb.majorLevel ) {
+        ui.notifications.warn(`Híbrida ${hyb.label}: de Especialista, só pode pegar a habilidade principal de nível ${hyb.majorLevel}.`);
+        return;
+      }
+      if ( hyb.majorLevel >= 10 && lvlNum === 10 ) {
+        let lvl10 = 0;
+        for ( const cid of hyb.categories ) {
+          const ab10 = NEN_CATEGORIES_DATA[cid]?.major?.[10];
+          const um = this.actor.system.nenCategories?.[cid]?.unlockedMajor ?? {};
+          if ( ab10 && um[ab10.id] ) lvl10++;
+        }
+        if ( lvl10 >= 1 ) {
+          ui.notifications.warn(`Híbrida ${hyb.label}: só pode escolher UMA habilidade principal de nível 10 entre as duas categorias.`);
+          return;
+        }
+      }
+    }
+
     await this.actor.update({
       [`system.nenCategories.${categoryId}.unlockedMajor.${abilityId}`]: true,
       "system.nenMajorCount": ability.exclusive ? nenMajorCount : nenMajorCount + 1
@@ -2495,6 +2991,8 @@ new foundry.applications.ux.ContextMenu.implementation(
       // Requisitos de categoria (até 6) — armazenados na manifestação
       const rawReqs = manifestacao?.getFlag("hunter-system", "hatsu.requirements") ?? [];
       const manifestacaoId = manifestacao?.id ?? null;
+      const mode = manifestacao?.getFlag("hunter-system", "hatsu.mode") ?? "focado";
+      const isVersatil = mode === "versatil";
       const requirements = rawReqs.map((req, idx) => {
         const cat = CATEGORIES.find(c => c.id === req.category) ?? CATEGORIES[0];
         const currentLevel = this.actor.system.nenCategories?.[cat.id]?.level ?? 0;
@@ -2521,7 +3019,8 @@ new foundry.applications.ux.ContextMenu.implementation(
         name: s.name,
         img: s.img,
         subtitle: s.system?.school ? CONFIG.DND5E.spellSchools?.[s.system.school]?.label : "",
-        blocked: isBlocked
+        blocked: isBlocked,
+        grau: s.system?.level ?? 0
       } : null;
 
       const reqsCols = requirements.length <= 1 ? 1
@@ -2536,30 +3035,18 @@ new foundry.applications.ux.ContextMenu.implementation(
         reqsCols,
         canAddReq: !!manifestacao && requirements.length < 6,
         blocked,
-        blockedReason
+        blockedReason,
+        mode,
+        isVersatil
       };
     });
 
     // Detectar categoria principal (mesma lógica usada na aba Treinamentos)
-    const PRIM_CATS = CATEGORIES.map(c => c.id);
-    let primaryCategory = null;
-    for ( const catId of PRIM_CATS ) {
-      const cls = Object.values(this.actor.classes ?? {}).find(c =>
-        c.identifier === catId || c.system?.identifier === catId || c.name?.toLowerCase() === catId
-      );
-      if ( cls ) { primaryCategory = catId; break; }
-    }
-    if ( !primaryCategory ) {
-      let maxLvl = 0;
-      for ( const catId of PRIM_CATS ) {
-        const lvl = this.actor.system?.nenCategories?.[catId]?.level ?? 0;
-        if ( lvl > maxLvl ) { maxLvl = lvl; primaryCategory = catId; }
-      }
-    }
-    const primaryLevel = primaryCategory
-      ? this.actor.system.nenCategories?.[primaryCategory]?.level ?? 0
-      : 0;
-    const primaryLabel = CATEGORIES.find(c => c.id === primaryCategory)?.label ?? "—";
+    const primaryNen = this._getPrimaryNenCategory();
+    const primaryCategory = primaryNen?.id ?? null;
+    const primaryLevel = primaryNen?.level ?? 0;
+    const primaryLabel = primaryNen?.label ?? "—";
+    const primaryColor = primaryNen?.color ?? "#828892";
 
     // Proficiência: calcular tier
     const occupied = slots.filter(s => s.manifestacao);
@@ -2616,16 +3103,25 @@ new foundry.applications.ux.ContextMenu.implementation(
 
     const tierLabels = { none: "—", otimo: "Ótimo", excelente: "Excelente", genial: "Genial", ultimato: "Ultimato" };
 
+    // Graus de técnica (0 = Auxiliar, 1-9) — mesma escala já usada no item de spell (system.level).
+    const grauOptions = Array.fromRange(10).map(lvl => ({
+      value: lvl,
+      label: game.i18n.localize(CONFIG.DND5E.spellLevels?.[lvl] ?? String(lvl))
+    }));
+
     context.hatsu = {
       slots,
       categoryOptions: CATEGORIES,
+      grauOptions,
+      name: this.actor.getFlag("hunter-system", "hatsuName") ?? "",
       proficiencia: {
         id: tier,
         label: tierLabels[tier]
       },
       tiers: tiersState,
-      primary: { id: primaryCategory, label: primaryLabel, level: primaryLevel },
-      isGM: game.user.isGM
+      primary: { id: primaryCategory, label: primaryLabel, level: primaryLevel, color: primaryColor },
+      isGM: game.user.isGM,
+      isEditMode: this.isEditMode
     };
 
     return context;
@@ -2682,6 +3178,26 @@ new foundry.applications.ux.ContextMenu.implementation(
     return item.sheet?.render(true);
   }
 
+  /** Manda o card da manifestação/técnica para o chat (descrição). */
+  async _onHatsuDisplayCard(itemId) {
+    const item = this.actor.items.get(itemId);
+    if ( !item ) return;
+    return item.displayCard();
+  }
+
+  /** Troca a imagem da manifestação/técnica via FilePicker (só em modo edição). */
+  async _onHatsuChangeImage(itemId) {
+    if ( !this.isEditMode ) return;
+    const item = this.actor.items.get(itemId);
+    if ( !item ) return;
+    const FP = foundry.applications?.apps?.FilePicker?.implementation ?? FilePicker;
+    new FP({
+      type: "image",
+      current: item.img,
+      callback: path => item.update({ img: path })
+    }).render(true);
+  }
+
   async _onHatsuUnassign(slotId, kind) {
     const target = this.actor.items.find(i =>
       i.type === "spell" && i.getFlag("hunter-system", "hatsu.slot") === slotId
@@ -2732,6 +3248,88 @@ new foundry.applications.ux.ContextMenu.implementation(
     if ( item ) item.sheet?.render(true);
   }
 
+  async _onHatsuSaveTemplate() {
+    const hatsuItems = this.actor.items.filter(i => {
+      if ( i.type !== "spell" ) return false;
+      const hatsuFlag = i.getFlag("hunter-system", "hatsu");
+      return hatsuFlag?.slot || hatsuFlag?.parent;
+    });
+
+    if ( !hatsuItems.length ) {
+      ui.notifications.warn("Nenhuma manifestação ou técnica encontrada para salvar.");
+      return;
+    }
+
+    try {
+      const hatsuName = this.actor.getFlag("hunter-system", "hatsuName")?.trim();
+      const template = await Item.implementation.create({
+        name: hatsuName || `${this.actor.name} — Molde Hatsu`,
+        type: "hatsuTemplate",
+        img: "icons/skills/melee/strike-hammer-destructive-blue.webp"
+      });
+      if ( !template ) return;
+
+      // Cada manifestação/técnica vira um item real (não um blob de dados), ligado ao molde pela
+      // flag hatsuTemplate — assim mantém sheet completa (activities, dano etc.) ao configurar o
+      // molde depois, igual a container.mjs faz com `system.container`. Todas ficam no compendium
+      // compartilhado de Hatsu (não na lista de Itens do mundo) para não poluir a sidebar.
+      const pack = await ensureHatsuPack();
+      const folder = await template.system.ensureFolder();
+      const itemsData = hatsuItems.map(i => {
+        const data = i.toObject();
+        delete data._id;
+        data.folder = folder?.id;
+        foundry.utils.setProperty(data, "flags.hunter-system.hatsuTemplate", template.id);
+        return data;
+      });
+      await Item.implementation.create(itemsData, { pack: pack.metadata.id });
+
+      ui.notifications.info(`Molde "${template.name}" criado com ${itemsData.length} item(ns). Arraste para uma ficha para instalar.`);
+    } catch ( err ) {
+      console.error(err);
+      ui.notifications.error("Não foi possível criar o Molde Hatsu (verifique permissões para criar itens).");
+    }
+  }
+
+  async _onHatsuInstallTemplate(templateItem) {
+    const contents = Array.from(await templateItem.system?.contents ?? []);
+    if ( !contents.length ) {
+      ui.notifications.warn("Este Molde Hatsu está vazio.");
+      return;
+    }
+
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Instalar Molde Hatsu" },
+      content: `<p>Isso vai adicionar <strong>${contents.length}</strong> item(ns) de Hatsu nesta ficha, substituindo manifestações que já ocupem os mesmos slots. Continuar?</p>`
+    });
+    if ( !confirmed ) return;
+
+    const itemsData = contents.map(i => {
+      const data = i.toObject();
+      delete data._id;
+      if ( data.flags?.["hunter-system"] ) delete data.flags["hunter-system"].hatsuTemplate;
+      return data;
+    });
+
+    // Slots de manifestação já ocupados no ator: precisam ser liberados antes de instalar o molde,
+    // senão dois itens ficam com a mesma flag hatsu.slot e um deles some da ficha sem ser removido.
+    const incomingSlots = new Set(itemsData.map(d => d.flags?.["hunter-system"]?.hatsu?.slot).filter(Boolean));
+    for ( const slotId of incomingSlots ) {
+      const previous = this.actor.items.find(i =>
+        (i.type === "spell") && (i.getFlag("hunter-system", "hatsu.slot") === slotId)
+      );
+      if ( previous ) await previous.unsetFlag("hunter-system", "hatsu");
+    }
+
+    try {
+      await Item.implementation.create(itemsData, { parent: this.actor });
+      ui.notifications.info(`Hatsu instalado: ${itemsData.length} item(ns) adicionado(s).`);
+    } catch ( err ) {
+      console.error(err);
+      ui.notifications.error("Não foi possível instalar o Molde Hatsu.");
+    }
+  }
+
   async _onHatsuReqAdd(itemId) {
     const item = this.actor.items.get(itemId);
     if ( !item ) return;
@@ -2758,6 +3356,59 @@ new foundry.applications.ux.ContextMenu.implementation(
       requirements: reqs
     });
   }
+
+  /**
+   * Alterna uma manifestação entre Focado (modelo atual, requisitos únicos para todas as
+   * técnicas) e Versátil (cada técnica ganha seu próprio Grau, além dos requisitos).
+   */
+  async _onHatsuToggleMode(itemId, mode) {
+    const item = this.actor.items.get(itemId);
+    if ( !item || !["focado", "versatil"].includes(mode) ) return;
+    await item.setFlag("hunter-system", "hatsu", {
+      ...(item.getFlag("hunter-system", "hatsu") ?? {}),
+      mode
+    });
+  }
+
+  /** Define o Grau (system.level) de uma técnica em manifestação Versátil. */
+  async _onHatsuGrauChange(itemId, rawValue) {
+    const item = this.actor.items.get(itemId);
+    if ( !item ) return;
+    const level = Math.max(0, Math.min(9, parseInt(rawValue) || 0));
+    await item.update({ "system.level": level });
+  }
+
+  /**
+   * Categoria Nen principal do personagem (pela classe, ou maior nível treinado).
+   * @returns {{id: string, level: number, color: string, label: string}|null}
+   */
+  _getPrimaryNenCategory() {
+    const catIds = Object.keys(NEN_CATEGORIES_DATA);
+    let primaryCategory = null;
+    for ( const catId of catIds ) {
+      const cls = Object.values(this.actor.classes ?? {}).find(c =>
+        c.identifier === catId || c.system?.identifier === catId || c.name?.toLowerCase() === catId
+      );
+      if ( cls ) { primaryCategory = catId; break; }
+    }
+    if ( !primaryCategory ) {
+      let maxLvl = 0;
+      for ( const catId of catIds ) {
+        const lvl = this.actor.system?.nenCategories?.[catId]?.level ?? 0;
+        if ( lvl > maxLvl ) { maxLvl = lvl; primaryCategory = catId; }
+      }
+    }
+    if ( !primaryCategory ) return null;
+    const data = NEN_CATEGORIES_DATA[primaryCategory];
+    return {
+      id: primaryCategory,
+      level: this.actor.system?.nenCategories?.[primaryCategory]?.level ?? 0,
+      color: data?.color ?? "#828892",
+      label: data?.label ?? primaryCategory
+    };
+  }
+
+  /* -------------------------------------------- */
 
   /**
    * Calcula o tier atual de proficiência Hatsu sem depender do contexto da sheet.
@@ -2867,52 +3518,18 @@ new foundry.applications.ux.ContextMenu.implementation(
   }
 
   /**
-   * Toggle do acordeão de um slot Hatsu — persistência em localStorage por actor.
+   * Fixa (ou solta) o HUD flutuante de Sacrifícios/Recursos neste ator, fazendo-o aparecer
+   * fora de combate e sem precisar controlar o token — clicar de novo no mesmo ator solta;
+   * clicar em outro ator troca a fixação (o HUD é um widget único por cliente).
    */
-  _onHatsuToggleSection(slotId) {
-    const storageKey = `hunter-system.hatsu.collapsed.${this.actor.id}`;
-    let collapsed;
-    try { collapsed = JSON.parse(localStorage.getItem(storageKey) ?? "[]"); }
-    catch { collapsed = []; }
-
-    const wrapper = this.element.querySelector(`.hatsu-accordion[data-hatsu-slot="${slotId}"]`);
-    if ( !wrapper ) return;
-    const body = wrapper.querySelector(".hatsu-accordion-body");
-    const isCollapsed = wrapper.classList.toggle("collapsed");
-
-    if ( body ) {
-      if ( isCollapsed ) {
-        body.style.height = body.scrollHeight + "px";
-        requestAnimationFrame(() => { body.style.height = "0px"; });
-      } else {
-        body.style.height = body.scrollHeight + "px";
-        body.addEventListener("transitionend", () => { body.style.height = ""; }, { once: true });
-      }
-    }
-
-    const idx = collapsed.indexOf(slotId);
-    if ( isCollapsed && idx === -1 ) collapsed.push(slotId);
-    else if ( !isCollapsed && idx !== -1 ) collapsed.splice(idx, 1);
-    localStorage.setItem(storageKey, JSON.stringify(collapsed));
+  async _onToggleSacrificeHud() {
+    const FLAG = "sacrificeHudPinnedActorId";
+    const current = game.user.getFlag("hunter-system", FLAG);
+    await game.user.setFlag("hunter-system", FLAG, current === this.actor.id ? null : this.actor.id);
+    renderSacrificeHud();
+    this.render();
   }
 
-  /**
-   * Restaura o estado colapsado dos slots Hatsu ao renderizar.
-   */
-  _restoreHatsuCollapsedSections() {
-    const storageKey = `hunter-system.hatsu.collapsed.${this.actor.id}`;
-    let collapsed;
-    try { collapsed = JSON.parse(localStorage.getItem(storageKey) ?? "[]"); }
-    catch { collapsed = []; }
-    if ( !collapsed.length ) return;
-    for ( const slotId of collapsed ) {
-      const wrapper = this.element.querySelector(`.hatsu-accordion[data-hatsu-slot="${slotId}"]`);
-      if ( !wrapper ) continue;
-      wrapper.classList.add("collapsed");
-      const body = wrapper.querySelector(".hatsu-accordion-body");
-      if ( body ) body.style.height = "0px";
-    }
-  }
 
   async _onHatsuToggleUltimato() {
     if ( !game.user.isGM ) {
@@ -2965,6 +3582,14 @@ new foundry.applications.ux.ContextMenu.implementation(
       conjurador: "CON",
       manipulador: "MAN",
       especialista: "ESP"
+    };
+    const KANJIS = {
+      aprimorador:  "強", // Kyōka — Aprimoramento
+      emissor:      "放", // Hōshutsu — Emissão
+      transmutador: "変", // Henka — Transmutação
+      conjurador:   "具", // Gugenka — Conjuração
+      manipulador:  "操", // Sōsa — Manipulação
+      especialista: "特"  // Tokushitsu — Especialização
     };
     const COLORS = {
       aprimorador: "#e86800",
@@ -3027,15 +3652,19 @@ new foundry.applications.ux.ContextMenu.implementation(
       const level = this.actor.system.nenCategories?.[id]?.level ?? 0;
       const pct = Math.round((level / 10) * 100);
       const dcReductions = this.actor.system.nenCategories?.[id]?.dcReductions ?? {};
+      // Um booleano por nível (1-10) — vira a barra de progresso segmentada no template
+      const levelSegments = Array.from({ length: 10 }, (_, i) => i < level);
 
       nenCategories.push({
         id,
         label: LABELS[id],
         abbrev: ABBREVS[id],
+        kanji: KANJIS[id],
         color: COLORS[id],
         icon: ICONS[id],
         level,
         pct,
+        levelSegments,
         dcReductions
       });
     }
@@ -3092,6 +3721,26 @@ new foundry.applications.ux.ContextMenu.implementation(
     const nenMajorCount = this.actor.system.nenMajorCount ?? 0;
     const nenMajorMax = this._getNenMajorMax();
 
+    // Categoria Híbrida (restrições de habilidade principal)
+    const hybridKey = this.actor.system.nenHybrid ?? "";
+    const hyb = hybridKey ? NEN_HYBRIDS[hybridKey] : null;
+    // Quantas habilidades principais de nível 10 já estão desbloqueadas entre as
+    // duas categorias da híbrida (regra "só uma de nível 10").
+    let hybLvl10Unlocked = 0;
+    if ( hyb ) {
+      for ( const cid of hyb.categories ) {
+        const ab10 = NEN_CATEGORIES_DATA[cid]?.major?.[10];
+        const um = this.actor.system.nenCategories?.[cid]?.unlockedMajor ?? {};
+        if ( ab10 && um[ab10.id] ) hybLvl10Unlocked++;
+      }
+    }
+
+    // Entendimento (Especialista Nv6): treinar qualquer outra categoria em um nível abaixo
+    // do nível de Especialista custa metade do PT (arredondado para cima) — refletido aqui
+    // para o pill de custo já mostrar o valor real cobrado, igual ao usado em _onTrainNenCategory.
+    const especialistaLevel = this.actor.system.nenCategories?.especialista?.level ?? 0;
+    const hasEntendimento = !!this.actor.system.nenCategories?.especialista?.unlockedMajor?.entendimento;
+
     for ( const cat of nenCategories ) {
       const unlockedMajorMap = this.actor.system.nenCategories?.[cat.id]?.unlockedMajor ?? {};
 
@@ -3104,11 +3753,13 @@ new foundry.applications.ux.ContextMenu.implementation(
       if ( nextLevel <= 10 && nextLevel <= maxAllowed ) {
         const costs = NEN_LEVEL_COSTS[nextLevel];
         const dcReduction = this.actor.system.nenCategories?.[cat.id]?.dcReductions?.[nextLevel] ?? 0;
+        const entendimentoApplies = hasEntendimento && (cat.id !== "especialista") && (nextLevel < especialistaLevel);
         cat.nextLevel = nextLevel;
-        cat.nextPt = costs.pt;
+        cat.nextPt = entendimentoApplies ? Math.ceil(costs.pt / 2) : costs.pt;
         cat.nextPa = costs.pa;
         cat.currentDC = Math.max(1, costs.cd - dcReduction);
         cat.canTrain = true;
+        cat.entendimentoDiscount = entendimentoApplies;
       } else if ( maxAllowed === 0 ) {
         cat.canTrain = false;
         cat.blockedReason = "Sem afinidade";
@@ -3124,19 +3775,27 @@ new foundry.applications.ux.ContextMenu.implementation(
       cat.minorSlots = [2, 5, 8].map(lvl => {
         const ab = catData?.minor?.[lvl];
         const reached = cat.level >= lvl;
-        if ( !ab ) return { reached: false, level: lvl, empty: true };
-        return { ...ab, reached, level: lvl, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
+        if ( !ab ) return { reached: false, level: lvl, empty: true, color: cat.color };
+        return { ...ab, reached, level: lvl, color: cat.color, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
       });
 
       // Principais: slots fixos nos níveis 3, 6, 10
       cat.majorSlots = [3, 6, 10].map(lvl => {
         const ab = catData?.major?.[lvl];
         const reached = cat.level >= lvl;
-        if ( !ab ) return { reached: false, level: lvl, empty: true, categoryId: cat.id };
+        if ( !ab ) return { reached: false, level: lvl, empty: true, categoryId: cat.id, color: cat.color };
         const unlocked = unlockedMajorMap[ab.id] ?? false;
-        const canUnlock = reached && !unlocked && (nenMajorCount < nenMajorMax || ab.exclusive);
-        // categoryId pré-calculado para evitar {{../cat.id}} no HBS
-        return { ...ab, reached, unlocked, canUnlock, level: lvl, categoryId: cat.id, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
+        let canUnlock = reached && !unlocked && (nenMajorCount < nenMajorMax || ab.exclusive);
+        // Restrições de Categoria Híbrida (só nas categorias da híbrida)
+        if ( hyb && hyb.categories.includes(cat.id) ) {
+          // Especialista híbrido: só a principal até majorLevel (ex: 3) na 2ª categoria
+          if ( cat.id === "especialista" && lvl > hyb.majorLevel ) canUnlock = false;
+          // Normais: só UMA principal de nível 10 entre as duas categorias
+          if ( hyb.majorLevel >= 10 && lvl === 10 && !unlocked && hybLvl10Unlocked >= 1 ) canUnlock = false;
+        }
+        // categoryId e color pré-calculados para evitar {{../cat.id}}/{{../cat.color}} no HBS
+        // (parâmetros de bloco de {{#each}} aninhados não resolvem via ../ de forma confiável)
+        return { ...ab, reached, unlocked, canUnlock, level: lvl, categoryId: cat.id, color: cat.color, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
       });
     }
 
@@ -3164,11 +3823,58 @@ new foundry.applications.ux.ContextMenu.implementation(
     context.nenHexPoints = hexPts;
     context.nenTrainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
     context.nenLostTrainingPoints = this.actor.system.curseResources?.lostTrainingPoints ?? 0;
+    context.nenNarratorTrainingPoints = this.actor.system.curseResources?.narratorTrainingPoints ?? 0;
+    context.nenSpentTrainingPoints = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
+    context.nenAvailableTrainingPoints = getAvailableTrainingPoints(this.actor);
     context.nenGridRings = gridRings;
     context.nenAxes = axes;
     context.nenLabels = labels;
+    // Perímetro do hexágono ligando os 6 nós das categorias (moldura forte)
+    context.nenOuterPoints = labels.map(l => `${l.lx},${l.ly}`).join(" ");
     context.nenPrimaryCategory = nenPrimaryCategory;
     context.nenPrimaryColor = nenPrimaryColor;
+
+    // ── Categoria Híbrida (Narrador) ──
+    const isGM = game.user.isGM;
+    context.isGM = isGM;
+    const hybridOptionKeys = NEN_HYBRID_OPTIONS_BY_PRIMARY[nenPrimaryCategory] ?? [];
+    const primaryLabel = NEN_CATEGORIES_DATA[nenPrimaryCategory]?.label ?? "—";
+    context.nenHybridKey = hybridKey;
+    context.nenHybridRevealed = !!this.actor.system.nenHybridRevealed;
+    context.nenHybridLabel = hyb?.label ?? "";
+    // Só faz sentido oferecer híbrida se a principal tiver opções (Especialista não tem).
+    context.nenHybridCanHave = !!nenPrimaryCategory && hybridOptionKeys.length > 0;
+    context.nenHybridOptions = [
+      { value: "", label: primaryLabel, selected: !hybridKey },
+      ...hybridOptionKeys.map(k => ({ value: k, label: NEN_HYBRIDS[k].label, selected: hybridKey === k }))
+    ];
+    // Jogador só vê o rótulo se o Narrador revelou.
+    context.nenHybridShowPlayer = !!hybridKey && context.nenHybridRevealed;
+
+    // ── Treinar Atributo ──
+    // Custo: 3 PT por +1 até 18; 6 PT por +1 entre 18 e 20. Cap em 20.
+    const ABILITY_ORDER = ["str", "dex", "con", "int", "wis", "cha"];
+    const ABILITY_ABBR = { str: "FOR", dex: "AGI", con: "CON", int: "ESP", wis: "SAB", cha: "PRE" };
+    const trainingPts = context.nenAvailableTrainingPoints;
+    const _nextCost = v => v >= 20 ? Infinity : (v >= 18 ? 6 : 3);
+    const selectedAttr = this._selectedAttrToTrain ?? null;
+    context.attributeTraining = {
+      pt: trainingPts,
+      abilities: ABILITY_ORDER.map(id => {
+        const value = this.actor.system.abilities?.[id]?.value ?? 10;
+        const cost  = _nextCost(value);
+        return {
+          id,
+          abbr:     ABILITY_ABBR[id],
+          value,
+          cost:     Number.isFinite(cost) ? cost : null,
+          maxed:    value >= 20,
+          canTrain: value < 20 && trainingPts >= cost,
+          selected: id === selectedAttr
+        };
+      })
+    };
+
     return context;
   }
 
@@ -3195,12 +3901,11 @@ new foundry.applications.ux.ContextMenu.implementation(
   if ( action === "toggleSection" ) {
     return this._onToggleSection(target.dataset.section);
   }
-  if ( action === "unlockNenMajor" ) {
-    return this._onUnlockNenMajor(target.dataset.category, target.dataset.ability);
-  }
-  if ( action === "undoNenMajor" ) {
-    return this._onUndoNenMajor(target.dataset.category, target.dataset.ability);
-  }
+  // unlockNenMajor/undoNenMajor NÃO têm mais um case aqui de propósito — o card inteiro
+  // carrega esses data-action agora (sem botão dedicado), e o clique/clique-direito é
+  // tratado só pelo listener manual em _onRender (com confirmação via DialogV2). Um case
+  // aqui faria o clique esquerdo do Foundry (dispatch nativo por data-action) desfazer/
+  // aprender direto, sem confirmação, antes mesmo do listener manual entrar em ação.
   if ( action === "unlockNenPrinciple" ) {
     return this._onUnlockNenPrinciple(target.dataset.id);
   }
@@ -3216,17 +3921,27 @@ new foundry.applications.ux.ContextMenu.implementation(
   if ( action === "trainNenCategory" ) {
     return this._onTrainNenCategory(target.dataset.category);
   }
+  if ( action === "selectAttributeToTrain" ) {
+    return this._onSelectAttributeToTrain(target.dataset.ability);
+  }
+  if ( action === "trainAttribute" ) {
+    return this._onTrainAttribute();
+  }
   if ( action === "hatsu-roll" )            return this._onHatsuRoll(target.dataset.itemId);
   if ( action === "hatsu-edit" )            return this._onHatsuEdit(target.dataset.itemId);
+  if ( action === "hatsu-display-card" )    return this._onHatsuDisplayCard(target.dataset.itemId);
+  if ( action === "hatsu-change-image" )    return this._onHatsuChangeImage(target.dataset.itemId);
   if ( action === "hatsu-unassign-manif" )  return this._onHatsuUnassign(target.dataset.slot, "manif");
   if ( action === "hatsu-unassign-tecnica" )return this._onHatsuUnassignTecnica(target.dataset.itemId);
   if ( action === "hatsu-create-manif" )    return this._onHatsuCreateManif(target.dataset.slot);
   if ( action === "hatsu-create-tecnica" )  return this._onHatsuCreateTecnica(target.dataset.slot);
   if ( action === "hatsu-req-add" )         return this._onHatsuReqAdd(target.dataset.itemId);
   if ( action === "hatsu-req-remove" )      return this._onHatsuReqRemove(target.dataset.itemId, parseInt(target.dataset.index));
+  if ( action === "hatsu-toggle-mode" )     return this._onHatsuToggleMode(target.dataset.itemId, target.dataset.mode);
   if ( action === "hatsu-toggle-ultimato" ) return this._onHatsuToggleUltimato();
-  if ( action === "hatsu-toggle-section" )  return this._onHatsuToggleSection(target.dataset.slot);
+  if ( action === "hatsu-save-template" )   return this._onHatsuSaveTemplate();
   if ( action === "jj-toggle-pin" )         return this._onTogglePinSidebar(target.dataset.pin);
+  if ( action === "jj-toggle-sacrifice-hud" ) return this._onToggleSacrificeHud();
 
   return super._onClickAction(event, target);
 }
@@ -3509,22 +4224,33 @@ new foundry.applications.ux.ContextMenu.implementation(
    * Tenta conceder automaticamente técnicas vinculadas a partir do compêndio.
    */
   async _grantLinkedTechniques(techniqueNames) {
+    const itemPacks = game.packs.filter(p => p.metadata.type === "Item" && p.metadata.system === "hunter-system");
     for ( const name of techniqueNames ) {
-      // Busca no compêndio do sistema
-      const pack = game.packs.find(p => p.metadata.type === "Item");
-      if ( !pack ) continue;
-      await pack.getIndex();
-      const entry = pack.index.find(i => i.name === name);
-      if ( !entry ) continue;
-      const item = await pack.getDocument(entry._id);
-      if ( item && !this.actor.items.find(i => i.name === name) ) {
-        await this.actor.createEmbeddedDocuments("Item", [item.toObject()]);
-        ui.notifications.info(`Técnica "${name}" adicionada automaticamente.`);
+      if ( this.actor.items.find(i => i.name === name) ) continue;
+      let item = null;
+      for ( const pack of itemPacks ) {
+        await pack.getIndex();
+        const entry = pack.index.find(i => i.name === name);
+        if ( !entry ) continue;
+        item = await pack.getDocument(entry._id);
+        if ( item ) break;
       }
+      if ( !item ) continue;
+      await this.actor.createEmbeddedDocuments("Item", [item.toObject()]);
+      ui.notifications.info(`Técnica "${name}" adicionada automaticamente.`);
     }
   }
 
   /* -------------------------------------------- */
+
+  async _removeLinkedTechniques(techniqueNames) {
+    for ( const name of techniqueNames ) {
+      const item = this.actor.items.find(i => i.name === name);
+      if ( !item ) continue;
+      await item.delete();
+      ui.notifications.info(`Técnica "${name}" removida.`);
+    }
+  }
 
   /* -------------------------------------------- */
 
@@ -3631,13 +4357,14 @@ async _onUndoTraining(trainingId) {
   const currentDC = this.actor.system.trainings?.[trainingId]?.currentDC ?? def.baseDC;
   const prevDC = Math.max(def.baseDC, currentDC - (def.dcIncrement ?? 5));
 
+const spentPtBeforeUndo = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
 await this.actor.update({
   [`system.trainings.${trainingId}.rank`]: currentRank - 1,
   [`system.trainings.${trainingId}.currentDC`]: prevDC,
   "system.masteryPoints": Math.max(0, (this.actor.system.masteryPoints ?? 0) - ptRefund),
-  "system.curseResources.trainingPoints": (this.actor.system.curseResources?.trainingPoints ?? 0) + ptRefund
+  "system.curseResources.spentTrainingPoints": Math.max(0, spentPtBeforeUndo - ptRefund)
 });
-await this._syncTrainingEffect(trainingId, currentRank - 1);  // ← aqui
+await this._syncTrainingEffect(trainingId, currentRank - 1);
 
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -3750,7 +4477,7 @@ async _syncTrainingEffect(trainingId, rank) {
 
     const nextPtCost = def.ptCost[rank] ?? def.ptCost[def.ptCost.length - 1];
     const nextPaCost = def.paCost[rank] ?? def.paCost[def.paCost.length - 1];
-    const trainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
+    const trainingPoints = getAvailableTrainingPoints(this.actor);
     const energyTotal = this.actor.system.energy?.total ?? 0;
     const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
 
@@ -3784,11 +4511,8 @@ async _syncTrainingEffect(trainingId, rank) {
       return;
     }
 
-    // Deduzir custos
-    await this.actor.update({
-      "system.curseResources.trainingPoints": trainingPoints - nextPtCost,
-      "system.energy.total": energyTotal - nextPaCost
-    });
+    // Deduzir PA de qualquer forma; PT só vira "Gastos" (sucesso) ou "Perdidos" (falha) — nunca os dois.
+    await this.actor.update({ "system.energy.total": energyTotal - nextPaCost });
 
     // Rolar Teste de Constituição (Controle de Energia) — skill "Cont"
     // Usa o total da skill que já considera proficiência, maestria e bônus
@@ -3808,13 +4532,15 @@ async _syncTrainingEffect(trainingId, rank) {
       // Sucesso
       // Sucesso
 const newDC = currentDC + (def.dcIncrement ?? 5);
+const spentPtAbility = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
 await this.actor.update({
   [`system.trainings.${trainingId}.rank`]: rank + 1,
   [`system.trainings.${trainingId}.currentDC`]: newDC,
   "system.masteryPoints": (this.actor.system.masteryPoints ?? 0) + nextPtCost,
-  "system.curseResources.cursePoints": (this.actor.system.curseResources?.cursePoints ?? 0) + 1
+  "system.curseResources.cursePoints": (this.actor.system.curseResources?.cursePoints ?? 0) + 1,
+  "system.curseResources.spentTrainingPoints": spentPtAbility + nextPtCost
 });
-await this._syncTrainingEffect(trainingId, rank + 1); 
+await this._syncTrainingEffect(trainingId, rank + 1);
       ChatMessage.create({
   speaker: ChatMessage.getSpeaker({ actor: this.actor }),
   content: `✅ <strong>${this.actor.name}</strong> treinou <strong>${def.label}</strong> com sucesso! (★${"★".repeat(rank + 1)}) +1 Ponto de Maldição.`
@@ -3850,6 +4576,206 @@ await this._syncTrainingEffect(trainingId, rank + 1);
  * INTEGRAÇÃO: adicionar ao final do character-sheet.mjs (como o consumo de PA)
  */
 
+/**
+ * Aplica dano a UM actor passando por todas as camadas de absorção do Hunter:
+ *  0. Explosão Defensiva pendente
+ *  0.5. Redução de Dano (activity "reduction")
+ *  0.75. Pontos de Armadura (Foco Defensivo) — resistência 2:1, exceto Verdadeiro
+ *  1. PV temporário
+ *  2. PV
+ * Tudo num único `actor.update` por token, com 1 mensagem de chat. Compartilhado
+ * entre os IIFEs de chat-card e extra-cards (escopo de módulo).
+ */
+async function _applyLayeredDamageToActor(actor, amount, { soVerdadeiro = false, cardMeta = null } = {}) {
+  if ( !actor ) return;
+  const hp = actor.system?.attributes?.hp;
+  if ( hp === undefined ) return;
+
+  // ── Pontos de Vitalidade prevalecem (aura inativa/esgotada): regra própria ──
+  if ( _pvePrevails(actor) ) { await _applyPVEDamage(actor, amount, cardMeta); return; }
+
+  let restante = amount;
+  const partes = [];
+  const updates = {};
+
+  // 0. Explosão Defensiva pendente
+  const expDefFlag = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
+  const expDefPendente = expDefFlag?.reducao ?? 0;
+  if ( expDefPendente > 0 && restante > 0 ) {
+    const reducao = Math.min(expDefPendente, restante);
+    restante = Math.max(0, restante - reducao);
+    updates["flags.hunter-system.-=explosaoDefensivaPendente"] = null;
+    partes.push(`Explosão Defensiva reduziu <strong>${reducao}</strong>`);
+  }
+
+  // 0.5. Redução de Dano (activity tipo "reduction")
+  const redFlag = actor.getFlag("hunter-system", "reducaoDano") ?? null;
+  const redPendente = redFlag?.valor ?? 0;
+  if ( redPendente > 0 && restante > 0 ) {
+    const reducao = Math.min(redPendente, restante);
+    restante = Math.max(0, restante - reducao);
+    if ( !redFlag.persistente ) updates["flags.hunter-system.-=reducaoDano"] = null;
+    partes.push(`Redução de Dano reduziu <strong>${reducao}</strong>`);
+  }
+
+  // 0.75. Pontos de Armadura — resistência 2:1, exceto Verdadeiro (force) que passa direto.
+  const armorAtual = actor.system?.armorPoints?.value ?? 0;
+  if ( armorAtual > 0 && restante > 0 && !soVerdadeiro ) {
+    const maxAbsorvivel = armorAtual * 2;
+    const absorvido    = Math.min(restante, maxAbsorvivel);
+    const paGasto      = Math.ceil(absorvido / 2);
+    restante = Math.max(0, restante - absorvido);
+    updates["system.armorPoints.value"] = Math.max(0, armorAtual - paGasto);
+    const sobrouResist = absorvido - paGasto;
+    const extra = sobrouResist > 0 ? `, resistência evitou ${sobrouResist} a mais` : "";
+    partes.push(`Pontos de Armadura absorveram <strong>${absorvido}</strong> (${paGasto} PA${extra})`);
+  } else if ( soVerdadeiro && armorAtual > 0 ) {
+    partes.push(`Dano <strong>Verdadeiro</strong> ignorou a armadura`);
+  }
+
+  // 1. Consumir PV temporário
+  const tempAtual = hp.temp ?? 0;
+  if ( tempAtual > 0 && restante > 0 ) {
+    const consumido = Math.min(tempAtual, restante);
+    restante -= consumido;
+    updates["system.attributes.hp.temp"] = tempAtual - consumido;
+    partes.push(`PV temporário absorveu <strong>${consumido}</strong>`);
+  }
+
+  // 2. Aplicar restante nos PV normais
+  if ( restante > 0 ) {
+    updates["system.attributes.hp.value"] = Math.max(0, (hp.value ?? 0) - restante);
+    partes.push(`PV recebeu <strong>${restante}</strong>`);
+  }
+
+  if ( !foundry.utils.isEmpty(updates) ) await actor.update(updates);
+  if ( partes.length ) {
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `🛡️ <strong>${actor.name}</strong> (${amount} de dano): ${partes.join("; ")}.`
+    });
+  }
+}
+
+/* ============================================================
+ * PONTOS DE VITALIDADE (PVE) — dano sob aura inativa
+ * ============================================================ */
+
+/** A Vitalidade prevalece quando o personagem está com a aura desligada (zetsu/esgotada). */
+function _pvePrevails(actor) {
+  return actor?.type === "character" && actor.system?.attributes?.auraOn === false;
+}
+
+/** Quanto de PV (atuais e máx) se perde por PVE perdido em zetsu. */
+const PVE_HP_RATIO = 15;
+
+/** Diálogo dos modificadores da regra de Vitalidade (pré-marca o crítico vindo do card). */
+function _promptPVE(actor, cardMeta = null) {
+  const crit = !!cardMeta?.crit;
+  const grade = Number(cardMeta?.techniqueGrade ?? 0);
+  const isTech = grade > 0;
+  const row = "display:flex; align-items:center; gap:8px;";
+  const chk = "display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid var(--color-border-light-tertiary,#4441); border-radius:6px;";
+  const x2  = "margin-left:auto; font-weight:700; color:#c8a84b;";
+  const content = `
+    <div style="display:flex; flex-direction:column; gap:10px; padding:6px 0;">
+      <p style="margin:0;">${actor.name} está com a <strong>aura inativa</strong> — o dano atinge a <strong>Vitalidade</strong>.</p>
+      <div style="${row}">
+        <label style="flex:0 0 100px;">Tipo de dano</label>
+        <select id="pve-src" style="flex:1;">
+          <option value="normal" ${!isTech ? "selected" : ""}>Normal — 1 PVE</option>
+          <option value="firearm">Arma de Fogo — 2 PVE</option>
+          <option value="technique" ${isTech ? "selected" : ""}>Técnica — grau em PVE</option>
+        </select>
+      </div>
+      <div id="pve-grade-row" style="${row} ${isTech ? "" : "display:none;"}">
+        <label style="flex:0 0 100px;">Grau da técnica</label>
+        <input type="number" id="pve-grade" value="${grade || 1}" min="1" step="1" style="width:70px; text-align:center;">
+      </div>
+      <label style="${chk}"><input type="checkbox" id="pve-crit" ${crit ? "checked" : ""}> Crítico <span style="${x2}">×2</span></label>
+      <label style="${chk}"><input type="checkbox" id="pve-aura"> Ataque com Aura <span style="${x2}">×2</span></label>
+      <label style="${chk} border-color:rgba(214,75,75,.5);"><input type="checkbox" id="pve-nat20"> Nat 20 — morte instantânea (com aura)</label>
+    </div>`;
+  return foundry.applications.api.DialogV2.wait({
+    window: { title: `🌀 Vitalidade — ${actor.name}` },
+    content,
+    render: (event, dialog) => {
+      const el = dialog.element;
+      const src = el.querySelector("#pve-src");
+      const gr  = el.querySelector("#pve-grade-row");
+      src?.addEventListener("change", () => { gr.style.display = src.value === "technique" ? "" : "none"; });
+    },
+    buttons: [
+      {
+        action: "ok", label: "Aplicar", default: true, icon: "fas fa-check",
+        callback: (event, button, dialog) => {
+          const el = dialog.element;
+          const src = el.querySelector("#pve-src").value;
+          return {
+            firearm: src === "firearm",
+            techniqueGrade: src === "technique" ? Math.max(1, Number(el.querySelector("#pve-grade").value) || 1) : 0,
+            crit: el.querySelector("#pve-crit").checked,
+            aura: el.querySelector("#pve-aura").checked,
+            nat20: el.querySelector("#pve-nat20").checked
+          };
+        }
+      },
+      { action: "cancel", label: "Cancelar", icon: "fas fa-xmark", callback: () => null }
+    ],
+    rejectClose: false,
+    close: () => null
+  });
+}
+
+/** Aplica a perda de Vitalidade (e o acoplamento 15:1 de PV) conforme as regras. */
+async function _applyPVEDamage(actor, amount, cardMeta = null) {
+  const meta = await _promptPVE(actor, cardMeta);
+  if ( meta === null ) return; // cancelado
+
+  // Morte instantânea: acerto natural 20 com aura.
+  if ( meta.nat20 && meta.aura ) {
+    await actor.update({ "system.attributes.hp.value": 0, "system.attributes.pve.value": 0 });
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `💀 <strong>${actor.name}</strong> — acerto <strong>natural 20 com aura</strong>: morte instantânea.`
+    });
+    return;
+  }
+
+  // Perda de PVE: base 1 · arma de fogo 2 · técnica = grau; ×2 por crítico e por aura.
+  let loss = meta.techniqueGrade > 0 ? meta.techniqueGrade : (meta.firearm ? 2 : 1);
+  if ( meta.crit ) loss *= 2;
+  if ( meta.aura ) loss *= 2;
+
+  const pve = actor.system.attributes.pve;
+  const cur = pve.value ?? pve.max ?? 0;
+  const newPve = Math.max(0, cur - loss);
+  const lost = cur - newPve;
+  if ( lost <= 0 ) {
+    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `🌀 <strong>${actor.name}</strong>: Vitalidade já está em 0.` });
+    return;
+  }
+
+  const updates = { "system.attributes.pve.value": newPve };
+  const partes = [`perdeu <strong>${lost}</strong> Ponto(s) de Vitalidade`];
+  // Acoplamento 15:1 só no ZETSU deliberado (não na aura esgotada).
+  const inZetsu = actor.system.attributes.auraActive === false;
+  if ( inZetsu ) {
+    const hp = actor.system.attributes.hp;
+    const hpSrc = actor.system._source.attributes.hp;
+    const drop = PVE_HP_RATIO * lost;
+    updates["system.attributes.hp.value"] = Math.max(0, (hp.value ?? 0) - drop);
+    updates["system.attributes.hp.tempmax"] = (hpSrc.tempmax ?? 0) - drop;
+    partes.push(`−${drop} PV (atuais e máximos)`);
+  }
+
+  await actor.update(updates);
+  ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `🌀 <strong>${actor.name}</strong> (Vitalidade): ${partes.join("; ")}.`
+  });
+}
+
 (function _registerJujutsuChatCard() {
 
   // ── HOOK PRINCIPAL: intercepta o uso de qualquer atividade ──────────────────
@@ -3865,6 +4791,99 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     return false;
   });
 
+  // ── RECURSO CUSTOMIZADO: consumo em atividades NÃO-ataque ────────────────────
+  // (ataques consomem o recurso dentro de _postJujutsuCard, junto com a PA)
+  //
+  // IMPORTANTE — ordem de registro: este hook precisa continuar registrado ANTES
+  // do hook de _registerJujutsuExtraCards (mais abaixo neste arquivo). Hooks.call
+  // para no primeiro listener que retorna false — é o veto AQUI que impede o card
+  // customizado de dano/cura/salvaguarda/perícia/utilidade de ser postado quando o
+  // recurso configurado está insuficiente. Se este hook for movido para depois
+  // daquele, o card passaria a ser postado mesmo sem saldo suficiente.
+  Hooks.on("dnd5e.preUseActivity", (activity) => {
+    if ( activity.type === "attack" ) return; // já tratado no card customizado
+    const actor = activity.item?.actor;
+    if ( !actor ) return;
+    if ( !activity.flags?.["hunter-system"]?.resourceCost?.id ) return; // nada configurado
+    const payer = _paPayer(actor); // invocação → invocador; senão, o próprio
+    const reserva = _reserveCustomResource(payer, activity);
+    if ( reserva.ok === false ) {
+      ui.notifications.warn(`${payer.name} não tem ${reserva.name} suficiente! (${reserva.have} disponível, ${reserva.need} necessário)`);
+      return false; // bloqueia o uso
+    }
+    _commitCustomResource(payer, reserva).then(() => {
+      if ( payer !== actor && reserva.key ) ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `🔗 <strong>${actor.name}</strong> (invocação) gastou <strong>${reserva.need} ${reserva.name}</strong> de <strong>${payer.name}</strong>.`
+      });
+    });
+  });
+
+  // ── INVOCAÇÕES: quem paga a PA ───────────────────────────────────────────────
+  // Se o ator é uma invocação com "Gasta a PA do invocador" marcado, devolve o
+  // invocador (dono do item que a invocou). Senão, devolve o próprio ator.
+  function _paPayer(actor) {
+    const flags = actor?.flags ?? {};
+    const summon = flags.HunterLegacy?.summon ?? flags["hunter-system"]?.summon;
+    if ( !summon?.origin || summon.consumeSummoner !== true ) return actor;
+    let doc = null;
+    try { doc = fromUuidSync(summon.origin); } catch { doc = null; }
+    return doc?.actor ?? doc?.parent ?? actor;
+  }
+
+  // ── RECURSO CUSTOMIZADO: checagem+reserva (síncrona) e confirmação (async) ──
+  // A checagem usa um "reservado localmente" por ator+recurso pra evitar corrida:
+  // actor.getFlag() só reflete o saldo depois que o setFlag anterior é confirmado
+  // pelo servidor (assíncrono), então duas ativações quase simultâneas podem ler o
+  // MESMO saldo antes de qualquer uma escrever, permitindo gastar o recurso 2x mas
+  // descontar só 1x. Descontando o valor já reservado (mas ainda não confirmado)
+  // da conta, a segunda ativação vê o saldo correto mesmo antes da primeira
+  // terminar de persistir.
+  const _pendingResourceDeductions = new Map(); // `${payerId}:${resId}` -> nº reservado
+
+  /**
+   * Verifica saldo (síncrono) e RESERVA o valor se suficiente — ainda não escreve.
+   * Recurso órfão (removido do ator depois de configurado na activity) é
+   * auto-limpo da flag e tratado como "sem custo" (não bloqueia o uso).
+   * @returns {{ok:true, key?:string, resId?:string, name?:string, need?:number}
+   *          |{ok:false, name:string, have:number, need:number}}
+   */
+  function _reserveCustomResource(payer, activity) {
+    const rc = activity.flags?.["hunter-system"]?.resourceCost;
+    if ( !rc?.id || !(Number(rc.amount) > 0) ) return { ok: true };
+    const need = Number(rc.amount);
+    const list = payer.getFlag("hunter-system", "customResources") ?? [];
+    const idx  = list.findIndex(r => r.id === rc.id);
+    if ( idx < 0 ) {
+      activity.update({ "flags.hunter-system.-=resourceCost": null });
+      ui.notifications.warn(`O recurso configurado em "${activity.name}" não existe mais em ${payer.name} — custo removido.`);
+      return { ok: true };
+    }
+    const key = `${payer.id}:${rc.id}`;
+    const pendente = _pendingResourceDeductions.get(key) ?? 0;
+    const have = Number(list[idx].current ?? 0) - pendente;
+    if ( have < need ) return { ok: false, name: list[idx].name, have, need };
+    _pendingResourceDeductions.set(key, pendente + need);
+    return { ok: true, key, resId: rc.id, name: list[idx].name, need };
+  }
+
+  /** Confirma (persiste) uma reserva feita por _reserveCustomResource. */
+  async function _commitCustomResource(payer, reserva) {
+    if ( !reserva?.key ) return; // nada foi reservado (sem custo configurado, ou órfão já tratado)
+    try {
+      const list = payer.getFlag("hunter-system", "customResources") ?? [];
+      const idx  = list.findIndex(r => r.id === reserva.resId);
+      if ( idx < 0 ) return;
+      const have = Number(list[idx].current ?? 0);
+      const updated = list.map((r, i) => i === idx ? { ...r, current: Math.max(0, have - reserva.need) } : r);
+      await payer.setFlag("hunter-system", "customResources", updated);
+    } finally {
+      const restante = (_pendingResourceDeductions.get(reserva.key) ?? 0) - reserva.need;
+      if ( restante > 0 ) _pendingResourceDeductions.set(reserva.key, restante);
+      else _pendingResourceDeductions.delete(reserva.key);
+    }
+  }
+
   // ── CRIAR O CARD CUSTOMIZADO ─────────────────────────────────────────────────
   async function _postJujutsuCard(activity, item) {
     const actor = item.actor;
@@ -3873,6 +4892,7 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     // Processar consumo de PA configurado na activity (Attribute type)
     // antes de criar o card, já que bloqueamos o processamento nativo
     if ( actor ) {
+      const payer = _paPayer(actor); // invocação → invocador; senão, o próprio
       const targets = activity.consumption?.targets ?? [];
       for ( const target of targets ) {
         const isGerada = target.target === "energy.generated";
@@ -3882,15 +4902,33 @@ await this._syncTrainingEffect(trainingId, rank + 1);
         if ( custo <= 0 ) continue;
         const campo = isGerada ? "system.energy.generated" : "system.energy.total";
         const atual = isGerada
-          ? (actor.system?.energy?.generated ?? 0)
-          : (actor.system?.energy?.total ?? 0);
+          ? (payer.system?.energy?.generated ?? 0)
+          : (payer.system?.energy?.total ?? 0);
         const label = isGerada ? "PA Gerada" : "PA Total";
         if ( atual < custo ) {
-          ui.notifications.warn(`${actor.name} não tem ${label} suficiente! (${atual} disponível, ${custo} necessário)`);
+          ui.notifications.warn(`${payer.name} não tem ${label} suficiente! (${atual} disponível, ${custo} necessário)`);
           return; // aborta criação do card
         }
-        await actor.update({ [campo]: atual - custo }, { isEnergySystem: true });
+        await payer.update({ [campo]: atual - custo }, { isEnergySystem: true });
+        if ( payer !== actor ) ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor }),
+          content: `🔗 <strong>${actor.name}</strong> (invocação) gastou <strong>${custo} ${label}</strong> de <strong>${payer.name}</strong>.`
+        });
       }
+
+      // Consumo de Recurso customizado configurado na activity (mesma reserva
+      // síncrona usada pelo hook de atividades não-ataque, acima — evita a
+      // corrida de duplo-gasto e já redireciona pro invocador, como a PA)
+      const reservaRecurso = _reserveCustomResource(payer, activity);
+      if ( reservaRecurso.ok === false ) {
+        ui.notifications.warn(`${payer.name} não tem ${reservaRecurso.name} suficiente! (${reservaRecurso.have} disponível, ${reservaRecurso.need} necessário)`);
+        return; // aborta criação do card
+      }
+      await _commitCustomResource(payer, reservaRecurso);
+      if ( payer !== actor && reservaRecurso.key ) ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `🔗 <strong>${actor.name}</strong> (invocação) gastou <strong>${reservaRecurso.need} ${reservaRecurso.name}</strong> de <strong>${payer.name}</strong>.`
+      });
     }
 
     // Dados de dano da activity
@@ -4104,6 +5142,11 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     const { actor, activity, item, profBonus, paBonus } = _resolveCardData(card);
     if ( !actor || !activity ) return;
 
+    // 1º — Escala de Energia: dropdown ANTES da Explosão Ofensiva. Apenas
+    //      escolhe (não deduz) para permitir cancelar tudo sem gastar PA.
+    const escolhaEscala = await chooseJJScale({ actor, activity });
+    if ( escolhaEscala === null ) return; // cancelado
+
     // Dialog de PA — escolha feita ANTES do ataque, dados adicionados ao DANO depois
     const paGastos = await _paDialog(actor, profBonus, paBonus);
     if ( paGastos === null ) return; // cancelado
@@ -4113,6 +5156,10 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       const ok = await _consumePA(actor, paGastos);
       if ( !ok ) return;
     }
+
+    // Agora sim deduz o PA da Escala e guarda o bônus reservado p/ a rolagem de dano
+    const escala = await applyScaleChoice({ actor, activity, incrementos: escolhaEscala.incrementos });
+    card.dataset.jjScaleBonus = escala.bonusFormula ?? "";
 
     // Guardar PA gastos no card para usar automaticamente no dano
     card.dataset.paGastos = paGastos;
@@ -4148,6 +5195,9 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       atkBreak.innerHTML = _buildBreakdown(roll) + modeLabel;
       if ( paGastos > 0 ) {
         atkBreak.innerHTML += `<span class="jj-pa-badge">⚡ +${paGastos}d${paBonus} no dano</span>`;
+      }
+      if ( card.dataset.jjScaleBonus ) {
+        atkBreak.innerHTML += `<span class="jj-pa-badge" style="color:#c0a0ff;border-color:#6040a0;">⚡ +${card.dataset.jjScaleBonus} (escala)</span>`;
       }
     }
 
@@ -4214,7 +5264,8 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     }
 
     // Estágio de Foco — Aumento de Potência: +N dados de dano em técnicas
-    // N = grau (level) declarado, OU dados do slot do Hatsu (inata=5, m1=3, m2=5, m3=8) se sem grau
+    // N = Grau da técnica (só em manifestação Versátil), OU dados do slot do
+    // Hatsu (inata=5, m1=3, m2=5, m3=8) — modo Focado sempre usa os do slot.
     const estagioFocoAtivo = !!actor.getFlag("hunter-system", "hatsuEstagioFocoAtivo");
     let estagioRollPromise = null;
     let estagioDieFace = null;
@@ -4223,7 +5274,7 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       const HATSU_SLOT_DICE = { inata: 5, m1: 3, m2: 5, m3: 8 };
       const hatsuSlot = item.getFlag("hunter-system", "hatsu.slot")
                      ?? item.getFlag("hunter-system", "hatsu.parent");
-      const declaredLevel = item.system?.level ?? 0;
+      const declaredLevel = _hatsuVersatilGrau(actor, item);
       if ( declaredLevel > 0 ) estagioGrade = declaredLevel;
       else if ( hatsuSlot && HATSU_SLOT_DICE[hatsuSlot] ) estagioGrade = HATSU_SLOT_DICE[hatsuSlot];
       else estagioGrade = 1;
@@ -4237,18 +5288,24 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       }
     }
 
+    // Escala de Energia — bônus reservado no "Acerto", rolado aqui
+    const jjScaleBonus = card.dataset.jjScaleBonus || "";
+    const escalaRollPromise = jjScaleBonus ? new Roll(jjScaleBonus, rollData).evaluate() : null;
+
     const resolvedRolls = await Promise.all(rollPromises);
     rolls.push(...resolvedRolls);
     let paRoll = paRollPromise ? await paRollPromise : null;
     let focoRoll = focoRollPromise ? await focoRollPromise : null;
     let estagioRoll = estagioRollPromise ? await estagioRollPromise : null;
+    let escalaRoll = escalaRollPromise ? await escalaRollPromise : null;
 
     // Animar todos os dados simultaneamente (sem await — resultado já está calculado)
     if ( game.dice3d ) {
       const allRolls = [...resolvedRolls.map(r => r.roll),
                         ...(paRoll ? [paRoll] : []),
                         ...(focoRoll ? [focoRoll] : []),
-                        ...(estagioRoll ? [estagioRoll] : [])];
+                        ...(estagioRoll ? [estagioRoll] : []),
+                        ...(escalaRoll ? [escalaRoll] : [])];
       Promise.all(allRolls.map(r => game.dice3d.showForRoll(r, game.user, true)));
     }
 
@@ -4257,7 +5314,8 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     const totalPA      = paRoll?.total ?? 0;
     const totalFoco    = focoRoll?.total ?? 0;
     const totalEstagio = estagioRoll?.total ?? 0;
-    const totalDmg     = totalBase + totalPA + totalFoco + totalEstagio;
+    const totalEscala  = escalaRoll?.total ?? 0;
+    const totalDmg     = totalBase + totalPA + totalFoco + totalEstagio + totalEscala;
     card.dataset.totalDmg = totalDmg;
 
     // Guardar fórmula de dados puros para o crítico (apenas dados, sem modificadores fixos)
@@ -4277,7 +5335,16 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     if ( estagioRoll && estagioDieFace && estagioGrade ) {
       critParts.push(`${estagioGrade}d${estagioDieFace}`);
     }
+    if ( jjScaleBonus ) {
+      // Só os DADOS da escala entram no crítico (sem a parte fixa), como base/PA
+      const diceOnly = jjScaleBonus.split("+").map(t => t.trim()).filter(t => /^\d*d\d+$/i.test(t)).join(" + ");
+      if ( diceOnly ) critParts.push(diceOnly);
+    }
     card.dataset.critFormula = critParts.join(" + ");
+
+    // Tipos de dano (para detectar "Verdadeiro" — dano força — na aplicação)
+    const allTypes = damageParts.flatMap(p => p.types ?? []);
+    card.dataset.damageTypes = allTypes.join(",");
 
     // Label do tipo de dano (todos juntos ou primeiro)
     const dmgLabel = rolls.map(r => r.label).join(" + ");
@@ -4300,6 +5367,9 @@ await this._syncTrainingEffect(trainingId, rank + 1);
       }
       if ( estagioRoll ) {
         dmgBreak.innerHTML += `<span class="jj-mod-pip"> + </span>${_buildBreakdown(estagioRoll)}<span class="jj-pa-badge">ESTÁGIO</span>`;
+      }
+      if ( escalaRoll ) {
+        dmgBreak.innerHTML += `<span class="jj-mod-pip"> + </span>${_buildBreakdown(escalaRoll)}<span class="jj-pa-badge" style="color:#c0a0ff;border-color:#6040a0;">ESCALA</span>`;
       }
     }
 
@@ -4370,12 +5440,17 @@ await this._syncTrainingEffect(trainingId, rank + 1);
 
   // ── CONSUMIR PA GERADA ───────────────────────────────────────────────────────
   async function _consumePA(actor, quantidade) {
-    const atual = actor.system?.energy?.generated ?? 0;
+    const payer = _paPayer(actor); // invocação → invocador; senão, o próprio
+    const atual = payer.system?.energy?.generated ?? 0;
     if ( atual < quantidade ) {
-      ui.notifications.warn(`${actor.name} não tem PA Gerada suficiente! (${atual} disponível, ${quantidade} necessário)`);
+      ui.notifications.warn(`${payer.name} não tem PA Gerada suficiente! (${atual} disponível, ${quantidade} necessário)`);
       return false;
     }
-    await actor.update({ "system.energy.generated": atual - quantidade }, { isEnergySystem: true });
+    await payer.update({ "system.energy.generated": atual - quantidade }, { isEnergySystem: true });
+    if ( payer !== actor ) ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `🔗 <strong>${actor.name}</strong> (invocação) gastou <strong>${quantidade} PA Gerada</strong> de <strong>${payer.name}</strong>.`
+    });
     return true;
   }
 
@@ -4428,6 +5503,26 @@ await this._syncTrainingEffect(trainingId, rank + 1);
     };
     return types.map(t => labels[t] ?? t).join(" + ");
   }
+
+/**
+ * Grau declarado de uma técnica de Hatsu, válido apenas quando a manifestação
+ * que a governa está em modo Versátil. Em modo Focado o Estágio de Foco volta
+ * aos dados fixos do slot (modelo original), mesmo que um Grau tenha ficado
+ * salvo de um período Versátil anterior.
+ * @param {Actor5e} actor
+ * @param {Item5e} item  Manifestação ou técnica de Hatsu.
+ * @returns {number}     O Grau (1-9), ou 0 se não aplicável.
+ */
+function _hatsuVersatilGrau(actor, item) {
+  const flag = item.getFlag("hunter-system", "hatsu") ?? {};
+  let manifestacao = null;
+  if ( flag.slot ) manifestacao = item;
+  else if ( flag.parent ) manifestacao = actor.items.find(i =>
+    (i.type === "spell") && (i.getFlag("hunter-system", "hatsu.slot") === flag.parent)
+  ) ?? null;
+  if ( (manifestacao?.getFlag("hunter-system", "hatsu.mode") ?? "focado") !== "versatil" ) return 0;
+  return item.system?.level ?? 0;
+}
 
 function _buildBreakdown(roll) {
     const diceParts = [];
@@ -4497,40 +5592,14 @@ function _buildBreakdown(roll) {
       return;
     }
 
+    // Tipos de dano (para detectar "Verdadeiro" — todos force — uma só vez por aplicação)
+    const damageTypesStr = card?.dataset?.damageTypes ?? "";
+    const damageTypes = damageTypesStr ? damageTypesStr.split(",").filter(Boolean) : [];
+    const soVerdadeiro = damageTypes.length > 0 && damageTypes.every(t => t === "force");
+    const cardMeta = { crit: !!card?.querySelector('.jj-mod-check input[data-mod="crit"]:checked') };
+
     for ( const token of tokens ) {
-      const actor = token.actor;
-      if ( !actor ) continue;
-      const hp = actor.system?.attributes?.hp;
-      if ( hp === undefined ) continue;
-
-      let restante = amount;
-
-      // 0. Verificar Explosão Defensiva pendente
-const expDefFlag = actor.getFlag("hunter-system", "explosaoDefensivaPendente") ?? null;
-const expDefPendente = expDefFlag?.reducao ?? 0;
-if ( expDefPendente > 0 ) {
-  const reducao = Math.min(expDefPendente, restante);
-        restante = Math.max(0, restante - reducao);
-        await actor.unsetFlag("hunter-system", "explosaoDefensivaPendente");
-        ChatMessage.create({
-          speaker: ChatMessage.getSpeaker({ actor }),
-          content: `🛡️ <strong>${actor.name}</strong> reduziu <strong>${reducao}</strong> de dano com Explosão Defensiva!`
-        });
-      }
-
-      // 1. Consumir PV temporário primeiro
-      const tempAtual = hp.temp ?? 0;
-      if ( tempAtual > 0 ) {
-        const consumido = Math.min(tempAtual, restante);
-        restante -= consumido;
-        await actor.update({ "system.attributes.hp.temp": tempAtual - consumido });
-      }
-
-      // 2. Aplicar restante nos PV normais
-      if ( restante > 0 ) {
-        const novoHP = Math.max(0, (hp.value ?? 0) - restante);
-        await actor.update({ "system.attributes.hp.value": novoHP });
-      }
+      await _applyLayeredDamageToActor(token.actor, amount, { soVerdadeiro, cardMeta });
     }
 
     const nomes = tokens.map(t => t.name).join(", ");
@@ -4556,10 +5625,24 @@ if ( expDefPendente > 0 ) {
   const CARD_TYPES = new Set(["damage", "heal", "save", "check", "utility"]);
 
   // ── HOOK PRINCIPAL ───────────────────────────────────────────────────────────
+  // IMPORTANTE — ordem de registro: o hook de consumo de Recurso customizado
+  // (em _registerJujutsuChatCard, bem mais acima neste arquivo) precisa continuar
+  // registrado ANTES deste. É o veto dele que impede este card de ser postado
+  // quando o recurso configurado na activity está insuficiente — não mexer na
+  // ordem relativa dos dois sem entender essa dependência.
   Hooks.on("dnd5e.preUseActivity", (activity, config, dialog) => {
     const item = activity.item;
     if ( !item ) return;
     if ( !CARD_TYPES.has(activity.type) ) return;
+    // Limite de Cura: bloqueia heal esgotado antes de postar o card (não desperdiça ação).
+    if ( activity.type === "heal" ) {
+      const lim = activity.getHealLimit?.();
+      if ( lim?.enabled && lim.remaining <= 0 ) {
+        ui.notifications.warn(`${item.name}: limite de cura esgotado — resete para curar novamente.`);
+        return false;
+      }
+    }
+    resetHealLimitsByTechnique(activity); // reset-por-técnica (o return false abaixo barraria o listener global)
     _postExtraCard(activity, item);
     return false;
   });
@@ -4720,6 +5803,18 @@ if ( expDefPendente > 0 ) {
     });
   });
 
+  // Limite de Cura: capa a cura ao saldo restante e consome (o card customizado
+  // não passa pelo rollDamage padrão, então aplicamos o limite aqui).
+  async function _applyHealLimit(activity, type, total) {
+    if ( type !== "heal" ) return total;
+    const lim = activity?.getHealLimit?.();
+    if ( !lim?.enabled ) return total;
+    const aplicado = Math.max(0, Math.min(total, lim.remaining));
+    if ( aplicado < total ) ui.notifications.info(`Cura limitada a ${aplicado} (saldo do Limite de Cura).`);
+    if ( aplicado > 0 ) await activity.update({ "healLimit.spent": Math.min(lim.max, lim.spent + aplicado) });
+    return aplicado;
+  }
+
   // ── HANDLER PRINCIPAL ────────────────────────────────────────────────────────
   async function _handleExtraRoll(card, message) {
     const actorId    = card.dataset.actorId;
@@ -4740,6 +5835,17 @@ if ( expDefPendente > 0 ) {
     const labelEl  = card.querySelector("#jj-extra-label");
 
     if ( type === "damage" || type === "heal" ) {
+      // Escala de Energia — deduz PA e devolve o bônus a somar (rolagem/flat)
+      const escala = await promptJJScale({ actor, activity });
+      if ( escala === null ) return; // cancelado
+      const escalaFormula = escala?.bonusFormula || "";
+      const escalaRoll = escalaFormula ? await new Roll(escalaFormula, rollData).evaluate() : null;
+      if ( escalaRoll ) game.dice3d?.showForRoll(escalaRoll, game.user, true);
+      const escalaTotal = escalaRoll?.total ?? 0;
+      const escalaBreak = escalaRoll
+        ? `<span class="jj-mod-pip"> + </span>${_buildBreakdown(escalaRoll)}<span class="jj-pa-badge" style="color:#c0a0ff;border-color:#6040a0;">ESCALA</span>`
+        : "";
+
       const damageParts  = activity?.damage?.parts ?? [];
       const damageLabels = item.labels?.damages ?? [];
 
@@ -4748,12 +5854,12 @@ if ( expDefPendente > 0 ) {
         const healFormula = activity?.healing?.formula ?? "1d6";
         const roll = await new Roll(healFormula, rollData).evaluate();
         game.dice3d?.showForRoll(roll, game.user, true);
-        const total = roll.total;
+        const total = await _applyHealLimit(activity, type, roll.total + escalaTotal);
         card.dataset.totalDmg = total;
         if ( panel ) panel.classList.add("visible");
         if ( labelEl ) labelEl.textContent = "Cura";
         if ( valEl ) { valEl.textContent = total; valEl.className = "jj-panel-val jj-heal-val"; }
-        if ( breakEl ) breakEl.innerHTML = _buildBreakdown(roll);
+        if ( breakEl ) breakEl.innerHTML = _buildBreakdown(roll) + escalaBreak;
         _showHealFooter(card, total);
         return;
       }
@@ -4769,12 +5875,15 @@ if ( expDefPendente > 0 ) {
       const resolved = await Promise.all(rollPromises);
       if ( game.dice3d ) Promise.all(resolved.map(r => game.dice3d.showForRoll(r.roll, game.user, true)));
 
-      const total = resolved.reduce((s, r) => s + r.roll.total, 0);
+      const total = await _applyHealLimit(activity, type, resolved.reduce((s, r) => s + r.roll.total, 0) + escalaTotal);
       card.dataset.totalDmg = total;
+      // Tipos de dano agregados (para detectar "Verdadeiro" na aplicação)
+      const allTypes = damageParts.flatMap(p => p.types ?? []);
+      card.dataset.damageTypes = allTypes.join(",");
       if ( panel ) panel.classList.add("visible");
       if ( labelEl ) labelEl.textContent = resolved.map(r => r.label).join(" + ") || (type === "heal" ? "Cura" : "Dano");
       if ( valEl ) { valEl.textContent = total; valEl.className = `jj-panel-val ${type === "heal" ? "jj-heal-val" : "dmg"}`; }
-      if ( breakEl ) breakEl.innerHTML = resolved.map(r => _buildBreakdown(r.roll)).join('<span class="jj-mod-pip"> + </span>');
+      if ( breakEl ) breakEl.innerHTML = resolved.map(r => _buildBreakdown(r.roll)).join('<span class="jj-mod-pip"> + </span>') + escalaBreak;
 
       if ( type === "damage" ) {
         const footer = card.querySelector("#jj-extra-footer");
@@ -4816,7 +5925,15 @@ if ( expDefPendente > 0 ) {
         }
         if ( breakEl ) breakEl.innerHTML = _buildBreakdown(roll)
           + `<span class="jj-mod-pip"> vs CD ${dc} — ${success ? "✓ Sucesso" : "✗ Falha"}</span>`;
+      } else {
+        if ( panel ) panel.classList.add("visible");
+        if ( labelEl ) labelEl.textContent = `Salv. ${abilityLabel}`;
+        if ( valEl ) { valEl.textContent = `CD ${dc}`; valEl.className = "jj-panel-val"; valEl.style.fontSize = "28px"; }
+        if ( breakEl ) breakEl.innerHTML = `<span class="jj-mod-pip">CD ${dc} — selecione um alvo para rolar</span>`;
+      }
 
+      // Botão de dano — sempre visível se houver damageParts, independente de alvo
+      {
         // Se tiver dano, injetar botão de rolar dano
         const damageParts = activity?.damage?.parts ?? [];
         if ( damageParts.length && !card.querySelector("[data-action='jj-save-damage']") ) {
@@ -4830,6 +5947,12 @@ if ( expDefPendente > 0 ) {
             </button>`;
           dmgFooter.querySelector("[data-action='jj-save-damage']").addEventListener("click", async () => {
             const dmgLabels = item.labels?.damages ?? [];
+
+            // Escala de Energia — deduz PA e devolve o bônus a somar
+            const escala = await promptJJScale({ actor, activity });
+            if ( escala === null ) return; // cancelado
+            const escalaFormula = escala?.bonusFormula || "";
+            const escalaRoll = escalaFormula ? await new Roll(escalaFormula, rollData).evaluate() : null;
 
             // Hatsu: passo de dado +1 em técnicas (spells) quando em Ultimato
             const hatsuTier = actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
@@ -4855,7 +5978,7 @@ if ( expDefPendente > 0 ) {
               const HATSU_SLOT_DICE = { inata: 5, m1: 3, m2: 5, m3: 8 };
               const hatsuSlot = item.getFlag("hunter-system", "hatsu.slot")
                              ?? item.getFlag("hunter-system", "hatsu.parent");
-              const declaredLevel = item.system?.level ?? 0;
+              const declaredLevel = _hatsuVersatilGrau(actor, item);
               let grade;
               if ( declaredLevel > 0 ) grade = declaredLevel;
               else if ( hatsuSlot && HATSU_SLOT_DICE[hatsuSlot] ) grade = HATSU_SLOT_DICE[hatsuSlot];
@@ -4872,11 +5995,13 @@ if ( expDefPendente > 0 ) {
             if ( game.dice3d ) {
               Promise.all([
                 ...dmgRolls.map(({ r }) => game.dice3d.showForRoll(r, game.user, true)),
-                ...(estagioRoll ? [game.dice3d.showForRoll(estagioRoll, game.user, true)] : [])
+                ...(estagioRoll ? [game.dice3d.showForRoll(estagioRoll, game.user, true)] : []),
+                ...(escalaRoll ? [game.dice3d.showForRoll(escalaRoll, game.user, true)] : [])
               ]);
             }
             const totalDmg = dmgRolls.reduce((s, { r }) => s + r.total, 0)
-                          + (estagioRoll?.total ?? 0);
+                          + (estagioRoll?.total ?? 0)
+                          + (escalaRoll?.total ?? 0);
 
             const dmgPanel = document.createElement("div");
             dmgPanel.className = "jj-panels";
@@ -4884,6 +6009,9 @@ if ( expDefPendente > 0 ) {
             const breakdownHtml = dmgRolls.map(({ r }) => _buildBreakdown(r)).join('<span class="jj-mod-pip"> + </span>')
               + (estagioRoll
                   ? `<span class="jj-mod-pip"> + </span>${_buildBreakdown(estagioRoll)}<span class="jj-pa-badge">ESTÁGIO</span>`
+                  : "")
+              + (escalaRoll
+                  ? `<span class="jj-mod-pip"> + </span>${_buildBreakdown(escalaRoll)}<span class="jj-pa-badge" style="color:#c0a0ff;border-color:#6040a0;">ESCALA</span>`
                   : "");
             dmgPanel.innerHTML = `
               <div class="jj-panel visible">
@@ -4918,11 +6046,6 @@ if ( expDefPendente > 0 ) {
           });
           card.appendChild(dmgFooter);
         }
-      } else {
-        if ( panel ) panel.classList.add("visible");
-        if ( labelEl ) labelEl.textContent = `Salv. ${abilityLabel}`;
-        if ( valEl ) { valEl.textContent = `CD ${dc}`; valEl.className = "jj-panel-val"; valEl.style.fontSize = "28px"; }
-        if ( breakEl ) breakEl.innerHTML = `<span class="jj-mod-pip">CD ${dc} — selecione um alvo para rolar</span>`;
       }
 
     } else if ( type === "check" ) {
@@ -5033,12 +6156,15 @@ if ( expDefPendente > 0 ) {
   async function _applyDmg(amount, card) {
     const tokens = canvas.tokens?.controlled ?? [];
     if ( !tokens.length ) { ui.notifications.warn("Selecione um ou mais tokens no canvas."); return; }
+
+    // Tipos de dano (para detectar "Verdadeiro" — todos force — uma só vez por aplicação)
+    const damageTypesStr = card?.dataset?.damageTypes ?? "";
+    const damageTypes = damageTypesStr ? damageTypesStr.split(",").filter(Boolean) : [];
+    const soVerdadeiro = damageTypes.length > 0 && damageTypes.every(t => t === "force");
+    const cardMeta = { crit: !!card?.querySelector('.jj-mod-check input[data-mod="crit"]:checked') };
+
     for ( const token of tokens ) {
-      const a  = token.actor;
-      if ( !a ) continue;
-      const hp = a.system?.attributes?.hp;
-      if ( !hp ) continue;
-      await a.update({ "system.attributes.hp.value": Math.max(0, (hp.value ?? 0) - amount) });
+      await _applyLayeredDamageToActor(token.actor, amount, { soVerdadeiro, cardMeta });
     }
     ui.notifications.info(`${amount} de dano aplicado em: ${tokens.map(t => t.name).join(", ")}`);
     const btn = card.querySelector("[data-action='jj-extra-apply']");
@@ -5266,6 +6392,11 @@ export function _injectJJConditions(element, actor) {
     const rows = html.querySelectorAll("li.activity[data-activity-id], li.item.activity[data-activity-id]");
     if ( !rows.length ) return;
 
+    // Mesmo ator para todas as linhas deste item — calcular uma vez só, não por linha.
+    const hasActor = !!item.actor;
+    const actorRes = item.actor?.getFlag?.("hunter-system", "customResources") ?? [];
+    const noResOptionLabel = hasActor ? "— sem recursos —" : "— item sem personagem —";
+
     rows.forEach(row => {
       // Evitar duplicação
       if ( row.querySelector(".jj-pa-cost-field") ) return;
@@ -5278,22 +6409,55 @@ export function _injectJJConditions(element, actor) {
 
       const { amount, pool } = _getExistingPaCost(activity);
 
-      // Criar campo inline
+      // Recurso customizado já configurado (flag na activity)
+      const rc    = activity.flags?.["hunter-system"]?.resourceCost ?? {};
+      const rcId  = rc.id ?? "";
+      const rcAmt = Number(rc.amount) > 0 ? rc.amount : "";
+      const poolAbbr = pool === "total" ? "T" : "G";
+      const resOptions = actorRes.length
+        ? `<option value="">—</option>` + actorRes.map(r =>
+            `<option value="${foundry.utils.escapeHTML(String(r.id))}" ${r.id === rcId ? "selected" : ""}>${foundry.utils.escapeHTML(String(r.name ?? ""))}</option>`
+          ).join("")
+        : `<option value="">${noResOptionLabel}</option>`;
+
+      // Campo de Custo (PA) — reserva mostra só G/T fechada; nome inteiro no dropdown
       const wrapper = document.createElement("div");
       wrapper.className = "jj-pa-cost-field";
       wrapper.innerHTML = `
         <input type="number" class="jj-pa-amount" value="${amount}" placeholder="PA" min="0"
                title="Custo em PA" ${amount ? 'disabled' : ''}>
-        <select class="jj-pa-pool" ${amount ? 'disabled' : ''}>
-          <option value="generated" ${pool === "generated" ? "selected" : ""}>⚡ Gerada</option>
-          <option value="total"     ${pool === "total"     ? "selected" : ""}>🔮 Total</option>
-        </select>
+        <span class="jj-pool-wrap">
+          <select class="jj-pa-pool" title="Reserva de PA" ${amount ? 'disabled' : ''}>
+            <option value="generated" ${pool === "generated" ? "selected" : ""}>⚡ Gerada</option>
+            <option value="total"     ${pool === "total"     ? "selected" : ""}>🔮 Total</option>
+          </select>
+          <span class="jj-pool-abbr">${poolAbbr}</span>
+        </span>
         ${amount ? `<button class="jj-pa-clear" title="Remover custo">✕</button>` : ""}
       `;
 
-      const input    = wrapper.querySelector(".jj-pa-amount");
-      const select   = wrapper.querySelector(".jj-pa-pool");
-      const clearBtn = wrapper.querySelector(".jj-pa-clear");
+      // Campo de Recurso customizado (consumido ao usar a atividade)
+      const resWrapper = document.createElement("div");
+      resWrapper.className = "jj-resource-cost-field";
+      resWrapper.innerHTML = `
+        <select class="jj-res-select" title="Recurso consumido ao usar" ${actorRes.length ? "" : "disabled"}>
+          ${resOptions}
+        </select>
+        <input type="number" class="jj-res-amount" value="${rcAmt}" placeholder="Qtd" min="0"
+               title="Quantidade consumida" ${actorRes.length ? "" : "disabled"}>
+      `;
+
+      const input      = wrapper.querySelector(".jj-pa-amount");
+      const select     = wrapper.querySelector(".jj-pa-pool");
+      const poolAbbrEl = wrapper.querySelector(".jj-pool-abbr");
+      const clearBtn   = wrapper.querySelector(".jj-pa-clear");
+      const resSelect  = resWrapper.querySelector(".jj-res-select");
+      const resAmount  = resWrapper.querySelector(".jj-res-amount");
+
+      // Atualiza a abreviação G/T conforme a reserva escolhida
+      select.addEventListener("change", () => {
+        if ( poolAbbrEl ) poolAbbrEl.textContent = select.value === "total" ? "T" : "G";
+      });
 
       async function _saveCost() {
         const val = parseInt(input.value);
@@ -5314,8 +6478,26 @@ export function _injectJJConditions(element, actor) {
         ui.notifications.info(`Custo de ${val} PA (${select.value === "total" ? "Total" : "Gerada"}) salvo em "${activity.name}".`);
       }
 
+      // Upsert/remoção do Recurso customizado consumido pela atividade (flag na activity)
+      async function _saveResource() {
+        const id  = resSelect.value;
+        const amt = parseInt(resAmount.value) || 0;
+        if ( !id || amt <= 0 ) {
+          if ( activity.flags?.["hunter-system"]?.resourceCost ) {
+            await activity.update({ "flags.hunter-system.-=resourceCost": null });
+          }
+          return;
+        }
+        const res = (item.actor?.getFlag?.("hunter-system", "customResources") ?? []).find(r => r.id === id);
+        await activity.update({ "flags.hunter-system.resourceCost": { id, name: res?.name ?? "", amount: amt } });
+        ui.notifications.info(`Recurso "${res?.name ?? id}" (${amt}) configurado em "${activity.name}".`);
+      }
+
       input.addEventListener("keydown", e => { if ( e.key === "Enter" ) { e.preventDefault(); _saveCost(); } });
       input.addEventListener("blur", _saveCost);
+      resSelect.addEventListener("change", _saveResource);
+      resAmount.addEventListener("keydown", e => { if ( e.key === "Enter" ) { e.preventDefault(); _saveResource(); } });
+      resAmount.addEventListener("blur", _saveResource);
 
       if ( clearBtn ) {
         clearBtn.addEventListener("click", async e => {
@@ -5330,11 +6512,11 @@ export function _injectJJConditions(element, actor) {
         });
       }
 
-      // Inserir dentro de .item-row, antes dos controles
+      // Inserir dentro de .item-row, antes dos controles (Custo + Recursos)
       const itemRow = row.querySelector(".item-row") ?? row;
       const controls = itemRow.querySelector(".item-controls, .activity-controls, .controls");
-      if ( controls ) itemRow.insertBefore(wrapper, controls);
-      else itemRow.appendChild(wrapper);
+      if ( controls ) { itemRow.insertBefore(wrapper, controls); itemRow.insertBefore(resWrapper, controls); }
+      else { itemRow.appendChild(wrapper); itemRow.appendChild(resWrapper); }
     });
   }
 
@@ -5345,14 +6527,20 @@ export function _injectJJConditions(element, actor) {
   function _watchForm(form, item) {
     if ( _formObservers.has(form.id) ) return;
 
-    // Injetar imediatamente
-    _injectCostFields(form, item);
-
-    // Observer dentro do form — re-injeta quando a lista mudar
-    const obs = new MutationObserver(() => {
+    // _injectCostFields insere nós no próprio form observado — sem desconectar
+    // durante a injeção, essas inserções disparam o observer de novo, causando
+    // um passe redundante extra a cada mudança real.
+    let obs;
+    function runInject() {
+      obs.disconnect();
       _injectCostFields(form, item);
-    });
-    obs.observe(form, { childList: true, subtree: true });
+      obs.observe(form, { childList: true, subtree: true });
+    }
+
+    obs = new MutationObserver(() => runInject());
+
+    // Injetar imediatamente
+    runInject();
     _formObservers.set(form.id, obs);
 
     // Limpar quando o form for removido do DOM
@@ -5408,14 +6596,37 @@ export function _injectJJConditions(element, actor) {
     const style = document.createElement("style");
     style.id = "jj-pa-cost-style";
     style.textContent = `
+      /* Cabeçalhos "Cargas" (usos limitados nativos) / "Custo" / "Recursos" —
+         3 colunas de cabeçalho pras 3 colunas de conteúdo que a linha pode ter
+         (usos limitados nativos do dnd5e, quando configurados, continuam
+         renderizando ao lado do Custo/Recursos — sem cabeçalho próprio ficariam
+         desalinhados). */
+      .activities-element .items-header .jj-native-uses-header { width: 70px !important; flex: 0 0 70px !important; justify-content: center; }
+      .activities-element .items-header .jj-cost-header { width: 96px !important; flex: 0 0 96px !important; justify-content: center; }
+      .activities-element .items-header .jj-res-header  { width: 132px !important; flex: 0 0 132px !important; justify-content: center; text-align: center; }
+      /* Esconde a coluna de cargas vazia nas linhas (some quando não há usos limitados) */
+      .activities-element .item-detail.item-uses.empty { display: none !important; }
+
       .jj-pa-cost-field {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 3px;
+        width: 96px;
         flex: none;
+        box-sizing: border-box;
+      }
+      .jj-resource-cost-field {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        width: 132px;
+        flex: none;
+        box-sizing: border-box;
       }
       .jj-pa-amount {
-        width: 44px;
+        width: 38px;
         height: 22px;
         padding: 0 4px;
         font-size: 11px;
@@ -5429,17 +6640,60 @@ export function _injectJJConditions(element, actor) {
         color: #6060a0;
         opacity: 0.8;
       }
+      /* Reserva de PA — fechada mostra só G/T (overlay); nome inteiro só no dropdown */
+      .jj-pool-wrap { position: relative; display: inline-flex; align-items: center; }
       .jj-pa-pool {
+        appearance: none;
+        -webkit-appearance: none;
         height: 22px;
+        width: 30px;
         font-size: 10px;
         padding: 0 2px;
         background: #0e0e18;
         border: 1px solid #2a2a40;
         border-radius: 3px;
-        color: #a0a0c0;
+        color: transparent;
         cursor: pointer;
       }
+      .jj-pa-pool option { color: #cfc6ff; background: #0e0e18; }
       .jj-pa-pool:disabled { opacity: 0.7; cursor: default; }
+      .jj-pool-abbr {
+        position: absolute;
+        left: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        font-size: 11px;
+        font-weight: 700;
+        color: #b9a6ff;
+      }
+      .jj-pool-abbr::after { content: "⌄"; margin-left: 1px; font-size: 9px; color: #6a6a90; }
+
+      /* Recurso customizado consumido ao usar a atividade */
+      .jj-res-select {
+        height: 22px;
+        max-width: 86px;
+        font-size: 10px;
+        padding: 0 2px;
+        background: #0e0e18;
+        border: 1px solid #2a2a40;
+        border-radius: 3px;
+        color: #c8b0ff;
+        cursor: pointer;
+      }
+      .jj-res-select:disabled { opacity: 0.6; cursor: default; }
+      .jj-res-amount {
+        width: 34px;
+        height: 22px;
+        padding: 0 3px;
+        font-size: 11px;
+        text-align: center;
+        background: #0e0e18;
+        border: 1px solid #2a2a40;
+        border-radius: 3px;
+        color: #c8b0ff;
+      }
+      .jj-res-amount:disabled { opacity: 0.6; }
       .jj-pa-clear {
         width: 18px;
         height: 18px;
@@ -5956,4 +7210,47 @@ Hooks.on("ready", () => {
       if ( sheet?.rendered ) sheet.render();
     }
   });
+});
+
+/* ============================================================
+   MOCHILA (Container equipável) — regras de negócio
+   ============================================================ */
+
+// Apenas uma mochila (container) pode estar equipada por vez.
+Hooks.on("preUpdateItem", (item, changes) => {
+  if ( item.type !== "container" ) return;
+  const willEquip = foundry.utils.getProperty(changes, "system.equipped");
+  if ( willEquip !== true ) return;
+  const actor = item.parent;
+  if ( !actor ) return;
+  const jaEquipada = actor.items.find(i =>
+    (i.type === "container") && (i.id !== item.id) && i.system?.equipped
+  );
+  if ( jaEquipada ) {
+    ui.notifications.warn(`Você já tem uma mochila equipada: "${jaEquipada.name}". Desequipe-a antes.`);
+    return false; // cancela o equip
+  }
+});
+
+// Ao deletar uma mochila: se vazia, deleta direto; se tiver itens, pede confirmação.
+Hooks.on("preDeleteItem", (item, options) => {
+  if ( item.type !== "container" ) return;
+  if ( options?._mochilaConfirmada ) return; // já confirmado, segue a deleção
+
+  const conteudo = item.system?.contents;
+  const qtd = conteudo?.size ?? (Array.isArray(conteudo) ? conteudo.length : 0);
+  if ( qtd <= 0 ) return; // vazia → deleta normalmente
+
+  // Tem itens — bloqueia e pergunta
+  foundry.applications.api.DialogV2.confirm({
+    window: { title: "Apagar Mochila" },
+    content: `<p>A mochila <strong>${item.name}</strong> contém <strong>${qtd}</strong> item(ns).</p>
+              <p>Deseja apagá-la mesmo assim? <em>Os itens dentro também serão removidos.</em></p>`,
+    yes: { label: "Apagar Mesmo Assim" },
+    no:  { label: "Cancelar" }
+  }).then(confirmado => {
+    if ( confirmado ) item.delete({ _mochilaConfirmada: true });
+  });
+
+  return false; // cancela esta deleção; será refeita se confirmado
 });

@@ -1,4 +1,5 @@
 import CompendiumBrowser from "./applications/compendium-browser.mjs";
+import CalendarMonthView from "./applications/calendar/calendar-month-view.mjs";
 import BastionSettingsConfig from "./applications/settings/bastion-settings.mjs";
 import CalendarSettingsConfig from "./applications/settings/calendar-settings.mjs";
 import CombatSettingsConfig from "./applications/settings/combat-settings.mjs";
@@ -57,6 +58,15 @@ export function registerSystemSettings() {
     config: false,
     type: String,
     default: ""
+  });
+
+  // Espécies customizadas (editor da Criação de Personagem — só Narrador edita).
+  // Array de { id, name, img, desc }. Persistente/mundo → oficial para todos.
+  game.settings.register("hunter-system", "customSpecies", {
+    scope: "world",
+    config: false,
+    type: Array,
+    default: []
   });
 
   // Polymorph Settings
@@ -332,7 +342,18 @@ export function registerSystemSettings() {
     scope: "world",
     config: false,
     type: CalendarConfigSetting,
-    onChange: () => dnd5e.ui.calendar?.onUpdateSettings?.()
+    onChange: value => {
+      dnd5e.ui.calendar?.onUpdateSettings?.();
+      // Desligar o calendário para o mundo inteiro (diferente de uma preferência pessoal de
+      // visibilidade) também deve parar o avanço automático — sem isso, o cliente que estava
+      // tocando o tempo continuaria tocando escondido, sem nenhum botão visível para pará-lo.
+      if ( !value?.enabled ) {
+        const current = game.settings.get("hunter-system", "calendarAutoTime") ?? {};
+        if ( current.active && (current.userId === game.user.id) ) {
+          game.settings.set("hunter-system", "calendarAutoTime", { active: false, userId: null });
+        }
+      }
+    }
   });
 
   game.settings.register("hunter-system", "calendarPreferences", {
@@ -341,6 +362,30 @@ export function registerSystemSettings() {
     config: false,
     type: CalendarPreferencesSetting,
     onChange: () => dnd5e.ui.calendar?.onUpdateSettings?.()
+  });
+
+  // Calendar Day Data — fases da lua (públicas) e notas do narrador (só GM) por dia.
+  // Chave: "<ano>-<mêsIndex>-<dia1based>" → { moon: string|null, note: string }
+  game.settings.register("hunter-system", "calendarDayData", {
+    name: "Calendar Day Data",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {},
+    onChange: () => CalendarMonthView.refreshOpen()
+  });
+
+  // Calendar Auto Time — estado compartilhado do avanço automático do tempo.
+  // Fonte única de verdade entre clientes: só o cliente cujo userId consta aqui roda o
+  // relógio (evita dois GMs avançando o tempo em dobro), e o onChange sincroniza o botão
+  // play/pause em todos os clientes.
+  game.settings.register("hunter-system", "calendarAutoTime", {
+    name: "Calendar Auto Time",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: { active: false, userId: null },
+    onChange: () => dnd5e.ui.calendar?._syncAutoTimeState?.()
   });
 
   // Combat Settings
@@ -593,7 +638,7 @@ export function registerSystemSettings() {
     config: false,
     default: null,
     type: PrimaryPartySetting,
-    onChange: s => ui.actors.render()
+    onChange: s => { ui.actors.render(); dnd5e.ui.calendar?.render(); }
   });
 
   // Control hints

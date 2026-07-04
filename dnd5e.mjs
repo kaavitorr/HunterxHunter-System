@@ -82,26 +82,26 @@ Hooks.once("init", function() {
   }
 
   // ── Jujutsu Legacy: Cálculos de CR customizados ─────────────────────────
-  // "Corpo de Lutador" — 10 + mod principal + mod CON (cap = nível)
+  // "Corpo de Lutador" — 10 + mod principal + min(mod CON, floor(nível / 2))
   // "Defesa Ofensiva"  — 10 + mod AGI + mod principal (sem cap)
   Object.assign(CONFIG.DND5E.armorClasses, {
 
     // ── CORPO DE LUTADOR ─────────────────────────────────────────────────
     corpoLutadorStr: {
       label: "Corpo de Lutador (Força)",
-      formula: "10 + @abilities.str.mod + min(@abilities.con.mod, @details.level)"
+      formula: "10 + @abilities.str.mod + min(@abilities.con.mod, floor(@details.level / 2))"
     },
     corpoLutadorDex: {
       label: "Corpo de Lutador (Agilidade)",
-      formula: "10 + @abilities.dex.mod + min(@abilities.con.mod, @details.level)"
+      formula: "10 + @abilities.dex.mod + min(@abilities.con.mod, floor(@details.level / 2))"
     },
    corpoLutadorWis: {
       label: "Corpo de Lutador (Sabedoria)",
-      formula: "10 + @abilities.wis.mod + min(@abilities.dex.mod, @details.level)"
+      formula: "10 + @abilities.wis.mod + min(@abilities.con.mod, floor(@details.level / 2))"
     },
     corpoLutadorCha: {
       label: "Corpo de Lutador (Presença)",
-      formula: "10 + @abilities.cha.mod + min(@abilities.dex.mod, @details.level)"
+      formula: "10 + @abilities.cha.mod + min(@abilities.con.mod, floor(@details.level / 2))"
     },
 
     // ── DEFESA OFENSIVA ──────────────────────────────────────────────────
@@ -240,6 +240,12 @@ Hooks.once("init", function() {
     makeDefault: true,
     types: ["container"],
     label: "DND5E.SheetClass.Container"
+  });
+  DocumentSheetConfig.unregisterSheet(Item, "hunter-system", applications.item.ItemSheet5e, { types: ["hatsuTemplate"] });
+  DocumentSheetConfig.registerSheet(Item, "hunter-system", applications.item.HatsuTemplateSheet, {
+    makeDefault: true,
+    types: ["hatsuTemplate"],
+    label: "TYPES.Item.hatsuTemplate"
   });
 
   DocumentSheetConfig.registerSheet(JournalEntry, "hunter-system", applications.journal.JournalEntrySheet5e, {
@@ -618,7 +624,7 @@ Hooks.once("ready", function() {
       const content = this.text?.content;
       if ( !content ) return {};
       // Renderiza o conteúdo enriquecido
-      const enriched = await TextEditor.enrichHTML(content, { async: true, relativeTo: this });
+      const enriched = await foundry.applications.ux.TextEditor.implementation.enrichHTML(content, { relativeTo: this });
       return {
         content: `<div class="dnd5e2 dnd5e-tooltip hunter-skill-tooltip">
           <h3 class="tooltip-header">${this.name}</h3>
@@ -738,6 +744,59 @@ Hooks.on("renderDocumentSheetConfig", (app, html) => {
 });
 
 Hooks.on("targetToken", canvas.Token5e.onTargetToken);
+
+// Abre a Criação de Personagem (fullscreen) ao criar um personagem novo,
+// SE o módulo de conteúdo `hunter-legacy-module` estiver ativo. Sem ele, cria a ficha normal.
+Hooks.on("createActor", (actor, options, userId) => {
+  const C = applications.actor.HunterCharacterCreation;
+  const log = (...a) => console.log("HunterCreation | createActor:", ...a);
+  if ( game.user.id !== userId ) return log("ignorado (outro usuário criou)");
+  if ( actor.type !== "character" ) return log("ignorado (type =", actor.type, ")");
+  if ( options?.fromCompendium || options?.keepId || options?.noHook ) return log("ignorado (import/duplicação)");
+  if ( (actor.items?.size ?? 0) > 0 ) return log("ignorado (já tem itens:", actor.items.size, ")");
+  if ( !C?.isAvailable() ) return log("ignorado (hunter-legacy-module não está ativo) — módulo:",
+    game.modules.get("hunter-legacy-module")?.active);
+  log("abrindo a tela de criação para", actor.name);
+  const app = new C({ actor });
+  app.render(true)
+    .then(() => log("render OK"))
+    .catch(err => console.error("HunterCreation | FALHA no render:", err));
+});
+
+// Helper de teste: abra a tela manualmente pelo console com
+//   game.hunterCreation(game.actors.getName("NOME"))                      (nível 1)
+//   game.hunterCreation(game.actors.getName("NOME"), true)                (nível 2)
+Hooks.once("ready", () => {
+  game.hunterCreation = (actor, levelup = false) => new applications.actor.HunterCharacterCreation({
+    actor: actor ?? game.user.character, levelup
+  }).render(true);
+});
+
+// Gatilho de NÍVEL 2: quando o personagem atinge o nível 2 e ainda está com a
+// classe "Sem Categoria", reabre a tela de criação (modo levelup) para escolher a Categoria.
+const _l2Open = new Set();
+function hunterMaybeLevel2(actor) {
+  const C = applications.actor.HunterCharacterCreation;
+  if ( !C?.isAvailable() ) return;
+  if ( !actor || actor.documentName !== "Actor" || actor.type !== "character" || !actor.isOwner ) return;
+  if ( (actor.system?.details?.level ?? 1) < 2 ) return;
+  const norm = s => (s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const hasSem = actor.items.some(i => i.type === "class" && norm(i.name) === "sem categoria");
+  if ( !hasSem || _l2Open.has(actor.id) ) return;
+  _l2Open.add(actor.id);
+  console.log("HunterCreation | nível 2 atingido, abrindo seleção de Categoria para", actor.name);
+  new C({ actor, levelup: true }).render(true).catch(err => {
+    console.error("HunterCreation | falha ao abrir levelup:", err); _l2Open.delete(actor.id);
+  });
+}
+// Só o cliente que fez a mudança abre a tela (evita abrir em todos os donos/GM).
+Hooks.on("updateActor", (actor, changes, options, userId) => {
+  if ( userId === game.user.id ) hunterMaybeLevel2(actor);
+});
+Hooks.on("updateItem", (item, changes, options, userId) => {
+  if ( userId === game.user.id && item.parent?.documentName === "Actor" ) hunterMaybeLevel2(item.parent);
+});
+Hooks.on("closeHunterCharacterCreation", app => { if ( app.actor ) _l2Open.delete(app.actor.id); });
 
 Hooks.on("renderCombatTracker", (app, html, data) => app.renderGroups(html));
 

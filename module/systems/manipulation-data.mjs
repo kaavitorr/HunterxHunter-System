@@ -21,7 +21,7 @@ export const MANIPULATION_ABILITIES = {
     stage: "beginner",
     cost: 3,
     description: "Você reduz todo dano sem aura pela metade.",
-    techniques: ["Ten – Defesa Sólida"],
+    techniques: ["Ten - Defesa Sólida"],
     requires: { stage: "beginner", abilities: [], principle: "ten" }
   },
   movimentacaoRapida: {
@@ -85,7 +85,7 @@ export const MANIPULATION_ABILITIES = {
     stage: "beginner",
     cost: 3,
     description: "Você pode adicionar até um número de d4 no seu próximo ataque ou dados de dano de sua técnica até um valor igual ao seu bônus de proficiência. Você consome 1 PA para cada dado aumentado. Esse efeito pode ser utilizado em técnicas e habilidades de cura, mas você gasta 2 PA para cada dado.",
-    techniques: ["Ren – Explosão de Aura", "Ren – Parede de Aura"],
+    techniques: ["Ren – Explosão de Aura", "Ren - Parede de Aura"],
     requires: { stage: "beginner", abilities: [], principle: "ren" }
   },
   explosaoDefensiva: {
@@ -149,7 +149,7 @@ export const MANIPULATION_ABILITIES = {
     stage: "beginner",
     cost: 3,
     description: "Você pode utilizar uma ação bônus e 2 PA para realizar um Teste de Atributo de Espírito (Nen) com CD igual a 10 + ND da criatura para tentar encontrar um ponto fraco em seu corpo, se houver um. Caso contrário, você recebe duas informações entre ND, CR, PV atual, Resistências e Vulnerabilidades (à escolha do narrador). Você pode utilizar essa habilidade uma vez por criatura a cada descanso longo.",
-    techniques: ["Detectar Aura", "Salto Concentrado", "Investida Focada", "Sentidos Aprimorados", "Gyo – Foco Rápido", "Gyo – Golpe Devastador", "Gyo – Foco Destruidor"],
+    techniques: ["Salto Concentrado", "Investida Focada (4 PA)", "Sentidos Aprimorados", "Gyo – Foco Rápido", "Gyo – Golpe Devastador"],
     requires: { stage: "beginner", abilities: [], principle: "gyo" }
   },
   focoAgressivo: {
@@ -191,7 +191,7 @@ export const MANIPULATION_ABILITIES = {
     stage: "expert",
     cost: 3,
     description: "Você pode envolver objetos com sua aura aplicando dois dos seguintes efeitos: a Classe de Resistência do Objeto se torna igual a sua; o objeto passa a dar o dobro de dano em objetos e estruturas; o objeto recebe 50 Pontos de Armadura de acordo com as regras do Foco Defensivo; o dano base do objeto se torna 1d10 e você pode arremessa-lo no alcance do seu Emissão Treinada.",
-    techniques: ["Shu – Revestimento"],
+    techniques: ["Shu - Revestimento"],
     requires: { stage: "expert", abilities: [], principle: "shu" }
   },
   escritaNen: {
@@ -213,7 +213,7 @@ export const MANIPULATION_ABILITIES = {
     stage: "expert",
     cost: 6,
     description: "Suas jogadas de ataque (Comuns e de Técnica) passam a receber +3 de acerto.",
-    techniques: ["In – Ocultação Completa"],
+    techniques: ["Ocultação Completa"],
     requires: { stage: "expert", abilities: [], principle: "in" }
   },
   mestreIn: {
@@ -235,7 +235,7 @@ export const MANIPULATION_ABILITIES = {
     stage: "expert",
     cost: 3,
     description: "Ao ser alvo de uma jogada de ataque dentro ou fora da área do seu En, você pode escolher ser atingido automaticamente para ver a direção exata em que o ataque veio, recebendo vantagem e +10 em Testes de Percepção para encontrar a criatura que o atacou.",
-    techniques: ["En – Sentido Verdadeiro"],
+    techniques: ["Sentido Verdadeiro"],
     requires: { stage: "expert", abilities: [], principle: "en" }
   },
   aprimorarSentidos: {
@@ -267,7 +267,7 @@ export const MANIPULATION_ABILITIES = {
     stage: "expert",
     cost: 6,
     description: "Você pode manter o Foco Agressivo e Foco Defensivo ativos o tempo inteiro.",
-    techniques: ["Ryu – Controle de Aura", "Ryu – Transferência Rápida"],
+    techniques: ["Ryu - Controle de Aura", "Ryu – Transferência Rápida"],
     requires: { stage: "expert", abilities: [], principle: "ryu" }
   },
   fluxoPerfeito: {
@@ -309,7 +309,7 @@ export const MANIPULATION_ABILITIES = {
     stage: "master",
     cost: 10,
     description: "Quando você for alvo de um efeito intrusivo de Nen, como \"Supressão de Aura\", ou de uma condição ou efeito negativo qualquer, você pode usar sua reação e gastar 10 Pontos de Aura e realizar um Teste Resistido de Espírito (Nen) contra a mesma perícia da criatura. Em caso de sucesso, você nega o efeito e fica imune a ele até o fim do seu turno atual.",
-    techniques: ["Ken – Defesa Absoluta"],
+    techniques: ["Defesa Absoluta"],
     requires: { stage: "master", abilities: [], principle: "ken" }
   },
   muralhaAura: {
@@ -355,7 +355,7 @@ export const PRINCIPLES_DATA = {
     label: "Ten",
     type: "fundamental",
     description: "O princípio da envoltura. Mantém a circulação da aura dentro e ao redor do corpo, agindo como uma segunda pele protetora.",
-    techniques: ["Ten – Defesa Sólida"],
+    techniques: ["Ten - Defesa Sólida"],
     passive: "Enquanto sua aura estiver ativa, você não sofre dano dobrado de ataques com Ren.",
     unlockRequires: { type: "master_grant" }
   },
@@ -371,7 +371,7 @@ export const PRINCIPLES_DATA = {
     label: "Ren",
     type: "fundamental",
     description: "O princípio da prática. Expande e intensifica a aura ao máximo, aumentando a força e durabilidade do corpo.",
-    techniques: ["Ren – Explosão de Aura", "Ren – Parede de Aura"],
+    techniques: ["Ren – Explosão de Aura", "Ren - Parede de Aura"],
     passive: "Você passa a causar o dobro de dano em criaturas que não possuam aura ou estejam com \"Zetsu\" ativo.",
     unlockRequires: { type: "master_grant" }
   },
@@ -387,7 +387,7 @@ export const PRINCIPLES_DATA = {
     label: "Gyo",
     type: "advanced",
     description: "Concentração da aura em uma parte específica do corpo, aumentando dramaticamente a habilidade dessa parte.",
-    techniques: ["Detectar Aura", "Salto Concentrado", "Investida Focada", "Sentidos Aprimorados", "Gyo – Foco Rápido", "Gyo – Golpe Devastador", "Gyo – Foco Destruidor"],
+    techniques: ["Salto Concentrado", "Investida Focada (4 PA)", "Sentidos Aprimorados", "Gyo – Foco Rápido", "Gyo – Golpe Devastador"],
     passive: "Nenhuma",
     unlockRequires: { stage: "beginner", principles: ["ren"], cost: 3 }
   },
@@ -395,7 +395,7 @@ export const PRINCIPLES_DATA = {
     label: "Shu",
     type: "advanced",
     description: "Aplicação avançada de Ten e Ren. Permite envolver um objeto com a própria aura, tornando-o uma extensão do corpo.",
-    techniques: ["Shu – Revestimento"],
+    techniques: ["Shu - Revestimento"],
     passive: "Nenhum",
     unlockRequires: { stage: "expert", principles: ["ten", "hatsu"], cost: 3 }
   },
@@ -403,7 +403,7 @@ export const PRINCIPLES_DATA = {
     label: "In",
     type: "advanced",
     description: "Aplicação avançada de Zetsu. Esconde literalmente toda a presença de aura do indivíduo.",
-    techniques: ["In – Ocultação Completa"],
+    techniques: ["Ocultação Completa"],
     passive: "Nenhuma",
     unlockRequires: { stage: "expert", principles: ["zetsu"], cost: 3 }
   },
@@ -411,7 +411,7 @@ export const PRINCIPLES_DATA = {
     label: "En",
     type: "advanced",
     description: "Aplicação avançada de Ten e Ren. Expande a aura criando um campo extenso ao redor do usuário que detecta tudo dentro dele.",
-    techniques: ["En – Sentido Verdadeiro"],
+    techniques: ["Sentido Verdadeiro"],
     passive: "Você pode usar sua ação de poder para realizar um Teste de Espírito (Percepção) com vantagem, detectando criaturas escondidas em 3m ao redor. Consome 2 PA na ativação e no início de cada turno. Você é imune à condição \"Surpreso\" dentro da área do En.",
     unlockRequires: { stage: "expert", principles: ["ten", "ren"], cost: 3 }
   },
@@ -419,7 +419,7 @@ export const PRINCIPLES_DATA = {
     label: "Ryu",
     type: "advanced",
     description: "Outra aplicação de Gyo. Foca maior quantidade de aura num soco para torná-lo mais potente, ou numa perna para defender-se melhor.",
-    techniques: ["Ryu – Controle de Aura", "Ryu – Transferência Rápida"],
+    techniques: ["Ryu - Controle de Aura", "Ryu – Transferência Rápida"],
     passive: "Nenhuma",
     unlockRequires: { stage: "expert", principles: ["gyo"], abilities: ["focoAgressivo", "focoDefensivo"], cost: 5 }
   },
@@ -427,7 +427,7 @@ export const PRINCIPLES_DATA = {
     label: "Ken",
     type: "advanced",
     description: "Outra aplicação avançada de Ren. Aumenta a potência do Ren tornando o corpo todo mais resistente.",
-    techniques: ["Ken – Defesa Absoluta"],
+    techniques: ["Defesa Absoluta"],
     passive: "Nenhuma",
     unlockRequires: { stage: "master", principles: ["ren"], abilities: ["explosaoDefensiva", "ultimoRecurso", "focoDefensivo"], cost: 5 }
   },
@@ -779,12 +779,26 @@ export function preparePrinciples(actor) {
 }
 
 /**
+ * PT disponível para gastar = PT Jogador + PT Narrador - PT Perdidos - PT Gastos.
+ * "PT Jogador" e "PT Narrador" são entradas (fontes) do extrato; "PT Perdidos" (rolagens
+ * falhas) e "PT Gastos" (rolagens/treinos bem-sucedidos) são saídas — juntas somam todo PT
+ * já gasto, sem sobreposição entre si.
+ */
+export function getAvailableTrainingPoints(actor) {
+  const cr = actor.system.curseResources ?? {};
+  return Math.max(0,
+    (cr.trainingPoints ?? 0) + (cr.narratorTrainingPoints ?? 0)
+    - (cr.lostTrainingPoints ?? 0) - (cr.spentTrainingPoints ?? 0)
+  );
+}
+
+/**
  * Prepara os dados de treinamentos para o template
  */
 export function prepareTrainings(actor) {
   const result = { general: {}, domain: {}, immaculate: {} };
   const savedTrainings = actor.system.trainings ?? {};
-  const trainingPoints = actor.system.curseResources?.trainingPoints ?? 0;
+  const trainingPoints = getAvailableTrainingPoints(actor);
   const energyTotal = actor.system.energy?.total ?? 0;
 
   for ( const [id, def] of Object.entries(TRAININGS_DATA) ) {

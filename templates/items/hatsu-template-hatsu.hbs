@@ -1,0 +1,114 @@
+<section class="tab {{ tab.cssClass }} hatsu-tab hatsu-template-hatsu" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
+
+  <p class="hatsu-template-hint">Configure as manifestações e técnicas deste Molde. Ao instalar em uma ficha,
+    todos os itens abaixo serão copiados para o personagem.</p>
+
+  <div class="hatsu-slots">
+  {{#each hatsu.slots as |slot|}}
+  <div class="hatsu-slot-card {{#if slot.manifestacao}}is-filled{{/if}}" data-hatsu-slot="{{ slot.id }}">
+
+    <div class="hatsu-slot-label-row">
+      <span class="hatsu-slot-label">{{ slot.label }}</span>
+    </div>
+
+    {{#if slot.manifestacao}}
+    <div class="hatsu-manif-row" data-item-id="{{ slot.manifestacao.id }}" draggable="true">
+      <div class="hatsu-manif-portrait">
+        <img src="{{ slot.manifestacao.img }}" alt="{{ slot.manifestacao.name }}" />
+      </div>
+      <div class="hatsu-manif-info">
+        <div class="hatsu-manif-name">{{ slot.manifestacao.name }}</div>
+        {{#if slot.manifestacao.subtitle}}<div class="hatsu-manif-sub">{{ slot.manifestacao.subtitle }}</div>{{/if}}
+        <div class="hatsu-manif-mode-toggle"
+             data-tooltip="Focado: modelo atual — no Estágio de Foco as técnicas usam os dados fixos do slot.&#10;Versátil: cada técnica ganha seu próprio Grau, usado como nº de dados no Estágio de Foco.">
+          <button type="button" class="hatsu-mode-btn {{#if (eq slot.mode "focado")}}active{{/if}}"
+                  data-action="hatsuToggleMode" data-item-id="{{ slot.manifestacao.id }}" data-mode="focado">Focado</button>
+          <button type="button" class="hatsu-mode-btn {{#if (eq slot.mode "versatil")}}active{{/if}}"
+                  data-action="hatsuToggleMode" data-item-id="{{ slot.manifestacao.id }}" data-mode="versatil">Versátil</button>
+        </div>
+      </div>
+      <div class="hatsu-manif-actions">
+        <a class="hatsu-action" data-action="hatsuEdit" data-item-id="{{ slot.manifestacao.id }}"
+           data-tooltip="Editar">
+          <i class="fas fa-edit" inert></i>
+        </a>
+        <a class="hatsu-action hatsu-action-danger" data-action="hatsuRemove"
+           data-item-id="{{ slot.manifestacao.id }}" data-tooltip="Remover">
+          <i class="fas fa-trash" inert></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="hatsu-req-chips">
+      {{#each slot.requirements as |req|}}
+      <div class="hatsu-req-chip hatsu-req-chip-simple" style="--cat-color: {{ req.color }};">
+        <select class="hatsu-req-cat" data-hatsu-req="category"
+                data-item-id="{{ req.manifestacaoId }}" data-index="{{ req.index }}">
+          {{#each @root.hatsu.categoryOptions as |opt|}}
+          <option value="{{ opt.id }}" {{#if (eq opt.id req.category)}}selected{{/if}}>{{ opt.label }}</option>
+          {{/each}}
+        </select>
+        <span class="hatsu-req-chip-sep">Nv</span>
+        <input type="number" class="hatsu-req-level" min="1" max="10" value="{{ req.level }}"
+               data-hatsu-req="level"
+               data-item-id="{{ req.manifestacaoId }}" data-index="{{ req.index }}"
+               data-tooltip="Nível mínimo exigido" />
+        <a class="hatsu-req-chip-remove" data-action="hatsuReqRemove"
+           data-item-id="{{ req.manifestacaoId }}" data-index="{{ req.index }}"
+           data-tooltip="Remover requisito">
+          <i class="fas fa-trash" inert></i>
+        </a>
+      </div>
+      {{/each}}
+      {{#if slot.canAddReq}}
+      <a class="hatsu-req-add-chip" data-action="hatsuReqAdd" data-item-id="{{ slot.manifestacao.id }}"
+         data-tooltip="Adicionar requisito (máx. 6)">
+        <i class="fas fa-plus" inert></i><span>Requisito</span>
+      </a>
+      {{/if}}
+    </div>
+
+    {{else}}
+    <div class="hatsu-manif-empty hatsu-drop-zone" data-hatsu-drop="manif">
+      <i class="fas fa-hand-fist" inert></i>
+      <span>Arraste uma técnica aqui ou clique no botão abaixo</span>
+      <button type="button" class="hatsu-manif-create-btn" data-action="hatsuCreateManif" data-slot="{{ slot.id }}">
+        <i class="fas fa-plus" inert></i>
+        <span>Criar Manifestação</span>
+      </button>
+    </div>
+    {{/if}}
+
+    <div class="hatsu-tecnicas-row hatsu-drop-zone" data-hatsu-drop="tecnica">
+      <span class="hatsu-tecnicas-label">{{ slot.tecnicasLabel }}</span>
+      {{#each slot.tecnicas as |tec|}}
+      <div class="hatsu-tecnica-chip" data-item-id="{{ tec.id }}" draggable="true">
+        <img src="{{ tec.img }}" alt="{{ tec.name }}" />
+        <span class="hatsu-tecnica-chip-name">{{ tec.name }}</span>
+        {{#if slot.isVersatil}}
+        <select class="hatsu-tecnica-grau" data-hatsu-grau data-item-id="{{ tec.id }}"
+                data-tooltip="Grau da técnica">
+          {{#each @root.hatsu.grauOptions as |g|}}
+          <option value="{{ g.value }}" {{#if (eq g.value tec.grau)}}selected{{/if}}>{{ g.label }}</option>
+          {{/each}}
+        </select>
+        {{/if}}
+        <div class="hatsu-tecnica-chip-actions">
+          <a data-action="hatsuEdit" data-item-id="{{ tec.id }}" data-tooltip="Editar"><i class="fas fa-edit" inert></i></a>
+          <a data-action="hatsuRemove" data-item-id="{{ tec.id }}" data-tooltip="Remover"><i class="fas fa-trash" inert></i></a>
+        </div>
+      </div>
+      {{else}}
+      <span class="hatsu-tecnicas-empty-hint">Arraste uma técnica ou clique no +</span>
+      {{/each}}
+      <a class="hatsu-tecnica-add-chip" data-action="hatsuCreateTecnica" data-slot="{{ slot.id }}"
+         data-tooltip="Criar técnica">
+        <i class="fas fa-plus" inert></i>
+      </a>
+    </div>
+
+  </div>
+  {{/each}}
+  </div>
+
+</section>

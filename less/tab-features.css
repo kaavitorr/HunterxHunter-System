@@ -238,11 +238,12 @@
 }
 
 /* Ícones da classe / subclasse */
-.classes.pills-lg .icons {
+.dnd5e2.sheet.actor .classes.pills-lg .class .icons {
   position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -255,12 +256,13 @@
   background: rgba(0,0,0,0.3);
 }
 
-.classes.pills-lg .icons.subclass .gold-icon:last-of-type {
-  width: 20px;
-  height: 20px;
-  position: absolute;
-  bottom: -0px;
-  right: -40px;
+.dnd5e2.sheet.actor .classes.pills-lg .class .icons .gold-icon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+}
+
+.dnd5e2.sheet.actor .classes.pills-lg .class .icons .gold-icon:last-of-type {
   border-color: rgba(42,106,170,0.4);
 }
 
@@ -268,8 +270,6 @@
 .classes.pills-lg .name-stacked {
   flex: 1;
   min-width: 0;
-  bottom: -0px;
-  right: -40px;
 }
 
 .classes.pills-lg .name-stacked .title {
@@ -347,18 +347,26 @@
   background: rgba(200,168,75,0.04);
 }
 
-/* Ícone "adicionar subclasse" */
-.classes.pills-lg .subclass-icon {
+/* Botão "adicionar Caminho" (+) — ao lado do ícone da classe, antes do nome */
+.dnd5e2.sheet.actor .classes.pills-lg .class .icons .subclass-icon {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px dashed rgba(42,106,170,0.5);
+  border-radius: 50%;
+  background: rgba(8,12,18,0.6);
   color: var(--jj-text-fade);
   font-size: 14px;
-  transition: color 120ms;
+  line-height: 1;
+  transition: color 120ms, border-color 120ms;
 }
 
-.classes.pills-lg .subclass-icon:hover {
+.dnd5e2.sheet.actor .classes.pills-lg .class .icons .subclass-icon:hover {
   color: var(--hxh-gold);
+  border-color: rgba(200,168,75,0.6);
 }

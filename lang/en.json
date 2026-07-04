@@ -55,6 +55,8 @@
 "TYPES.Item.toolPl": "Ferramentas",
 "TYPES.Item.weapon": "Arma",
 "TYPES.Item.weaponPl": "Armas",
+"TYPES.Item.hatsuTemplate": "Molde Hatsu",
+"TYPES.Item.hatsuTemplatePl": "Moldes Hatsu",
 "DND5E.ADVANCEMENT.ScaleValue.Type.String.Identifier": "Identificador",
 
 "TYPES.RegionBehavior": {
@@ -207,6 +209,7 @@
       "Counted": { "one": "{number} ação mítica", "other": "{number} ações míticas" },
       "Header": "Ações Míticas", "Label": "Ação Mítica"
     },
+    "Power": { "Header": "Ações de Poder", "Label": "Ação de Poder" },
     "Reaction": { "Header": "Reações", "Label": "Reação" },
     "ShortRest": { "Label": "Fim de um Descanso Curto" },
     "TurnEnd": { "Label": "Fim do Turno" },
@@ -5552,6 +5555,7 @@
 "JUJUTSU.Energy.TurnMultiplier": "Multiplicador por Turno",
 "JUJUTSU.Energy.BonusFlat": "Bônus Fixo",
 "JUJUTSU.Energy.Generation": "Geração de Aura",
+"JUJUTSU.Energy.Config": "Configuração de Aura",
 "JUJUTSU.IntensiveTraining.MaxEnergy": "Treinamento Intensivo: PA Máximo",
 "JUJUTSU.IntensiveTraining.GeneratedEnergy": "Treinamento Intensivo: PA Gerado",
 "JUJUTSU.IntensiveTraining.CursePoints": "Treinamento Intensivo: Pontos de Nen",
@@ -5565,6 +5569,7 @@
 "JUJUTSU.EnergyDice.Bonus": "Bônus de Dados de Aura",
 "JUJUTSU.EnergyDice.Denomination": "Tipo de Dado de Aura",
 "JUJUTSU.EnergyDice.Label": "Dados de Aura",
+"JUJUTSU.EnergyDice.Config": "Configuração de Dados de Aura",
 "JUJUTSU.Manipulation.Label": "Princípios de Nen",
 "JUJUTSU.Manipulation.PointsInvested": "PM Investido",
 "JUJUTSU.Manipulation.Abilities": "Princípios de Nen",

@@ -1,5 +1,27 @@
 <{{ elements.inventory }} class="inventory-element">
 
+    {{!-- Mochila equipada — slot dedicado acima do dinheiro --}}
+    {{#if @root.equippedBackpack}}
+    {{#with @root.equippedBackpack}}
+    <section class="jj-backpack-slot">
+        <div class="jj-backpack-item draggable" data-item-id="{{ id }}" data-uuid="{{ uuid }}">
+            <a class="jj-backpack-img item-action" data-action="showDocument" data-tooltip
+               aria-label="{{ name }}">
+                <img src="{{ img }}" alt="{{ name }}" draggable="false">
+            </a>
+            <div class="jj-backpack-info">
+                <span class="jj-backpack-name">{{ name }}</span>
+                <div class="jj-backpack-meter" role="meter"
+                     aria-valuemin="0" aria-valuenow="{{ capacityPct }}" aria-valuemax="100"
+                     style="--bar-percentage: {{ capacityPct }}%">
+                    <span class="jj-backpack-cap">{{ capacityValue }} / {{ capacityMax }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    {{/with}}
+    {{/if}}
+
     {{!-- Currency --}}
     {{#if showCurrency}}
     <section class="currency">

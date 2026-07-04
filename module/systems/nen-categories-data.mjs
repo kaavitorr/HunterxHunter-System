@@ -17,7 +17,7 @@ export const NEN_CATEGORIES_DATA = {
   aprimorador: {
     label: "Aprimorador",
     abbrev: "APR",
-    color: "#E8A800",
+    color: "#E8791A",
     minor: {
       2: {
         id: "robusto_1",
@@ -349,6 +349,44 @@ export const NEN_LEVEL_COSTS = {
 };
 
 /**
+ * Categorias Híbridas — definidas pelo Narrador. Cada híbrida envolve duas
+ * categorias; o jogador pode treinar AMBAS até `maxLevel`. `majorLevel` é o
+ * nível máximo de habilidade principal que ele pode pegar da categoria
+ * SECUNDÁRIA (a que não é a sua principal):
+ *   • normais: treina ambas até 10, mas só UMA habilidade principal de nível 10.
+ *   • especialista (Conjurador/Manipulador Especialista): treina a 2ª categoria
+ *     (Especialista) só até 8 e só pega a habilidade principal de nível 3.
+ */
+export const NEN_HYBRIDS = {
+  aprimoradorEmissao:     { id: "aprimoradorEmissao",      label: "Aprimorador de Emissão",  categories: ["aprimorador", "emissor"],      maxLevel: 10, majorLevel: 10 },
+  aprimoradorMutavel:     { id: "aprimoradorMutavel",      label: "Aprimorador Mutável",     categories: ["aprimorador", "transmutador"], maxLevel: 10, majorLevel: 10 },
+  emissorControle:        { id: "emissorControle",         label: "Emissor de Controle",     categories: ["emissor", "manipulador"],      maxLevel: 10, majorLevel: 10 },
+  conjuradorMutavel:      { id: "conjuradorMutavel",       label: "Conjurador Mutável",      categories: ["conjurador", "transmutador"],  maxLevel: 10, majorLevel: 10 },
+  conjuradorEspecialista: { id: "conjuradorEspecialista",  label: "Conjurador Especialista", categories: ["conjurador", "especialista"],  maxLevel: 8,  majorLevel: 3 },
+  manipuladorEspecialista:{ id: "manipuladorEspecialista", label: "Manipulador Especialista",categories: ["manipulador", "especialista"], maxLevel: 8,  majorLevel: 3 }
+};
+
+/** Híbridas disponíveis por categoria principal (Narrador escolhe; "" = puro). */
+export const NEN_HYBRID_OPTIONS_BY_PRIMARY = {
+  aprimorador:  ["aprimoradorEmissao", "aprimoradorMutavel"],
+  emissor:      ["aprimoradorEmissao", "emissorControle"],
+  transmutador: ["aprimoradorMutavel", "conjuradorMutavel"],
+  conjurador:   ["conjuradorMutavel", "conjuradorEspecialista"],
+  manipulador:  ["emissorControle", "manipuladorEspecialista"],
+  especialista: []
+};
+
+/**
+ * Categoria SECUNDÁRIA de uma híbrida (a que não é a principal do ator).
+ * @returns {string|null}
+ */
+export function getHybridSecondary(hybridKey, primaryCategory) {
+  const hyb = NEN_HYBRIDS[hybridKey];
+  if ( !hyb ) return null;
+  return hyb.categories.find(c => c !== primaryCategory) ?? null;
+}
+
+/**
  * Afinidade entre categorias — define o nível máximo que cada categoria
  * pode treinar em outra, baseado no diagrama hexagonal.
  * 100%→10, 80%→8, 60%→6, 40%→4, 1%→8(especialista), 0%→bloqueado
@@ -392,5 +430,16 @@ export function getMaxLevelForCategory(actor, targetCategoryId) {
 
   if ( !mainCategory ) return 10; // Sem categoria definida, permite tudo
 
-  return NEN_AFFINITY[mainCategory]?.[targetCategoryId] ?? 0;
+  const normalCap = NEN_AFFINITY[mainCategory]?.[targetCategoryId] ?? 0;
+
+  // Híbrida (definida pelo Narrador): eleva o teto da categoria secundária.
+  const hybridKey = actor.system?.nenHybrid;
+  if ( hybridKey ) {
+    const hyb = NEN_HYBRIDS[hybridKey];
+    if ( hyb && hyb.categories.includes(mainCategory) && hyb.categories.includes(targetCategoryId) ) {
+      return Math.max(normalCap, hyb.maxLevel);
+    }
+  }
+
+  return normalCap;
 }

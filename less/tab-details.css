@@ -22,10 +22,17 @@
   min-width: 0;
 }
 
-.jj-habilidades-row + .jj-habilidades-row { margin-top: 6px; }
+.jj-habilidades-row + .jj-habilidades-row { margin-top: 14px; }
 
 .jj-habilidades-row.jj-habilidades-duo {
   grid-template-columns: 1fr 1fr;
+}
+
+/* Separação visual entre a lista de Favoritos e os botões de poder */
+.favorites > ul.unlist + .jj-habilidades-row {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(200, 168, 75, 0.15);
 }
 
 /* Quando a sidebar está colapsada, esconde os botões pra não vazarem */
@@ -77,6 +84,36 @@
   background: linear-gradient(to right, #2bd6c8 0%, #128a84 100%);
 }
 
+/* Energia fluindo POR DENTRO do preenchimento de Pontos de Aura — mesmo inset/
+   inline-size do ::before (preenchimento), então nunca ultrapassa a barra; sem
+   box-shadow/blur, então não gera brilho por fora. Listras claras desenhadas
+   diretamente por cima (sem mix-blend-mode) pra garantir contraste visível
+   contra o gradiente laranja, não importa o tom de fundo. */
+.dnd5e2.sheet.actor.npc .meter.aura-points .progress::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 1px auto 1px 1px;
+  inline-size: calc(var(--bar-percentage) - 2px);
+  border-radius: 2px;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0)    0px,
+    rgba(255, 255, 255, 0)    6px,
+    rgba(255, 250, 220, 0.85) 6px,
+    rgba(255, 250, 220, 0.85) 12px,
+    rgba(255, 255, 255, 0)    12px,
+    rgba(255, 255, 255, 0)    24px
+  );
+  animation: jj-energy-flow 1.4s linear infinite;
+}
+
+@keyframes jj-energy-flow {
+  from { background-position: 0 0; }
+  to   { background-position: -24px 0; }
+}
+
 /* Habilita click-to-edit nas barras (igual a .hit-points) */
 .dnd5e2.sheet.actor .meter.sectioned > .aura-points,
 .dnd5e2.sheet.actor .meter.sectioned > .aura-generated {
@@ -92,38 +129,59 @@
   position: relative;
 }
 
-/* ── Header comum (filigree) ── */
-.jj-expdef-header,
+/* ── Header (Foco) ── */
 .jj-foco-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 5px 8px 3px;
+  gap: 6px;
+  padding: 7px 8px 5px;
   border: none;
   margin: 0;
 }
 
-.jj-expdef-header i,
 .jj-foco-header i {
-  font-size: 9px;
+  font-size: 10px;
 }
 
-.jj-expdef-header span,
 .jj-foco-header span {
-  font-size: 9px;
-  letter-spacing: 0.07em;
+  font-size: 10px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 700;
 }
 
-/* ── Wrapper do botão ── */
-.jj-expdef-btn-wrap {
-  padding: 0 5px 5px;
+/* ── Header (Explosão Defensiva) ── */
+.jj-expdef-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px 5px;
+  border: none;
+  margin: 0;
 }
 
-/* ── Botão base (Explosão Defensiva, Foco) ── */
-.jj-expdef-trigger-btn,
+.jj-expdef-header i {
+  font-size: 10px;
+  color: #5b9ee8;
+  animation: jj-expdef-pulse 2s ease-in-out infinite;
+}
+
+.jj-expdef-header span {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #a9c6e8;
+}
+
+/* ── Wrapper do botão ── */
+.jj-expdef-btn-wrap {
+  padding: 0 8px 8px;
+}
+
+/* ── Botão base (Foco) ── */
 .jj-foco-btn {
   display: flex;
   flex-direction: column;
@@ -143,7 +201,6 @@
   transition: all 140ms;
 }
 
-.jj-expdef-trigger-btn i,
 .jj-foco-btn i {
   font-size: 13px;
   color: #152030;
@@ -156,30 +213,45 @@
   opacity: 0.4;
 }
 
+/* ── Botão (Explosão Defensiva) — pílula centralizada ── */
+.jj-expdef-trigger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 7px 10px;
+  background: rgba(45, 95, 190, 0.12);
+  border: 1px solid rgba(60, 120, 210, 0.4);
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #bcd8f5;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, transform 60ms ease;
+}
+
+.jj-expdef-trigger-btn:hover {
+  background: rgba(60, 120, 210, 0.22);
+  border-color: rgba(90, 160, 230, 0.65);
+  color: #d8ecff;
+}
+.jj-expdef-trigger-btn:active { transform: translateY(1px); }
+
 /* ── Explosão Defensiva (azul) ── */
 filigree-box.jj-expdef-box {
-  --filigree-background-color: #06101a;
-  --filigree-border-color: #0e2a50;
-  --filigree-drop-shadow: drop-shadow(0 0 3px rgba(40, 80, 200, 0.25));
+  --filigree-background-color: #0a1622;
+  --filigree-border-color: #1a3a68;
+  --filigree-drop-shadow: drop-shadow(0 0 4px rgba(60, 120, 210, 0.3));
   display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
-
-.jj-expdef-header i { color: #2a50a0; animation: jj-expdef-pulse 2s ease-in-out infinite; }
-.jj-expdef-header span { color: #7090b0; }
-
-.jj-expdef-trigger-btn:hover { border-color: #204070; color: #4060a0; }
-.jj-expdef-trigger-btn:hover i { color: #2a4070; }
-.jj-expdef-trigger-btn.active {
-  background: #020810;
-  border-color: #2050a0;
-  color: #4080d0;
-  animation: jj-expdef-glow 2s ease-in-out infinite;
-}
-.jj-expdef-trigger-btn.active i { color: #2860b0; }
 
 @keyframes jj-expdef-pulse {
-  0%, 100% { text-shadow: 0 0 4px rgba(40,80,220,0.3); }
-  50%       { text-shadow: 0 0 10px rgba(40,80,220,0.8), 0 0 18px rgba(30,60,180,0.3); }
+  0%, 100% { text-shadow: 0 0 4px rgba(70,130,230,0.35); }
+  50%       { text-shadow: 0 0 10px rgba(70,130,230,0.85), 0 0 18px rgba(50,100,210,0.35); }
 }
 
 @keyframes jj-expdef-glow {
@@ -215,11 +287,14 @@ filigree-box.jj-foco-agressivo-box {
 
 /* ── Foco Combo Box (Agressivo + Defensivo numa única filigree) ── */
 filigree-box.jj-foco-combo-box {
-  --filigree-background-color: #0e0814;
-  --filigree-border-color: #3a2840;
-  --filigree-drop-shadow: drop-shadow(0 0 3px rgba(140, 90, 160, 0.18));
+  --filigree-background-color: #130a1a;
+  --filigree-border-color: #4a3050;
+  --filigree-drop-shadow: drop-shadow(0 0 4px rgba(150, 100, 170, 0.22));
   display: block;
   position: relative;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .jj-foco-combo-header {
@@ -227,10 +302,11 @@ filigree-box.jj-foco-combo-box {
   align-items: center;
   border: none;
   position: relative;
-  padding: 4px 14px;
+  padding: 6px 14px 4px;
+  min-width: 0;
 }
 .jj-foco-combo-header h3 { border: none; box-shadow: none; }
-.jj-foco-combo-header .jj-foco-combo-side { flex: 1 1 0; border: none; }
+.jj-foco-combo-header .jj-foco-combo-side { flex: 1 1 0; min-width: 0; border: none; }
 
 /* Divisor horizontal: gradiente que some nas pontas, igual ao vertical */
 .jj-foco-combo-header::after {
@@ -247,37 +323,72 @@ filigree-box.jj-foco-combo-box {
 .jj-foco-combo-body {
   display: flex;
   align-items: stretch;
-  gap: 0;
-  padding: 4px 12px 8px;
+  gap: 8px;
+  padding: 6px 10px 10px;
+  min-width: 0;
 }
 
 .jj-foco-combo-body > .jj-foco-btn {
   flex: 1 1 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 4px 6px 6px;
+  min-width: 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  padding: 7px 8px;
+  font-size: 10px;
 }
 
-.jj-foco-combo-body > .jj-foco-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.03);
+.jj-foco-combo-body > .jj-foco-btn i { font-size: 12px; }
+
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-agressivo:not(:disabled) {
+  background: rgba(200, 70, 50, 0.08);
+  border-color: rgba(200, 70, 50, 0.3);
+  color: #d0a090;
+}
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-agressivo:not(:disabled) i { color: #c06040; }
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-agressivo:hover:not(:disabled) {
+  background: rgba(200, 70, 50, 0.16);
+  border-color: rgba(200, 70, 50, 0.5);
+}
+
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-defensivo:not(:disabled) {
+  background: rgba(50, 100, 200, 0.08);
+  border-color: rgba(50, 100, 200, 0.3);
+  color: #90b0d0;
+}
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-defensivo:not(:disabled) i { color: #4090d0; }
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-defensivo:hover:not(:disabled) {
+  background: rgba(50, 100, 200, 0.16);
+  border-color: rgba(50, 100, 200, 0.5);
 }
 
 .jj-foco-combo-body > .jj-foco-btn.jj-foco-agressivo.active {
-  background: rgba(160, 60, 40, 0.12);
-  border: none;
+  background: rgba(200, 70, 50, 0.18);
+  border-color: rgba(200, 70, 50, 0.55);
+  color: #f0b0a0;
   animation: none;
   box-shadow: inset 0 0 8px rgba(200, 60, 40, 0.25);
 }
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-agressivo.active i { color: #e08060; }
 
 .jj-foco-combo-body > .jj-foco-btn.jj-foco-defensivo.active {
-  background: rgba(40, 80, 160, 0.12);
-  border: none;
+  background: rgba(50, 100, 200, 0.18);
+  border-color: rgba(50, 100, 200, 0.55);
+  color: #a8c8f0;
   animation: none;
   box-shadow: inset 0 0 8px rgba(40, 80, 200, 0.25);
 }
+.jj-foco-combo-body > .jj-foco-btn.jj-foco-defensivo.active i { color: #70a8e8; }
 
 .jj-foco-combo-side { position: relative; }
+
+/* Com as pílulas dos botões agora tendo borda própria, o divisor central no corpo vira
+   ruído visual redundante — mantido só no cabeçalho, entre os rótulos "Agressivo"/"Defensivo". */
+.jj-foco-combo-body .jj-foco-combo-divider { display: none; }
 
 .jj-foco-combo-divider {
   width: 1px;
@@ -448,8 +559,8 @@ filigree-box.jj-foco-defensivo-box {
 .sheet-body .tools {
   --filigree-background-color:        #0f0f1c;
   --filigree-border-color:            #302860;
-  --proficiency-cycle-enabled-color:  #c96c47;
-  --proficiency-cycle-disabled-color: #2e2850;
+  --proficiency-cycle-enabled-color:  var(--nen-primary-color, #c96c47);
+  --proficiency-cycle-disabled-color: var(--nen-primary-color, #2e2850);
 }
 
 .sheet-body .skills .header,
@@ -502,18 +613,6 @@ filigree-box.jj-foco-defensivo-box {
 /* ════════════════════════════════════════
    ENERGY BAR (Aura) — versão Hunter (azul)
    ════════════════════════════════════════ */
-@keyframes jj-energy-flow {
-  0%, 100% {
-    box-shadow: 0 0 6px rgba(180, 157, 80, 0.5), 0 0 12px rgba(170, 123, 42, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 14px rgba(220, 134, 80, 0.9), 0 0 28px rgba(210, 114, 24, 0.6), inset 0 0 6px rgba(240, 186, 120, 0.4);
-  }
-}
-
-.dnd5e2.sheet.actor.character .cursed-energy-bar {
-  animation: jj-energy-flow 2.8s ease-in-out infinite !important;
-}
 
   .energy-dice-bar::before {
   background: linear-gradient(to right, #793cb6, #26024b) !important;
@@ -521,8 +620,10 @@ filigree-box.jj-foco-defensivo-box {
 }
 
 .cursed-energy-bar .progress::before {
-  background: linear-gradient(to right, #b77841 0%, #ad856a 100%) !important;
-  border-inline-end-color: #b46c39 !important;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--nen-primary-color, #b77841) 78%, #1a1a1a) 0%,
+    color-mix(in srgb, var(--nen-primary-color, #ad856a) 78%, #1a1a1a) 100%) !important;
+  border-inline-end-color: var(--nen-primary-color, #b46c39) !important;
 }
 
 .cursed-energy-bar {
@@ -537,7 +638,56 @@ filigree-box.jj-foco-defensivo-box {
 .cursed-energy-bar {
   display: flex !important;
   align-items: center !important;
-  border: 1px solid var(--dnd5e-color-gold) !important;
+  border: 1px solid var(--nen-primary-color, var(--dnd5e-color-gold)) !important;
   height: 32px !important;
   font-size: var(--font-size-16) !important;
 }
+
+/* ── Barra de Pontos de Vitalidade (substitui a Vida em Zetsu/aura esgotada) ── */
+.hc-vitality-bar .progress::before {
+  background: linear-gradient(to right, #1f8a70 0%, #2ec9a3 100%) !important;
+  border-inline-end-color: #28b48f !important;
+}
+.hc-vitality-bar { border: 1px solid #2ec9a3 !important; }
+
+/* ── Toggle de Aura / Zetsu (ícone de redemoinho + interruptor) ── */
+.hc-aura-toggle {
+  display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto;
+  width: auto; height: 16px; padding: 0; margin: 0; border: none; background: none; cursor: pointer;
+}
+.hc-aura-toggle i { font-size: 11px; color: #828892; transition: color .15s, filter .15s; }
+.hc-aura-toggle.is-on i { color: #e0902f; filter: drop-shadow(0 0 3px rgba(224,144,47,0.6)); }
+.hc-aura-switch {
+  position: relative; width: 26px; height: 14px; border-radius: 999px;
+  background: #34343d; border: 1px solid rgba(255,255,255,0.12);
+  transition: background .15s, border-color .15s;
+}
+.hc-aura-knob {
+  position: absolute; top: 1px; left: 1px; width: 10px; height: 10px; border-radius: 50%;
+  background: #9aa0ac; transition: left .15s, background .15s;
+}
+.hc-aura-toggle.is-on .hc-aura-switch { background: rgba(200,168,75,0.35); border-color: rgba(200,168,75,0.6); }
+.hc-aura-toggle.is-on .hc-aura-knob { left: 13px; background: #f4e4bf; }
+.hc-aura-toggle:hover:not(:disabled) .hc-aura-switch { border-color: rgba(255,255,255,0.3); }
+.hc-aura-toggle:disabled { opacity: .4; cursor: default; }
+
+/* ── Botão de gerar Aura manualmente (raio, sem toggle) ── */
+.hc-generate-energy-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto; cursor: pointer; color: var(--category-color, #828892);
+  transition: filter .15s;
+}
+.hc-generate-energy-btn i { font-size: 11px; }
+.hc-generate-energy-btn:hover { filter: brightness(1.3) drop-shadow(0 0 4px var(--category-color, #828892)); }
+.hc-generate-energy-btn.glow i {
+  animation: hc-generate-energy-glow 1.8s ease-in-out infinite;
+}
+@keyframes hc-generate-energy-glow {
+  0%, 100% { filter: drop-shadow(0 0 1px var(--category-color, #828892)); opacity: .85; }
+  50% { filter: drop-shadow(0 0 6px var(--category-color, #828892)); opacity: 1; }
+}
+/* O botão não deve esticar a linha do título nem afastá-lo da barra. */
+.hc-hp-label { min-height: 0 !important; margin-bottom: 0 !important; line-height: 1.1 !important; align-items: flex-end !important; }
+.hc-hp-label .hc-aura-toggle { box-sizing: border-box; }
+/* Puxa a barra de Vida/Vitalidade pra perto do título. */
+.hc-hp-bars { margin-top: -1px !important; }

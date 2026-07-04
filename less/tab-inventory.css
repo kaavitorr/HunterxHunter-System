@@ -11,6 +11,90 @@
 }
 
 /* ════════════════════════════════════════
+   MOCHILA — slot equipado acima do dinheiro
+   ════════════════════════════════════════ */
+.jj-backpack-slot {
+  margin: 0 0 6px;
+}
+
+.jj-backpack-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: linear-gradient(180deg, #14101c 0%, #0d0a14 100%);
+  border: 1px solid #3a2f4a;
+  border-radius: 6px;
+  cursor: grab;
+  transition: border-color 140ms ease;
+}
+
+.jj-backpack-item:hover { border-color: #5a4a70; }
+
+.jj-backpack-img {
+  flex: 0 0 auto;
+  display: block;
+  width: 38px;
+  height: 38px;
+}
+
+.jj-backpack-img img {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border: 1px solid #4a3a60;
+  border-radius: 4px;
+  background: #0a0810;
+}
+
+.jj-backpack-info {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.jj-backpack-name {
+  font: 700 12px var(--dnd5e-font-roboto, sans-serif);
+  color: #d0c0e8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jj-backpack-meter {
+  position: relative;
+  height: 14px;
+  background: #0a0810;
+  border: 1px solid #2a2238;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.jj-backpack-meter::before {
+  content: "";
+  position: absolute;
+  inset: 1px auto 1px 1px;
+  width: calc(var(--bar-percentage, 0%) - 2px);
+  background: linear-gradient(to right, #9b6cc8 0%, #6a3ca0 100%);
+  border-radius: 5px;
+  transition: width 200ms ease;
+}
+
+.jj-backpack-cap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #e0d4f0;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
+}
+
+/* ════════════════════════════════════════
    CURRENCY — Jenny (¥)
    ════════════════════════════════════════ */
 .jj-yen-label {

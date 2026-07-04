@@ -21,6 +21,13 @@ export default class UserSystemFlags extends foundry.abstract.DataModel {
       creation: new SchemaField({
         scrollExplanation: new StringField({initial: "reference"})
       }),
+      sacrificeHudPinnedActorId: new ForeignDocumentField(
+        foundry.documents.BaseActor, { idOnly: true, required: false, nullable: true, initial: null }
+      ),
+      sacrificeHudPos: new SchemaField({
+        left: new NumberField({ integer: true, min: 0 }),
+        top: new NumberField({ integer: true, min: 0 })
+      }, { required: false }),
       sheetPrefs: new MappingField(new SchemaField({
         width: new NumberField({ integer: true, positive: true }),
         height: new NumberField({ integer: true, positive: true }),

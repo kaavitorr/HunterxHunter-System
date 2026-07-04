@@ -226,7 +226,7 @@ export default class MultiActorSheet extends BaseActorSheet {
       <div class="form-group">
         <label>${game.i18n.localize("DND5E.Group.Config.Art.Label")}</label>
         <div class="form-fields">
-          <select name="flags.HunterLegacy.showTokenPortrait" data-dtype="Boolean">
+          <select name="flags.hunter-system.showTokenPortrait" data-dtype="Boolean">
             ${foundry.applications.handlebars.selectOptions(artOptions, { hash: { selected: showTokenPortrait } })}
           </select>
         </div>

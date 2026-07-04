@@ -4,6 +4,8 @@
  * @property {object} creation
  * @property {string} creation.scrollExplanation              Default explanation mode for spell scrolls.
  * @property {Record<string, SheetPreferences5e>} sheetPrefs  The User's sheet preferences.
+ * @property {string|null} sacrificeHudPinnedActorId          Actor manually pinned to the sacrifice HUD outside combat.
+ * @property {{left: number, top: number}} [sacrificeHudPos]  Saved screen position of the sacrifice HUD.
  */
 
 /**

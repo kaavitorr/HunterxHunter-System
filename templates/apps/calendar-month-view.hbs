@@ -1,0 +1,46 @@
+<div class="hxh-cal-month">
+    <header class="hxh-cal-month-header">
+        <button type="button" class="hxh-cal-month-nav" data-action="prevMonth"
+                data-tooltip="Mês anterior" aria-label="Mês anterior">
+            <i class="fas fa-chevron-left" inert></i>
+        </button>
+        <button type="button" class="hxh-cal-month-title unbutton" data-action="today"
+                data-tooltip="Ir para o mês atual">
+            <span class="hxh-cal-month-name">{{ monthName }}</span>
+            <span class="hxh-cal-month-year">{{ year }}</span>
+        </button>
+        <button type="button" class="hxh-cal-month-nav" data-action="nextMonth"
+                data-tooltip="Próximo mês" aria-label="Próximo mês">
+            <i class="fas fa-chevron-right" inert></i>
+        </button>
+    </header>
+
+    <div class="hxh-cal-month-weekdays" style="--hxh-cal-week-cols: {{ weekCols }};">
+        {{#each weekdays}}
+        <span class="hxh-cal-month-weekday">{{ this }}</span>
+        {{/each}}
+    </div>
+
+    <div class="hxh-cal-month-grid" style="--hxh-cal-week-cols: {{ weekCols }};">
+        {{#each leading}}
+        <div class="hxh-cal-month-cell is-empty"></div>
+        {{/each}}
+        {{#each days}}
+        <div class="hxh-cal-month-cell
+                    {{~#if isToday}} is-today{{/if}}
+                    {{~#if hasNote}} has-note{{/if}}
+                    {{~#if ../isGM}} is-editable{{/if}}"
+             {{~#if ../isGM}} data-action="editDay" data-day="{{ day }}" data-year="{{ @root.year }}"
+             data-month="{{ @root.monthIndex }}" role="button" tabindex="0"{{/if}}
+             {{~#if hasNote}} data-tooltip="Há uma nota do narrador para este dia"{{/if}}>
+            <span class="hxh-cal-month-daynum">{{ day }}</span>
+            {{#if moon}}
+            <span class="hxh-cal-month-moon" data-tooltip="{{ moon.label }}">{{ moon.glyph }}</span>
+            {{else if ../isGM}}
+            <span class="hxh-cal-month-moon hxh-cal-month-moon-ghost" data-tooltip="Definir fase da lua">🌑</span>
+            {{/if}}
+            {{#if hasNote}}<i class="fas fa-note-sticky hxh-cal-month-note-flag" inert></i>{{/if}}
+        </div>
+        {{/each}}
+    </div>
+</div>

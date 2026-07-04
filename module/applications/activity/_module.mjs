@@ -6,6 +6,7 @@ export {default as DamageSheet} from "./damage-sheet.mjs";
 export {default as EnchantSheet} from "./enchant-sheet.mjs";
 export {default as ForwardSheet} from "./forward-sheet.mjs";
 export {default as HealSheet} from "./heal-sheet.mjs";
+export {default as ReductionSheet} from "./reduction-sheet.mjs";
 export {default as SaveSheet} from "./save-sheet.mjs";
 export {default as SummonSheet} from "./summon-sheet.mjs";
 export {default as TransformSheet} from "./transform-sheet.mjs";

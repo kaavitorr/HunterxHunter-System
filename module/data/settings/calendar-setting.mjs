@@ -19,7 +19,7 @@ export class CalendarConfigSetting extends foundry.abstract.DataModel {
   /** @override */
   static defineSchema() {
     return {
-      enabled: new BooleanField()
+      enabled: new BooleanField({ required: true, initial: true })
     };
   }
 }

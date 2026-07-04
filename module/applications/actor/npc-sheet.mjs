@@ -3,7 +3,7 @@ import { createCheckboxInput } from "../fields.mjs";
 import BaseActorSheet from "./api/base-actor-sheet.mjs";
 import HabitatConfig from "./config/habitat-config.mjs";
 import TreasureConfig from "./config/treasure-config.mjs";
-import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, MANIPULATION_ABILITIES, canUnlockAbility } from "../../systems/manipulation-data.mjs";
+import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, MANIPULATION_ABILITIES, canUnlockAbility, getAvailableTrainingPoints } from "../../systems/manipulation-data.mjs";
 import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory } from "../../systems/nen-categories-data.mjs";
 import CharacterActorSheet, { JJ_CONDITIONS, _injectJJConditions } from "./character-sheet.mjs";
 import ContextMenu5e from "../context-menu.mjs";
@@ -185,22 +185,6 @@ export default class NPCActorSheet extends BaseActorSheet {
 
   /* -------------------------------------------- */
 
-  /** @override — esconde spells de Hatsu da spellbook normal */
-  _prepareSpellbook(context) {
-    const original = context.itemCategories?.spells;
-    if ( Array.isArray(original) ) {
-      context.itemCategories.spells = original.filter(s => {
-        const flag = s.getFlag("hunter-system", "hatsu") ?? {};
-        return !flag.slot && !flag.parent;
-      });
-    }
-    const result = super._prepareSpellbook(context);
-    if ( original ) context.itemCategories.spells = original;
-    return result;
-  }
-
-  /* -------------------------------------------- */
-
   /** @inheritDoc */
   async _preparePartContext(partId, context, options) {
     context = await super._preparePartContext(partId, context, options);
@@ -279,15 +263,15 @@ export default class NPCActorSheet extends BaseActorSheet {
       agressivoUnlocked: !!ab.focoAgressivo?.unlocked,
       defensivoUnlocked: !!ab.focoDefensivo?.unlocked,
       agressivoAtivo:    !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo"),
-      defensivoAtivo:    !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo"),
+      // defensivoAtivo é derivado de armorPoints.value > 0 — fonte única.
+      defensivoAtivo:    (this.actor.system.armorPoints?.value ?? 0) > 0,
       fluxoVeloz:        !!ab.fluxoVeloz?.unlocked,
       fluxoConstante:    !!ab.fluxoConstante?.unlocked
     };
     context.foco.agressivoDie = context.foco.fluxoConstante ? "1d6" : "1d4";
-    const baseTemp = context.foco.fluxoConstante ? 40 : 20;
-    const resistUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
-    const aprimLvl = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
-    context.foco.defensivoTemp = baseTemp + (resistUnlocked ? aprimLvl * 3 : 0);
+    // Pontos de Armadura do Foco Defensivo (derivado em character.mjs/npc.mjs).
+    context.foco.defensivoArmorMax = this.actor.system.armorPoints?.max ?? 0;
+    context.foco.defensivoArmorValue = this.actor.system.armorPoints?.value ?? 0;
 
     const hatsuTier = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
     context.estagioFoco = {
@@ -715,7 +699,8 @@ export default class NPCActorSheet extends BaseActorSheet {
       const level = this.actor.system.nenCategories?.[id]?.level ?? 0;
       const pct = Math.round((level / 10) * 100);
       const dcReductions = this.actor.system.nenCategories?.[id]?.dcReductions ?? {};
-      nenCategories.push({ id, label: LABELS[id], abbrev: ABBREVS[id], color: COLORS[id], icon: ICONS[id], level, pct, dcReductions });
+      const levelSegments = Array.from({ length: 10 }, (_, i) => i < level);
+      nenCategories.push({ id, label: LABELS[id], abbrev: ABBREVS[id], color: COLORS[id], icon: ICONS[id], level, pct, levelSegments, dcReductions });
     }
 
     // Polígono SVG do hexágono
@@ -796,17 +781,19 @@ export default class NPCActorSheet extends BaseActorSheet {
       cat.minorSlots = [2, 5, 8].map(lvl => {
         const ab = catData?.minor?.[lvl];
         const reached = cat.level >= lvl;
-        if ( !ab ) return { reached: false, level: lvl, empty: true };
-        return { ...ab, reached, level: lvl, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
+        if ( !ab ) return { reached: false, level: lvl, empty: true, color: cat.color };
+        return { ...ab, reached, level: lvl, color: cat.color, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
       });
 
+      // categoryId e color pré-calculados para evitar {{../cat.id}}/{{../cat.color}} no HBS
+      // (parâmetros de bloco de {{#each}} aninhados não resolvem via ../ de forma confiável)
       cat.majorSlots = [3, 6, 10].map(lvl => {
         const ab = catData?.major?.[lvl];
         const reached = cat.level >= lvl;
-        if ( !ab ) return { reached: false, level: lvl, empty: true, categoryId: cat.id };
+        if ( !ab ) return { reached: false, level: lvl, empty: true, categoryId: cat.id, color: cat.color };
         const unlocked = unlockedMajorMap[ab.id] ?? false;
         const canUnlock = reached && !unlocked && (nenMajorCount < nenMajorMax || ab.exclusive);
-        return { ...ab, reached, unlocked, canUnlock, level: lvl, categoryId: cat.id, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
+        return { ...ab, reached, unlocked, canUnlock, level: lvl, categoryId: cat.id, color: cat.color, reference: NEN_ABILITY_REFS[ab.id] ?? "" };
       });
     }
 
@@ -822,6 +809,8 @@ export default class NPCActorSheet extends BaseActorSheet {
     context.nenGridRings = gridRings;
     context.nenAxes = axes;
     context.nenLabels = labels;
+    // Perímetro do hexágono ligando os 6 nós das categorias (moldura forte)
+    context.nenOuterPoints = labels.map(l => `${l.lx},${l.ly}`).join(" ");
     context.nenPrimaryCategory = npcPrimaryCategory;
     context.nenPrimaryColor = nenPrimaryColor;
     console.log("NPCSheet | _prepareTrainingsContext | categories:", nenCategories.length);
@@ -863,8 +852,8 @@ export default class NPCActorSheet extends BaseActorSheet {
     if ( action === "unlockNenAbility" )        return this._onUnlockNenAbility(target.dataset.id);
     if ( action === "undoNenPrinciple" )        return this._onUndoNenPrinciple(target.dataset.id);
     if ( action === "undoNenAbility" )          return this._onUndoNenAbility(target.dataset.id);
-    if ( action === "unlockNenMajor" )          return this._onUnlockNenMajor(target.dataset.category, target.dataset.ability);
-    if ( action === "undoNenMajor" )            return this._onUndoNenMajor(target.dataset.category, target.dataset.ability);
+    // unlockNenMajor/undoNenMajor sem case aqui de propósito — ver _onRender, onde o card
+    // inteiro (sem botão dedicado) trata clique/clique-direito com confirmação via DialogV2.
     if ( action === "trainNenCategory" )        return this._onTrainNenCategory(target.dataset.category);
     if ( action === "setNpcCategory" )          return this._onSetNpcCategory(target.dataset.category);
     if ( action === "intensiveTraining" )       return this._onIntensiveTraining();
@@ -928,13 +917,11 @@ export default class NPCActorSheet extends BaseActorSheet {
   async _onToggleFoco(focoType) {
     const ab = this.actor.system.manipulation?.abilities ?? {};
     const flagAgressivo  = !!this.actor.getFlag("hunter-system", "focoAgressivoAtivo");
-    const flagDefensivo  = !!this.actor.getFlag("hunter-system", "focoDefensivoAtivo");
+    // defensivoAtivo é derivado: armorPoints.value > 0
+    const flagDefensivo  = (this.actor.system.armorPoints?.value ?? 0) > 0;
     const fluxoVeloz     = !!ab.fluxoVeloz?.unlocked;
     const fluxoConstante = !!ab.fluxoConstante?.unlocked;
-    const baseAmount     = fluxoConstante ? 40 : 20;
-    const resistUnlocked = !!this.actor.system.nenCategories?.aprimorador?.unlockedMajor?.resistenciaAprimorada;
-    const aprimLvl       = this.actor.system.nenCategories?.aprimorador?.level ?? 0;
-    const tempAmount     = baseAmount + (resistUnlocked ? aprimLvl * 3 : 0);
+    const tempAmount     = this.actor.system.armorPoints?.max ?? 0; // mantido por compat
     const dieFace        = fluxoConstante ? 6 : 4;
 
     if ( focoType === "agressivo" ) {
@@ -966,23 +953,38 @@ export default class NPCActorSheet extends BaseActorSheet {
     }
   }
 
+  /**
+   * Ativa o Foco Defensivo enchendo os Pontos de Armadura até o máximo derivado.
+   * O estado "ativo" é representado por `armorPoints.value > 0` (fonte única).
+   */
   async _ativarFocoDefensivo(amount) {
-    const cur = this.actor.system.attributes?.hp?.temp ?? 0;
-    await this.actor.update({ "system.attributes.hp.temp": cur + amount });
-    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", true);
-    await this.actor.setFlag("hunter-system", "focoDefensivoTempHpGranted", amount);
+    const max = this.actor.system.armorPoints?.max ?? 0;
+    if ( max <= 0 ) {
+      ui.notifications.warn("Foco Defensivo não está disponível (habilidade não desbloqueada).");
+      return;
+    }
+    await this.actor.update({ "system.armorPoints.value": max });
+    if ( this.actor.getFlag("hunter-system", "focoDefensivoAtivo") !== undefined ) {
+      await this.actor.unsetFlag("hunter-system", "focoDefensivoAtivo");
+    }
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> (+${amount} PV temporários).`
+      content: `🛡️ <strong>${this.actor.name}</strong> ativou o <strong>Foco Defensivo</strong> — recebe <strong>${max} Pontos de Armadura</strong>!`
     });
   }
 
   async _desativarFocoDefensivo({ silent = false } = {}) {
-    const granted = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
-    const cur = this.actor.system.attributes?.hp?.temp ?? 0;
-    await this.actor.update({ "system.attributes.hp.temp": Math.max(0, cur - granted) });
-    await this.actor.setFlag("hunter-system", "focoDefensivoAtivo", false);
-    await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    const updates = { "system.armorPoints.value": 0 };
+    const grantedLegacy = this.actor.getFlag("hunter-system", "focoDefensivoTempHpGranted") ?? 0;
+    if ( grantedLegacy > 0 ) {
+      const cur = this.actor.system.attributes?.hp?.temp ?? 0;
+      updates["system.attributes.hp.temp"] = Math.max(0, cur - grantedLegacy);
+    }
+    await this.actor.update(updates);
+    if ( grantedLegacy > 0 ) await this.actor.unsetFlag("hunter-system", "focoDefensivoTempHpGranted");
+    if ( this.actor.getFlag("hunter-system", "focoDefensivoAtivo") !== undefined ) {
+      await this.actor.unsetFlag("hunter-system", "focoDefensivoAtivo");
+    }
     if ( !silent ) ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `🛡️ <strong>${this.actor.name}</strong> desativou o <strong>Foco Defensivo</strong>.`
@@ -1258,6 +1260,38 @@ export default class NPCActorSheet extends BaseActorSheet {
 
   /* -------------------------------------------- */
 
+  /**
+   * Clique no card de uma habilidade principal disponível — confirma antes de aprender.
+   */
+  async _onConfirmUnlockNenMajor(categoryId, abilityId, label) {
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Aprender Habilidade" },
+      content: `<p style="margin:0; padding:4px 0; font-size:13px; color:#ccc;">Aprender <strong style="color:#c8a84b;">${foundry.utils.escapeHTML(label ?? "")}</strong>?</p>`,
+      yes: { label: "Aprender", default: true },
+      no: { label: "Cancelar" }
+    });
+    if ( !ok ) return;
+    return this._onUnlockNenMajor(categoryId, abilityId);
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Clique com o botão direito no card de uma habilidade desbloqueada — confirma antes de desfazer.
+   */
+  async _onConfirmUndoNenMajor(categoryId, abilityId, label) {
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Desfazer Habilidade" },
+      content: `<p style="margin:0; padding:4px 0; font-size:13px; color:#ccc;">Desfazer <strong style="color:#c8a84b;">${foundry.utils.escapeHTML(label ?? "")}</strong>? O slot será liberado.</p>`,
+      yes: { label: "Desfazer", default: true },
+      no: { label: "Cancelar" }
+    });
+    if ( !ok ) return;
+    return this._onUndoNenMajor(categoryId, abilityId);
+  }
+
+  /* -------------------------------------------- */
+
   async _onUnlockNenMajor(categoryId, abilityId) {
     const cat = NEN_CATEGORIES_DATA[categoryId];
     if ( !cat ) return;
@@ -1318,9 +1352,10 @@ export default class NPCActorSheet extends BaseActorSheet {
     const refundPt = costs?.pt ?? 0;
     const refundPa = costs?.pa ?? 0;
 
+    const spentPtBeforeUndo = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
     const updates = {
       [`system.nenCategories.${categoryId}.level`]: newLevel,
-      "system.curseResources.trainingPoints": (this.actor.system.curseResources?.trainingPoints ?? 0) + refundPt,
+      "system.curseResources.spentTrainingPoints": Math.max(0, spentPtBeforeUndo - refundPt),
       "system.energy.total": (this.actor.system.energy?.total ?? 0) + refundPa
     };
 
@@ -1367,14 +1402,15 @@ export default class NPCActorSheet extends BaseActorSheet {
     if ( nextLevel > maxAllowed ) { ui.notifications.warn(`Máximo ${maxAllowed} para ${cat.label} com a categoria do NPC.`); return; }
 
     const costs = NEN_LEVEL_COSTS[nextLevel];
-    const trainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
+    const trainingPoints = getAvailableTrainingPoints(this.actor);
     const energyTotal = this.actor.system.energy?.total ?? 0;
 
     if ( trainingPoints < costs.pt ) { ui.notifications.warn(`PT insuficientes! Precisa de ${costs.pt} PT.`); return; }
     if ( energyTotal < costs.pa ) { ui.notifications.warn(`PA insuficientes! Precisa de ${costs.pa} PA.`); return; }
 
+    const spentPt = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
     await this.actor.update({
-      "system.curseResources.trainingPoints": trainingPoints - costs.pt,
+      "system.curseResources.spentTrainingPoints": spentPt + costs.pt,
       "system.energy.total": Math.max(0, energyTotal - costs.pa),
       [`system.nenCategories.${categoryId}.level`]: nextLevel
     });
@@ -1491,6 +1527,37 @@ export default class NPCActorSheet extends BaseActorSheet {
       zone.addEventListener("dragleave", e => { if ( !zone.contains(e.relatedTarget) ) zone.classList.remove("drag-hover"); });
       zone.addEventListener("drop", () => zone.classList.remove("drag-hover"));
     });
+
+    // ── Habilidades principais — card inteiro clicável (sem botão dedicado):
+    // clique esquerdo pergunta se quer aprender, clique direito pergunta se quer desfazer.
+    // Mesmo template de character-sheet.mjs, mesmo cuidado: undoNenMajor NÃO tem case no
+    // if-chain de _onClickAction, senão o dispatch nativo do Foundry (por data-action)
+    // desfaria direto no clique esquerdo, sem passar pela confirmação daqui.
+    setTimeout(() => {
+      const actions = [
+        { selector: '[data-action="unlockNenMajor"]:not([data-bound])', event: "click",
+          handler: btn => this._onConfirmUnlockNenMajor(btn.dataset.category, btn.dataset.ability, btn.dataset.label) },
+        { selector: '[data-action="undoNenMajor"]:not([data-bound])', event: "contextmenu",
+          handler: btn => this._onConfirmUndoNenMajor(btn.dataset.category, btn.dataset.ability, btn.dataset.label) }
+      ];
+      for ( const { selector, event, handler } of actions ) {
+        this.element.querySelectorAll(selector).forEach(btn => {
+          btn.dataset.bound = "1";
+          if ( event === "contextmenu" ) {
+            btn.addEventListener('contextmenu', (e) => { e.preventDefault(); handler(btn); });
+            btn.addEventListener('click', (e) => { if ( e.button === 0 ) e.stopPropagation(); });
+          } else {
+            btn.addEventListener('click', (e) => {
+              if ( e.button !== 0 ) return;
+              e.stopPropagation();
+              handler(btn);
+            });
+            btn.addEventListener('contextmenu', (e) => { e.preventDefault(); });
+          }
+          btn.addEventListener('auxclick', (e) => { if ( e.button !== 0 ) e.preventDefault(); });
+        });
+      }
+    }, 150);
 
     // ── Hatsu — change listeners para requisitos
     this.element.querySelectorAll("[data-hatsu-req]").forEach(el => {

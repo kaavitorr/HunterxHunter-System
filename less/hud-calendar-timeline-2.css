@@ -1,0 +1,339 @@
+/* ══════════════════════════════════════════════════════
+   CALENDAR HUD — Mostrador de Sol/Lua (Hunter)
+   Reconstrução do zero. Card horizontal: um mostrador circular à
+   esquerda com sol e lua que giram uma volta completa a cada 24h
+   (0h = lua no topo, 12h = sol no topo), e a data/hora à direita.
+   O ângulo vem de --hxh-cal-angle, calculado em calendar-hud.mjs.
+
+   NOTA: este é o stylesheet efetivamente "linkado" no HUD desde o
+   último relançamento do mundo. Editar o conteúdo dele reflete com
+   um F5 simples; adicionar um arquivo NOVO ao system.json exige
+   relançar o mundo. Por isso o CSS mora aqui.
+   ══════════════════════════════════════════════════════ */
+
+/* Barra do HUD — deixa o card se autodimensionar, sem esticar. */
+#calendar-hud {
+  block-size: auto !important;
+  align-items: center !important;
+}
+
+/* Card (a "part" central do HUD). */
+#calendar-hud .calendar-core {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex: 0 0 auto !important;
+  gap: 10px !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 5px 16px 5px 6px !important;
+  grid-template-columns: none !important;
+  background: linear-gradient(160deg, #1a1e28, #0b0d12) !important;
+  border: 1px solid var(--hxh-gold, #c8a84b) !important;
+  border-radius: 40px !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.6), 0 0 12px rgba(200,168,75,0.15) !important;
+}
+
+.hxh-cal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Mostrador circular ── */
+.hxh-cal-dial {
+  --hxh-cal-angle: 180deg;
+  position: relative;
+  flex: 0 0 auto;
+  inline-size: 58px;
+  block-size: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 32%, #2a3040, #0a0c12 78%);
+  border: 2px solid rgba(200,168,75,0.55);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.75);
+  overflow: hidden;
+}
+
+/* Disco que gira, carregando o sol e a lua. */
+.hxh-cal-rotor {
+  position: absolute;
+  inset: 0;
+  rotate: var(--hxh-cal-angle);
+  transition: rotate 600ms ease-in-out;
+}
+
+.hxh-cal-sun,
+.hxh-cal-moon {
+  position: absolute;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  /* Mantém o ícone "de pé" enquanto o disco gira. */
+  rotate: calc(var(--hxh-cal-angle) * -1);
+  transition: rotate 600ms ease-in-out, color 500ms ease, filter 500ms ease, opacity 500ms ease;
+  font-size: 14px;
+  line-height: 1;
+  /* Estado padrão (inativo) — apagado até --hxh-cal-dial.is-day/.is-night o acender. */
+  color: #4a5262;
+  filter: none;
+  opacity: 0.6;
+}
+.hxh-cal-sun { inset-block-start: 7px; }
+.hxh-cal-moon { inset-block-end: 7px; }
+
+/* Quem está "agora" (dia = sol, noite = lua) acende; o outro fica apagado. */
+.hxh-cal-dial.is-day .hxh-cal-sun {
+  color: #f4d778;
+  filter: drop-shadow(0 0 5px rgba(240,208,112,0.9));
+  opacity: 1;
+}
+.hxh-cal-dial.is-night .hxh-cal-moon {
+  color: #cdd6e2;
+  filter: drop-shadow(0 0 4px rgba(180,195,220,0.65));
+  opacity: 1;
+}
+
+/* Linha do horizonte + eixo central (decorativos). */
+.hxh-cal-horizon {
+  position: absolute;
+  inset-inline: 4px;
+  inset-block-start: 50%;
+  block-size: 1px;
+  translate: 0 -50%;
+  background: linear-gradient(90deg, transparent, rgba(200,168,75,0.5), transparent);
+}
+.hxh-cal-hub {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  inline-size: 4px;
+  block-size: 4px;
+  border-radius: 50%;
+  background: var(--hxh-gold, #c8a84b);
+  box-shadow: 0 0 4px rgba(200,168,75,0.8);
+}
+
+/* ── Data / Hora ── */
+.hxh-cal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.hxh-cal-info .calendar-date {
+  font-family: var(--dnd5e-font-roboto-slab, serif);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9aa3b4;
+}
+.hxh-cal-info .calendar-time {
+  font-family: var(--dnd5e-font-roboto-slab, serif);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #f2e8ca;
+  text-shadow: 0 0 8px rgba(200,168,75,0.35);
+}
+
+/* ── Botão de tocar/pausar o avanço automático do tempo ── */
+.hxh-cal-play {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: 50%;
+  background: rgba(200,168,75,0.08);
+  border: 1px solid rgba(200,168,75,0.4);
+  color: var(--hxh-gold, #c8a84b);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+.hxh-cal-play:hover {
+  background: rgba(200,168,75,0.18);
+  color: #f4d778;
+  border-color: rgba(200,168,75,0.7);
+}
+.hxh-cal-play.is-playing {
+  background: rgba(80,200,140,0.12);
+  border-color: rgba(80,200,140,0.55);
+  color: #7fe0ab;
+}
+.hxh-cal-play.is-playing:hover {
+  background: rgba(80,200,140,0.22);
+  color: #9cf0c2;
+}
+/* Auto-tempo ligado mas jogo pausado — âmbar para indicar que o relógio não anda. */
+.hxh-cal-play.is-playing.is-game-paused {
+  background: rgba(220,170,60,0.12);
+  border-color: rgba(220,170,60,0.55);
+  color: #e8c76a;
+}
+.hxh-cal-play.is-playing.is-game-paused:hover {
+  background: rgba(220,170,60,0.22);
+  color: #f4dc90;
+}
+
+/* ══════════════════════════════════════════════════════
+   CALENDAR MONTH VIEW — grade de dias do mês (fases da lua
+   públicas + notas privadas do narrador).
+   ══════════════════════════════════════════════════════ */
+#hxh-calendar-month-view .window-content {
+  background: linear-gradient(160deg, #14171f, #0a0c12);
+}
+
+.hxh-cal-month {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 2px;
+}
+
+.hxh-cal-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hxh-cal-month-nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  background: rgba(200,168,75,0.08);
+  border: 1px solid rgba(200,168,75,0.4);
+  color: var(--hxh-gold, #c8a84b);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+.hxh-cal-month-nav:hover {
+  background: rgba(200,168,75,0.18);
+  color: #f4d778;
+  border-color: rgba(200,168,75,0.7);
+}
+
+.hxh-cal-month-title {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.hxh-cal-month-name {
+  font-family: var(--dnd5e-font-roboto-slab, serif);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f2e8ca;
+}
+.hxh-cal-month-year {
+  font-size: 11px;
+  color: #9aa3b4;
+  letter-spacing: 0.06em;
+}
+.hxh-cal-month-title:hover .hxh-cal-month-name { color: var(--hxh-gold, #c8a84b); }
+
+.hxh-cal-month-weekdays,
+.hxh-cal-month-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--hxh-cal-week-cols, 7), 1fr);
+  gap: 4px;
+}
+
+.hxh-cal-month-weekday {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7a8296;
+  padding-bottom: 2px;
+}
+
+.hxh-cal-month-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.hxh-cal-month-cell.is-empty {
+  background: none;
+  border: none;
+}
+
+.hxh-cal-month-daynum {
+  font-size: 12px;
+  font-weight: 600;
+  color: #c4cad6;
+}
+
+.hxh-cal-month-cell.is-today {
+  background: rgba(200,168,75,0.12);
+  border-color: rgba(200,168,75,0.6);
+}
+.hxh-cal-month-cell.is-today .hxh-cal-month-daynum {
+  color: var(--hxh-gold, #c8a84b);
+  font-weight: 700;
+}
+
+.hxh-cal-month-cell.is-editable {
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.hxh-cal-month-cell.is-editable:hover {
+  background: rgba(200,168,75,0.16);
+  border-color: rgba(200,168,75,0.5);
+}
+
+.hxh-cal-month-moon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Marcador fantasma — sinaliza ao narrador que a célula aceita clique para
+   definir a fase da lua, mesmo quando nenhuma foi escolhida ainda. */
+.hxh-cal-month-moon-ghost {
+  opacity: 0.22;
+  filter: grayscale(1);
+  transition: opacity 120ms ease, filter 120ms ease;
+}
+.hxh-cal-month-cell.is-editable:hover .hxh-cal-month-moon-ghost {
+  opacity: 0.65;
+  filter: grayscale(0.3);
+}
+
+.hxh-cal-month-note-flag {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 7px;
+  color: #f0d070;
+}
+
+.hxh-cal-month-cell.has-note {
+  border-color: rgba(240, 208, 112, 0.45);
+}

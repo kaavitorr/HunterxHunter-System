@@ -23,7 +23,6 @@
       <button type="button" class="jj-expdef-trigger-btn" data-action="jj-expdef-trigger"
               data-actor-id="{{ actor.id }}"
               data-tooltip="Gastar PA para reduzir o próximo dano recebido">
-        <i class="fas fa-shield-halved" inert></i>
         <span>Redução</span>
       </button>
     </div>
@@ -129,9 +128,9 @@
               class="jj-foco-btn jj-foco-defensivo {{#if foco.defensivoAtivo}}active{{/if}}"
               data-action="jj-toggle-foco" data-foco="defensivo"
               {{#unless foco.defensivoUnlocked}}disabled{{/unless}}
-              data-tooltip="Foco Defensivo: +{{ foco.defensivoTemp }} PV temporários">
+              data-tooltip="{{#if foco.defensivoArmorMax}}Foco Defensivo: {{ foco.defensivoArmorValue }}/{{ foco.defensivoArmorMax }} Pontos de Armadura (resistência 2:1; Verdadeiro ignora){{else}}Foco Defensivo bloqueado — desbloqueie a habilidade nos princípios de Nen{{/if}}">
         <i class="fas fa-shield-alt" inert></i>
-        <span>+{{ foco.defensivoTemp }} PV</span>
+        <span>{{#if foco.defensivoArmorMax}}{{ foco.defensivoArmorValue }}/{{ foco.defensivoArmorMax }} PA{{else}}PA{{/if}}</span>
       </button>
       {{/if}}
     </div>

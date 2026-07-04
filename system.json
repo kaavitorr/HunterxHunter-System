@@ -2,7 +2,7 @@
   "id": "hunter-system",
   "title": "Hunter Legacy",
   "description": "Sistema para jogar Hunter Legacy",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "compatibility": {
     "minimum": "14.360",
     "verified": "14"
@@ -56,7 +56,9 @@
     { "src": "less/tab-effects.css" },
     { "src": "less/tab-manipulation.css" },
     { "src": "less/tab-trainings.css" },
-    { "src": "less/tab-hatsu.css" }
+    { "src": "less/tab-hatsu.css" },
+    { "src": "less/character-creation.css" },
+    { "src": "less/hud-calendar-timeline-2.css" }
   ],
   "documentTypes": {
     "ActiveEffect": {
@@ -253,6 +255,12 @@
             "IMAGE"
           ]
         },
+        "htmlFields": [
+          "description.value",
+          "description.chat"
+        ]
+      },
+      "hatsuTemplate": {
         "htmlFields": [
           "description.value",
           "description.chat"

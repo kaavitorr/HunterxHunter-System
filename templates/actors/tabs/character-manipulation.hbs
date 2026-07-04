@@ -49,11 +49,15 @@
 
     <div class="evolution-header">
       <div class="evolution-title-row">
-        <span class="evolution-icon">⬡</span>
+        <span class="evolution-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="12,2 21,7 21,17 12,22 3,17 3,7" fill="none" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </span>
         <h3 class="evolution-title">Evolução na Prática</h3>
         <span class="evolution-subtitle">Treinamento Intenso — 10 dias</span>
       </div>
-      <button type="button" class="jujutsu-btn primary btn-intensive-training"
+      <button type="button" class="btn-intensive-training"
         data-action="intensiveTraining"
         title="Iniciar Treinamento Intenso (10 dias)">
         <i class="fas fa-dumbbell"></i> Treinar
@@ -63,14 +67,12 @@
     <div class="evolution-counters">
 
       {{!-- PA Máximo --}}
-      <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.maxEnergy}}has-training{{/if}}">
+      <div class="evo-counter-card evo-counter-max {{#if actor.system.energy.intensiveTraining.maxEnergy}}has-training{{/if}}">
         <div class="evo-counter-icon">
           <i class="fas fa-arrow-up"></i>
         </div>
-        <div class="evo-counter-info">
-          <span class="evo-counter-label">PA Máximo</span>
-          <span class="evo-counter-desc">+5 por treino</span>
-        </div>
+        <span class="evo-counter-label">PA Máximo</span>
+        <span class="evo-counter-desc">+5 por treino</span>
         <div class="evo-counter-badge">
           <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.maxEnergy}}</span>
         </div>
@@ -83,14 +85,12 @@
       </div>
 
       {{!-- PA Gerada --}}
-      <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.generatedEnergy}}has-training{{/if}}">
+      <div class="evo-counter-card evo-counter-gerada {{#if actor.system.energy.intensiveTraining.generatedEnergy}}has-training{{/if}}">
         <div class="evo-counter-icon">
           <i class="fas fa-bolt"></i>
         </div>
-        <div class="evo-counter-info">
-          <span class="evo-counter-label">PA Gerada</span>
-          <span class="evo-counter-desc">+1 por treino (máx. 20)</span>
-        </div>
+        <span class="evo-counter-label">PA Gerada</span>
+        <span class="evo-counter-desc">+1 por treino (máx. 20)</span>
         <div class="evo-counter-badge">
           <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.generatedEnergy}}</span>
         </div>
@@ -103,14 +103,12 @@
       </div>
 
       {{!-- Pontos de Nen --}}
-      <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.cursePoints}}has-training{{/if}}">
+      <div class="evo-counter-card evo-counter-nen {{#if actor.system.energy.intensiveTraining.cursePoints}}has-training{{/if}}">
         <div class="evo-counter-icon">
           <i class="fas fa-skull"></i>
         </div>
-        <div class="evo-counter-info">
-          <span class="evo-counter-label">Pontos de Nen</span>
-          <span class="evo-counter-desc">+4 PM por treino</span>
-        </div>
+        <span class="evo-counter-label">Pontos de Nen</span>
+        <span class="evo-counter-desc">+4 PM por treino</span>
         <div class="evo-counter-badge">
           <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.cursePoints}}</span>
         </div>
@@ -199,76 +197,53 @@
   </div>
   {{/each}}
 
-  {{!-- ═══════════════════ PRINCÍPIOS DE NEN ═══════════════════ --}}
+  {{!-- ═══════════════ PRINCÍPIOS DE NEN (rodas / Crucible) ═══════════════ --}}
   {{#each manipulation.sections as |section|}}
   <div class="nen-tree-section">
-    <h3 class="nen-section-label">{{section.label}}</h3>
+    <div class="nen-sec-head">
+      <span class="nen-sec-rule"></span>
+      <h3 class="nen-sec-title">{{section.label}}</h3>
+      <span class="nen-sec-rule"></span>
+    </div>
 
-    <div class="nen-principles-row">
+    <div class="nen-wheel-grid">
       {{#each section.principles as |pr|}}
-      <div class="nen-principle-block">
+      <div class="nen-wheel
+        {{#if pr.unlocked}}pr-on{{else if pr.canUnlock}}pr-avail{{else if pr.isMasterGrant}}pr-fund{{else}}pr-locked{{/if}}"
+        data-orbits="{{pr.abilities.length}}">
+        <svg class="nen-wheel-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <span class="nen-ring" aria-hidden="true"></span>
 
-        {{!-- Box do Princípio --}}
-        <div class="nen-box nen-pr
-          {{#if pr.unlocked}}unlocked{{else if pr.canUnlock}}available{{else if pr.isMasterGrant}}fundamental{{else}}locked{{/if}}"
-          data-action="unlockNenPrinciple"
-          data-id="{{pr.id}}"
-          {{#if pr.reference}}data-reference-tooltip="{{pr.reference}}"{{else}}data-tooltip="{{pr.description}}" data-tooltip-direction="UP"{{/if}}>
-          <span class="nen-box-name">{{pr.label}}</span>
-          <span class="nen-box-cost">
-            {{#if pr.canUnlockFree}}0{{else}}{{pr.cost}} PM{{/if}}
-          </span>
+        {{!-- Símbolo central (clique abre/fecha o anel) --}}
+        <div class="nen-hub-wrapper">
+          <button type="button" class="nen-hub" data-wheel-toggle
+            {{#if pr.reference}}data-reference-tooltip="{{pr.reference}}"{{else}}data-tooltip="{{pr.description}}" data-tooltip-direction="UP"{{/if}}>
+            {{#if pr.kanji}}<span class="nen-hub-kanji">{{pr.kanji}}</span>{{/if}}
+            <span class="nen-hub-name">{{pr.label}}</span>
+          </button>
           {{#if pr.canUnlock}}
-          <button type="button" class="nen-card-btn nen-card-btn-unlock item-action"
-            data-action="unlockNenPrinciple"
-            data-id="{{pr.id}}">
-            Desbloquear{{#if pr.canUnlockFree}} (0){{/if}}
-          </button>
-          {{else if pr.unlocked}}
-          <span class="nen-card-locked">✓ Desbloqueado</span>
-          <button type="button" class="nen-card-btn nen-card-btn-undo item-action"
-            data-action="undoNenPrinciple"
-            data-id="{{pr.id}}">
-            ↩ Desfazer
-          </button>
+          <span class="nen-hub-mini mini-unlock item-action" data-action="unlockNenPrinciple" data-id="{{pr.id}}" data-tooltip="Desbloquear princípio"><i class="fas fa-plus" inert></i></span>
+          {{/if}}
+          {{#if pr.unlocked}}
+          <span class="nen-hub-mini mini-undo item-action" data-action="undoNenPrinciple" data-id="{{pr.id}}" data-tooltip="Desfazer"><i class="fas fa-rotate-left" inert></i></span>
           {{/if}}
         </div>
 
-        {{!-- Conectores e habilidades --}}
-        {{#if pr.abilities.length}}
-        <div class="nen-down-line {{#if pr.unlocked}}active{{/if}}"></div>
-        <div class="nen-h-spread {{#if pr.unlocked}}active{{/if}}"></div>
-        <div class="nen-abilities-row">
-          {{#each pr.abilities as |ab|}}
-          <div class="nen-ability-col">
-            <div class="nen-spur-down {{#if ../pr.unlocked}}active{{/if}}"></div>
-            <div class="nen-box nen-ab
-              {{#if ab.unlocked}}unlocked{{else if ab.canUnlock}}available{{else}}locked{{/if}}"
-              data-action="unlockNenAbility"
-              data-id="{{ab.id}}"
-              {{#if ab.reference}}data-reference-tooltip="{{ab.reference}}"{{else}}data-tooltip="{{ab.description}}" data-tooltip-direction="UP"{{/if}}>
-              <span class="nen-box-name">{{ab.label}}</span>
-              <span class="nen-box-cost">{{ab.cost}} PM</span>
-              {{#if ab.canUnlock}}
-              <button type="button" class="nen-card-btn nen-card-btn-unlock item-action"
-                data-action="unlockNenAbility"
-                data-id="{{ab.id}}">
-                Desbloquear
-              </button>
-              {{else if ab.unlocked}}
-              <span class="nen-card-locked">✓ Desbloqueado</span>
-              <button type="button" class="nen-card-btn nen-card-btn-undo item-action"
-                data-action="undoNenAbility"
-                data-id="{{ab.id}}">
-                ↩ Desfazer
-              </button>
-              {{/if}}
-            </div>
-          </div>
-          {{/each}}
+        {{!-- Habilidades no anel --}}
+        {{#each pr.abilities as |ab|}}
+        <div class="nen-node nen-orbit
+          {{#if ab.unlocked}}is-unlocked{{else if ab.canUnlock}}is-available{{else}}is-locked{{/if}}"
+          data-action="unlockNenAbility" data-id="{{ab.id}}"
+          {{#if ab.reference}}data-reference-tooltip="{{ab.reference}}"{{else}}data-tooltip="{{ab.description}}" data-tooltip-direction="UP"{{/if}}>
+          <span class="nen-node-name">{{ab.label}}</span>
+          <span class="nen-node-cost">{{ab.cost}} PM</span>
+          {{#if ab.unlocked}}
+          <button type="button" class="nen-undo item-action" data-action="undoNenAbility" data-id="{{ab.id}}" data-tooltip="Desfazer" aria-label="Desfazer">
+            <i class="fas fa-rotate-left" inert></i>
+          </button>
+          {{/if}}
         </div>
-        {{/if}}
-
+        {{/each}}
       </div>
       {{/each}}
     </div>
