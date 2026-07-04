@@ -2,7 +2,7 @@
   "id": "hunter-system",
   "title": "Hunter Legacy",
   "description": "Sistema para jogar Hunter Legacy",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "compatibility": {
     "minimum": "14.360",
     "verified": "14"
