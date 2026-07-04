@@ -602,6 +602,10 @@ export default class BaseActorSheet extends PrimarySheetMixin(
 
     // Iterate over every spell item, adding spells to the spellbook by section
     (context.itemCategories.spells ?? []).forEach(spell => {
+      // Manifestações/técnicas de Hatsu só aparecem na aba Hatsu, nunca aqui
+      const hatsuFlag = spell.getFlag("hunter-system", "hatsu");
+      if ( hatsuFlag?.slot || hatsuFlag?.parent ) return;
+
       let method = spell.system.method;
       if ( !(method in CONFIG.DND5E.spellcasting) ) method = "innate";
       const spellcasting = CONFIG.DND5E.spellcasting[method];
@@ -921,7 +925,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
     // Activation
     const cost = item.system.activation?.value ?? "";
     const abbr = {
-      powerAction: "DND5E.PowerActionAbbr",
+      power: "DND5E.PowerActionAbbr",
       action: "DND5E.ActionAbbr",
       bonus: "DND5E.BonusActionAbbr",
       reaction: "DND5E.ReactionAbbr",

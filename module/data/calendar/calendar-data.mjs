@@ -117,6 +117,33 @@ export default class CalendarData5e extends foundry.data.CalendarData {
   }
 
   /* -------------------------------------------- */
+
+  /**
+   * Pure variant of `jumpToDate` — resolves full time components (including `dayOfWeek`) for an
+   * arbitrary date without touching world time. Used to build calendar grids for months other than
+   * the current one.
+   * @param {object} components
+   * @param {number} components.year   Visible year (with `yearZero` added in).
+   * @param {number} components.month  Index of month.
+   * @param {number} components.day    Day within the month (1-based).
+   * @returns {TimeComponents}
+   */
+  componentsForDate({ year, month, day }) {
+    const internalYear = year - this.years.yearZero;
+    const leapYear = this.isLeapYear(internalYear);
+
+    let dayOfYear = day - 1;
+    for ( let idx = 0; idx < month; idx++ ) {
+      const m = this.months.values[idx];
+      dayOfYear += leapYear ? (m.leapDays ?? m.days) : m.days;
+    }
+
+    return this.timeToComponents(
+      this.componentsToTime({ year: internalYear, month, day: dayOfYear, hour: 0, minute: 0, second: 0 })
+    );
+  }
+
+  /* -------------------------------------------- */
   /*  Formatter Functions                         */
   /* -------------------------------------------- */
 

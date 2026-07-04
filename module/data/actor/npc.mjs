@@ -153,6 +153,14 @@ export default class NPCData extends CreatureTemplate {
         lostTrainingPoints: new NumberField({
           required: true, nullable: false, integer: true, min: 0, initial: 0,
           label: "JUJUTSU.LostTrainingPoints"
+        }),
+        narratorTrainingPoints: new NumberField({
+          required: true, nullable: false, integer: true, min: 0, initial: 0,
+          label: "JUJUTSU.NarratorTrainingPoints"
+        }),
+        spentTrainingPoints: new NumberField({
+          required: true, nullable: false, integer: true, min: 0, initial: 0,
+          label: "JUJUTSU.SpentTrainingPoints"
         })
       }, { label: "JUJUTSU.CurseResources" }),
       // ── PRINCÍPIOS DE NEN (NPC) ───────────────────────────────────────────

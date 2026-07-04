@@ -241,6 +241,12 @@ Hooks.once("init", function() {
     types: ["container"],
     label: "DND5E.SheetClass.Container"
   });
+  DocumentSheetConfig.unregisterSheet(Item, "hunter-system", applications.item.ItemSheet5e, { types: ["hatsuTemplate"] });
+  DocumentSheetConfig.registerSheet(Item, "hunter-system", applications.item.HatsuTemplateSheet, {
+    makeDefault: true,
+    types: ["hatsuTemplate"],
+    label: "TYPES.Item.hatsuTemplate"
+  });
 
   DocumentSheetConfig.registerSheet(JournalEntry, "hunter-system", applications.journal.JournalEntrySheet5e, {
     makeDefault: true,
@@ -618,7 +624,7 @@ Hooks.once("ready", function() {
       const content = this.text?.content;
       if ( !content ) return {};
       // Renderiza o conteúdo enriquecido
-      const enriched = await TextEditor.enrichHTML(content, { async: true, relativeTo: this });
+      const enriched = await foundry.applications.ux.TextEditor.implementation.enrichHTML(content, { relativeTo: this });
       return {
         content: `<div class="dnd5e2 dnd5e-tooltip hunter-skill-tooltip">
           <h3 class="tooltip-header">${this.name}</h3>

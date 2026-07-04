@@ -1013,6 +1013,7 @@ DND5E.abilityActivationTypes = {
   action: "DND5E.Action",
   bonus: "DND5E.BonusAction",
   reaction: "DND5E.Reaction",
+  power: "DND5E.ACTIVATION.Type.Power.Label",
   minute: DND5E.timePeriods.minute,
   hour: DND5E.timePeriods.hour,
   day: DND5E.timePeriods.day,
@@ -1043,6 +1044,11 @@ DND5E.activityActivationTypes = {
   reaction: {
     label: "DND5E.ACTIVATION.Type.Reaction.Label",
     header: "DND5E.ACTIVATION.Type.Reaction.Header",
+    group: "DND5E.ACTIVATION.Category.Standard"
+  },
+  power: {
+    label: "DND5E.ACTIVATION.Type.Power.Label",
+    header: "DND5E.ACTIVATION.Type.Power.Header",
     group: "DND5E.ACTIVATION.Category.Standard"
   },
   minute: {

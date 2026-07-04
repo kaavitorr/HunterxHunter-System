@@ -22,7 +22,9 @@ export default function SystemFlagsMixin(Base) {
     prepareData() {
       super.prepareData();
       if ( ("hunter-system" in this.flags) && this._systemFlagsDataModel ) {
-        this.flags.HunterLegacy = new this._systemFlagsDataModel(this._source.flags.HunterLegacy, { parent: this });
+        this.flags["hunter-system"] = new this._systemFlagsDataModel(
+          this._source.flags["hunter-system"], { parent: this }
+        );
       }
     }
 
@@ -33,9 +35,9 @@ export default function SystemFlagsMixin(Base) {
       if ( (scope === "hunter-system") && this._systemFlagsDataModel ) {
         let diff;
         const changes = foundry.utils.expandObject({ [key]: value });
-        if ( this.flags.HunterLegacy ) diff = this.flags.HunterLegacy.updateSource(changes, { dryRun: true });
+        if ( this.flags["hunter-system"] ) diff = this.flags["hunter-system"].updateSource(changes, { dryRun: true });
         else diff = new this._systemFlagsDataModel(changes, { parent: this }).toObject();
-        return this.update({ flags: { dnd5e: diff } });
+        return this.update({ flags: { "hunter-system": diff } });
       }
       return super.setFlag(scope, key, value);
     }

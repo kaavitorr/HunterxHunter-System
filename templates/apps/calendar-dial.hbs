@@ -1,0 +1,20 @@
+<div class="hxh-cal">
+    <div class="hxh-cal-dial">
+        <div class="hxh-cal-rotor">
+            <i class="hxh-cal-sun fas fa-sun" inert></i>
+            <i class="hxh-cal-moon fas fa-moon" inert></i>
+        </div>
+        <div class="hxh-cal-horizon"></div>
+        <div class="hxh-cal-hub"></div>
+    </div>
+    <div class="hxh-cal-info">
+        <span class="calendar-date"></span>
+        <span class="calendar-time"></span>
+    </div>
+    {{#if isGM}}
+    <button type="button" class="hxh-cal-play {{#if isPlaying}}is-playing{{/if}}" data-action="toggleAutoTime"
+            data-tooltip="{{#if isPlaying}}Pausar o tempo{{else}}Deixar o tempo correr{{/if}}">
+        <i class="fas {{#if isPlaying}}fa-pause{{else}}fa-play{{/if}}" inert></i>
+    </button>
+    {{/if}}
+</div>

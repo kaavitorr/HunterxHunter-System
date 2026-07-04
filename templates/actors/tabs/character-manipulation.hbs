@@ -49,11 +49,15 @@
 
     <div class="evolution-header">
       <div class="evolution-title-row">
-        <span class="evolution-icon">⬡</span>
+        <span class="evolution-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="12,2 21,7 21,17 12,22 3,17 3,7" fill="none" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </span>
         <h3 class="evolution-title">Evolução na Prática</h3>
         <span class="evolution-subtitle">Treinamento Intenso — 10 dias</span>
       </div>
-      <button type="button" class="jujutsu-btn primary btn-intensive-training"
+      <button type="button" class="btn-intensive-training"
         data-action="intensiveTraining"
         title="Iniciar Treinamento Intenso (10 dias)">
         <i class="fas fa-dumbbell"></i> Treinar
@@ -63,14 +67,12 @@
     <div class="evolution-counters">
 
       {{!-- PA Máximo --}}
-      <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.maxEnergy}}has-training{{/if}}">
+      <div class="evo-counter-card evo-counter-max {{#if actor.system.energy.intensiveTraining.maxEnergy}}has-training{{/if}}">
         <div class="evo-counter-icon">
           <i class="fas fa-arrow-up"></i>
         </div>
-        <div class="evo-counter-info">
-          <span class="evo-counter-label">PA Máximo</span>
-          <span class="evo-counter-desc">+5 por treino</span>
-        </div>
+        <span class="evo-counter-label">PA Máximo</span>
+        <span class="evo-counter-desc">+5 por treino</span>
         <div class="evo-counter-badge">
           <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.maxEnergy}}</span>
         </div>
@@ -83,14 +85,12 @@
       </div>
 
       {{!-- PA Gerada --}}
-      <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.generatedEnergy}}has-training{{/if}}">
+      <div class="evo-counter-card evo-counter-gerada {{#if actor.system.energy.intensiveTraining.generatedEnergy}}has-training{{/if}}">
         <div class="evo-counter-icon">
           <i class="fas fa-bolt"></i>
         </div>
-        <div class="evo-counter-info">
-          <span class="evo-counter-label">PA Gerada</span>
-          <span class="evo-counter-desc">+1 por treino (máx. 20)</span>
-        </div>
+        <span class="evo-counter-label">PA Gerada</span>
+        <span class="evo-counter-desc">+1 por treino (máx. 20)</span>
         <div class="evo-counter-badge">
           <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.generatedEnergy}}</span>
         </div>
@@ -103,14 +103,12 @@
       </div>
 
       {{!-- Pontos de Nen --}}
-      <div class="evo-counter-card {{#if actor.system.energy.intensiveTraining.cursePoints}}has-training{{/if}}">
+      <div class="evo-counter-card evo-counter-nen {{#if actor.system.energy.intensiveTraining.cursePoints}}has-training{{/if}}">
         <div class="evo-counter-icon">
           <i class="fas fa-skull"></i>
         </div>
-        <div class="evo-counter-info">
-          <span class="evo-counter-label">Pontos de Nen</span>
-          <span class="evo-counter-desc">+4 PM por treino</span>
-        </div>
+        <span class="evo-counter-label">Pontos de Nen</span>
+        <span class="evo-counter-desc">+4 PM por treino</span>
         <div class="evo-counter-badge">
           <span class="evo-counter-value">+{{actor.system.energy.intensiveTraining.cursePoints}}</span>
         </div>
@@ -217,17 +215,19 @@
         <span class="nen-ring" aria-hidden="true"></span>
 
         {{!-- Símbolo central (clique abre/fecha o anel) --}}
-        <button type="button" class="nen-hub" data-wheel-toggle
-          {{#if pr.reference}}data-reference-tooltip="{{pr.reference}}"{{else}}data-tooltip="{{pr.description}}" data-tooltip-direction="UP"{{/if}}>
-          {{#if pr.kanji}}<span class="nen-hub-kanji">{{pr.kanji}}</span>{{/if}}
-          <span class="nen-hub-name">{{pr.label}}</span>
+        <div class="nen-hub-wrapper">
+          <button type="button" class="nen-hub" data-wheel-toggle
+            {{#if pr.reference}}data-reference-tooltip="{{pr.reference}}"{{else}}data-tooltip="{{pr.description}}" data-tooltip-direction="UP"{{/if}}>
+            {{#if pr.kanji}}<span class="nen-hub-kanji">{{pr.kanji}}</span>{{/if}}
+            <span class="nen-hub-name">{{pr.label}}</span>
+          </button>
           {{#if pr.canUnlock}}
           <span class="nen-hub-mini mini-unlock item-action" data-action="unlockNenPrinciple" data-id="{{pr.id}}" data-tooltip="Desbloquear princípio"><i class="fas fa-plus" inert></i></span>
           {{/if}}
           {{#if pr.unlocked}}
           <span class="nen-hub-mini mini-undo item-action" data-action="undoNenPrinciple" data-id="{{pr.id}}" data-tooltip="Desfazer"><i class="fas fa-rotate-left" inert></i></span>
           {{/if}}
-        </button>
+        </div>
 
         {{!-- Habilidades no anel --}}
         {{#each pr.abilities as |ab|}}

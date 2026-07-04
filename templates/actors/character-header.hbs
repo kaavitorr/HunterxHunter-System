@@ -44,6 +44,16 @@
                     <i class="{{ icon }}" inert></i>
                 </button>
                 {{/each}}
+
+                {{!-- Fixar HUD de Sacrifícios/Recursos fora de combate --}}
+                {{#if showSacrificeToggle}}
+                <button type="button" class="jj-sac-hud-toggle gold-button {{#if sacrificeHudPinned}}active{{/if}}"
+                        data-action="jj-toggle-sacrifice-hud"
+                        data-tooltip="{{#if sacrificeHudPinned}}Ocultar Sacrifícios/Recursos{{else}}Mostrar Sacrifícios/Recursos{{/if}}"
+                        aria-label="Sacrifícios e Recursos">
+                    <i class="fas fa-hand-fist" inert></i>
+                </button>
+                {{/if}}
             </div>
             {{/if}}
 

@@ -17,7 +17,7 @@ export const NEN_CATEGORIES_DATA = {
   aprimorador: {
     label: "Aprimorador",
     abbrev: "APR",
-    color: "#E8A800",
+    color: "#E8791A",
     minor: {
       2: {
         id: "robusto_1",

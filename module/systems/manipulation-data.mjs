@@ -779,12 +779,26 @@ export function preparePrinciples(actor) {
 }
 
 /**
+ * PT disponível para gastar = PT Jogador + PT Narrador - PT Perdidos - PT Gastos.
+ * "PT Jogador" e "PT Narrador" são entradas (fontes) do extrato; "PT Perdidos" (rolagens
+ * falhas) e "PT Gastos" (rolagens/treinos bem-sucedidos) são saídas — juntas somam todo PT
+ * já gasto, sem sobreposição entre si.
+ */
+export function getAvailableTrainingPoints(actor) {
+  const cr = actor.system.curseResources ?? {};
+  return Math.max(0,
+    (cr.trainingPoints ?? 0) + (cr.narratorTrainingPoints ?? 0)
+    - (cr.lostTrainingPoints ?? 0) - (cr.spentTrainingPoints ?? 0)
+  );
+}
+
+/**
  * Prepara os dados de treinamentos para o template
  */
 export function prepareTrainings(actor) {
   const result = { general: {}, domain: {}, immaculate: {} };
   const savedTrainings = actor.system.trainings ?? {};
-  const trainingPoints = actor.system.curseResources?.trainingPoints ?? 0;
+  const trainingPoints = getAvailableTrainingPoints(actor);
   const energyTotal = actor.system.energy?.total ?? 0;
 
   for ( const [id, def] of Object.entries(TRAININGS_DATA) ) {

@@ -214,8 +214,185 @@
 }
 
 /* ════════════════════════════════════════
+   SHEET HEADER — Botão de fixar HUD de Sacrifícios/Recursos
+   ════════════════════════════════════════ */
+.sheet-header .jj-sac-hud-toggle.active {
+  background: rgba(200,168,75,0.35);
+  box-shadow: inset 0 0 0 1px rgba(200,168,75,0.7), 0 0 6px rgba(200,168,75,0.4);
+}
+.sheet-header .jj-sac-hud-toggle.active i { color: #f0d070; }
+
+/* ════════════════════════════════════════
    SPELLS — REMOVER PIPS
    ════════════════════════════════════════ */
 .tab[data-tab="spells"] [class*="pip"] {
   display: none !important;
+}
+
+/* ════════════════════════════════════════
+   JOURNAL — Banner de topo + moldura + guias (tema Hunter)
+   Técnica do banner igual à do módulo Ember: overlay ::after na JANELA (não no content),
+   z-index bem atrás de tudo, com máscara que revela só o topo e some pra baixo; o conteúdo
+   fica transparente pra o banner aparecer através. Seletor: .dnd5e2-journal (classe real da
+   janela, confirmada no DEFAULT_OPTIONS do sheet) — exceto o editor pop-up (.journal-editor).
+   ════════════════════════════════════════ */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1000;
+  /* Imagem + gradiente escuro por cima (leve no topo, forte pra baixo) — mantém só o topo
+     claro e escurece o resto do banner pra não competir com o texto. */
+  background:
+    linear-gradient(to bottom, rgba(11,15,20,0.34) 0%, rgba(11,15,20,0.74) 30%, rgba(11,15,20,0.89) 55%),
+    url("../ui/dark-continent.webp") no-repeat top center;
+  background-size: cover;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 15%, transparent 60%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 15%, transparent 60%);
+  pointer-events: none;
+}
+/* Conteúdo transparente pra o banner (atrás) aparecer. !important porque o dnd5e fixa o
+   fundo do .journal-entry-content com um seletor mais específico
+   (.sheet.dnd5e2-journal.journal-entry.application .journal-entry-content). */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-entry-content,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-entry-pages,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-entry-page,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-page-content,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-sidebar {
+  background: none !important;
+}
+
+/* ── Moldura da janela — quadro dourado duplo com filete interno e brilho ── */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin).application {
+  border: 2px solid rgba(200,168,75,0.7);
+  border-radius: 9px;
+  box-shadow:
+    inset 0 0 0 1px rgba(11,15,20,0.9),         /* filete escuro logo dentro da borda */
+    inset 0 0 0 5px rgba(200,168,75,0.16),      /* faixa dourada tênue */
+    inset 0 0 0 6px rgba(200,168,75,0.5),       /* segundo filete dourado (moldura interna) */
+    inset 0 0 45px rgba(200,168,75,0.06),       /* leve brilho dourado interno */
+    0 0 0 1px rgba(0,0,0,0.7),                  /* contorno escuro externo */
+    0 12px 40px rgba(0,0,0,0.65),               /* sombra projetada */
+    0 0 18px rgba(200,168,75,0.28);             /* brilho dourado externo */
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin).application .window-header {
+  border-bottom: none;
+}
+/* Linha dourada estilizada (desvanece nas pontas) entre o título grande e a página */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-header {
+  position: relative;
+  border-bottom: none;
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-header::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, rgba(200,168,75,0.85) 50%, transparent);
+  box-shadow: 0 0 6px rgba(200,168,75,0.35);
+}
+
+/* ── Barra lateral (guias / índice de páginas) ── */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-sidebar {
+  border-right: 1px solid rgba(200,168,75,0.18);
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.category > strong {
+  color: #d9b355;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page .page-heading {
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 3px 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page .page-heading:hover {
+  background: rgba(200,168,75,0.1);
+  border-color: rgba(200,168,75,0.3);
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page.active .page-heading {
+  background: rgba(200,168,75,0.18);
+  border-color: rgba(200,168,75,0.5);
+  box-shadow: 0 0 8px rgba(200,168,75,0.2);
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc .page-index {
+  color: #c8a84b;
+  font-weight: 700;
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page.active .page-title {
+  color: #f0d070;
+}
+
+/* ── Legibilidade sobre o banner: fundo escuro + borda dourada nos controles ── */
+/* Nome do documento (título da janela) — sem caixa, só sombra pra destacar do banner */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .window-header .window-title {
+  background: none;
+  border: none;
+  padding: 0;
+  text-shadow: 0 1px 3px #000, 0 0 6px #000;
+}
+/* Caixa de busca — fundo interno escuro sólido + borda visível + texto/placeholder brancos */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-sidebar input[name="search"] {
+  --input-background-color: rgba(12,16,22,0.35);
+  --input-text-color: #ffffff;
+  --input-placeholder-color: #ffffff;
+  background-color: rgba(12,16,22,0.35) !important;
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 4px;
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-sidebar input[name="search"]::placeholder {
+  color: #ffffff;
+  opacity: 0.9;
+}
+/* Ícones (controles da busca + botões de navegação de página) */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-sidebar search .inline-control,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-sidebar .action-buttons button {
+  --button-background-color: rgba(0,0,0,0.55);
+  --button-hover-background-color: rgba(200,168,75,0.28);
+  border: 1px solid rgba(200,168,75,0.3);
+  border-radius: 4px;
+}
+/* Texto das guias com sombra pra destacar do banner */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page .page-title,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page .page-index,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.category > strong {
+  text-shadow: 0 1px 2px #000, 0 0 6px #000;
+}
+/* Fundo escuro sutil em cada guia pra o texto não sumir no banner */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page .page-heading {
+  background: rgba(0,0,0,0.32);
+}
+/* Remove a borda vermelha (--color-warm-2) do topo/base da página ativa no índice */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page.active:first-of-type,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page.active:last-of-type,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page:not(.active) + .active,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .toc li.page.active + :not(.active) {
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+
+/* Título do documento no conteúdo (input .title do header) — sem caixa, não parecer campo */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-header .title,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-header input.title {
+  --input-background-color: transparent;
+  background: none !important;
+  border: 1px solid transparent;
+  text-shadow: 0 1px 3px #000, 0 0 6px #000;
+}
+
+/* ── Texto do conteúdo em ouro pálido, pra ler sobre o fundo escuro/banner ── */
+/* !important porque o dnd5e fixa a cor do corpo via --color-text-* com regra mais específica. */
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-entry-page,
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-entry-page :is(p, li, dt, dd, td, th, blockquote, figcaption, span) {
+  color: #e4d4a6 !important;
+}
+.dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-entry-page :is(h1, h2, h3, h4, h5, h6) {
+  color: #f0d878 !important;
 }

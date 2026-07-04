@@ -94,7 +94,11 @@ export async function activateUpkeep(activity) {
   });
 }
 
-// preUseActivity dispara para TODO uso (todos os listeners rodam mesmo se um veta).
+// preUseActivity usa Hooks.call, que PARA no primeiro listener que retorna false —
+// os listeners seguintes (registrados depois deste, na ordem de import) não rodam.
+// Por isso os cards customizados (ataque/cura/dano/salvaguarda/perícia/utilidade),
+// que vetam o fluxo nativo, chamam activateUpkeep() diretamente ANTES do próprio
+// veto — não dá pra depender deste hook aqui rodar depois deles.
 Hooks.on("dnd5e.preUseActivity", (activity) => { activateUpkeep(activity); });
 
 // Drena o custo no início do turno do dono; desativa quem não puder pagar.

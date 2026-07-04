@@ -1,0 +1,25 @@
+<div class="hxh-cal-day-note">
+    <div class="form-group label-top">
+        <label>{{ dateLabel }}</label>
+    </div>
+
+    <div class="form-group label-top">
+        <label>Fase da Lua</label>
+        <div class="form-fields">
+            <select name="moon">
+                <option value=""{{#unless hasMoon}} selected{{/unless}}>— Nenhuma —</option>
+                {{#each moonOptions}}
+                <option value="{{ value }}"{{#if selected}} selected{{/if}}>{{ label }}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group label-top stacked">
+        <label>Nota do Narrador <span class="hint">(visível só para o Narrador)</span></label>
+        <div class="form-fields">
+            <textarea class="untext" name="note" rows="4"
+                      placeholder="Anotações privadas sobre este dia...">{{ note }}</textarea>
+        </div>
+    </div>
+</div>
