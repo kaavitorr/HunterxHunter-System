@@ -798,6 +798,25 @@ Hooks.on("updateItem", (item, changes, options, userId) => {
 });
 Hooks.on("closeHunterCharacterCreation", app => { if ( app.actor ) _l2Open.delete(app.actor.id); });
 
+// Abrir a FICHA de um personagem que ainda está sem Categoria (classe) OU sem Espécie
+// (raça) reabre a Criação — fica pedindo enquanto faltar um dos dois.
+function hunterMaybeCreationOnOpen(actor) {
+  const C = applications.actor.HunterCharacterCreation;
+  if ( !C?.isAvailable() ) return;
+  if ( !actor || actor.documentName !== "Actor" || actor.type !== "character" || !actor.isOwner ) return;
+  const hasCategoria = actor.items.some(i => i.type === "class");   // Categoria = item de classe
+  const hasEspecie   = actor.items.some(i => i.type === "race");    // Espécie = item de raça
+  if ( hasCategoria && hasEspecie ) return;                          // tem os dois → não abre
+  if ( foundry.applications?.instances?.get?.("hunter-character-creation") ) return; // já aberta
+  console.log("HunterCreation | ficha sem Categoria/Espécie — abrindo criação para", actor.name);
+  new C({ actor }).render(true).catch(err => console.error("HunterCreation | falha ao auto-abrir na ficha:", err));
+}
+Hooks.on("renderCharacterActorSheet", app => hunterMaybeCreationOnOpen(app.actor ?? app.document));
+
+// A barra de Vida/Vitalidade do token que reflete a pool ativa (aura on → Vida, off →
+// Vitalidade) é resolvida em TokenDocument5e.getBarAttribute (module/documents/token.mjs) —
+// robusto por render, sem depender de hooks de troca do atributo salvo.
+
 Hooks.on("renderCombatTracker", (app, html, data) => app.renderGroups(html));
 
 Hooks.on("preCreateScene", (doc, createData, options, userId) => {

@@ -47,6 +47,26 @@ export default class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
       if ( max ) return { attribute, value, max, type: "bar", editable: true };
     }
 
+    // Hunter: uma barra de Vida OU Vitalidade sempre reflete a POOL ATIVA.
+    // Aura ligada → Vida (hp); aura desligada → Vitalidade (pve). Assim funciona a cada
+    // render, pra GM e jogador, independente de quem/quando mudou a aura.
+    if ( (attribute === "attributes.hp" || attribute === "attributes.pve") && this.actor?.type === "character" ) {
+      const sys = this.actor.system?.attributes ?? {};
+      if ( sys.auraOn === false ) {
+        const pve = sys.pve ?? {};
+        // value SEM o temp: editar a barra escreve direto em pve.value (modifyTokenAttribute
+        // não trata pve), então mostrar value+temp deixaria a edição inconsistente.
+        return {
+          attribute: "attributes.pve",
+          value: (pve.value || 0),
+          max: Math.max(0, pve.max || 0),
+          type: "bar", editable: true
+        };
+      }
+      // Aura ligada → Vida: segue o fluxo padrão de hp abaixo (mesmo se a barra estava em pve).
+      options = { ...options, alternative: "attributes.hp" };
+    }
+
     const data = super.getBarAttribute(barName, options);
     if ( data?.attribute === "attributes.hp" ) {
       const hp = this.actor.system.attributes.hp || {};

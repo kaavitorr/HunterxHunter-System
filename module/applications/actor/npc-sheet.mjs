@@ -5,7 +5,7 @@ import HabitatConfig from "./config/habitat-config.mjs";
 import TreasureConfig from "./config/treasure-config.mjs";
 import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, MANIPULATION_ABILITIES, canUnlockAbility, getAvailableTrainingPoints } from "../../systems/manipulation-data.mjs";
 import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory } from "../../systems/nen-categories-data.mjs";
-import CharacterActorSheet, { JJ_CONDITIONS, _injectJJConditions } from "./character-sheet.mjs";
+import CharacterActorSheet, { JJ_CONDITIONS, _injectJJConditions, setupNenWheels } from "./character-sheet.mjs";
 import ContextMenu5e from "../context-menu.mjs";
 
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
@@ -650,6 +650,10 @@ export default class NPCActorSheet extends BaseActorSheet {
       aprimorador: "#e86800", emissor: "#B8860B", transmutador: "#9B59D0",
       conjurador: "#3A8FD4", manipulador: "#2ECC71", especialista: "#AAAAAA"
     };
+    const KANJIS = {
+      aprimorador: "強", emissor: "放", transmutador: "変",
+      conjurador: "具", manipulador: "操", especialista: "特"
+    };
     const ICONS = {
       aprimorador:  "systems/hunter-system/assets/Categorias/apri-mini.png",
       emissor:      "systems/hunter-system/assets/Categorias/emi-mini.png",
@@ -700,7 +704,7 @@ export default class NPCActorSheet extends BaseActorSheet {
       const pct = Math.round((level / 10) * 100);
       const dcReductions = this.actor.system.nenCategories?.[id]?.dcReductions ?? {};
       const levelSegments = Array.from({ length: 10 }, (_, i) => i < level);
-      nenCategories.push({ id, label: LABELS[id], abbrev: ABBREVS[id], color: COLORS[id], icon: ICONS[id], level, pct, levelSegments, dcReductions });
+      nenCategories.push({ id, label: LABELS[id], abbrev: ABBREVS[id], color: COLORS[id], kanji: KANJIS[id], icon: ICONS[id], level, pct, levelSegments, dcReductions });
     }
 
     // Polígono SVG do hexágono
@@ -806,6 +810,8 @@ export default class NPCActorSheet extends BaseActorSheet {
     context.nenHexPoints = hexPts;
     context.nenTrainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
     context.nenLostTrainingPoints = this.actor.system.curseResources?.lostTrainingPoints ?? 0;
+    context.nenNarratorTrainingPoints = this.actor.system.curseResources?.narratorTrainingPoints ?? 0;
+    context.nenSpentTrainingPoints = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
     context.nenGridRings = gridRings;
     context.nenAxes = axes;
     context.nenLabels = labels;
@@ -870,7 +876,6 @@ export default class NPCActorSheet extends BaseActorSheet {
     if ( action === "hatsu-req-add" )           return this._onHatsuReqAdd(target.dataset.itemId);
     if ( action === "hatsu-req-remove" )        return this._onHatsuReqRemove(target.dataset.itemId, parseInt(target.dataset.index));
     if ( action === "hatsu-toggle-ultimato" )   return this._onHatsuToggleUltimato();
-    if ( action === "hatsu-toggle-section" )    return this._onHatsuToggleSection(target.dataset.slot);
 
     return super._onClickAction(event, target);
   }
@@ -890,12 +895,11 @@ export default class NPCActorSheet extends BaseActorSheet {
   _onHatsuReqRemove(...args)               { return CharacterActorSheet.prototype._onHatsuReqRemove.call(this, ...args); }
   _onHatsuReqChange(...args)               { return CharacterActorSheet.prototype._onHatsuReqChange.call(this, ...args); }
   _onHatsuToggleUltimato(...args)          { return CharacterActorSheet.prototype._onHatsuToggleUltimato.call(this, ...args); }
-  _onHatsuToggleSection(...args)           { return CharacterActorSheet.prototype._onHatsuToggleSection.call(this, ...args); }
-  _restoreHatsuCollapsedSections(...args)  { return CharacterActorSheet.prototype._restoreHatsuCollapsedSections.call(this, ...args); }
   _calcHatsuTier(...args)                  { return CharacterActorSheet.prototype._calcHatsuTier.call(this, ...args); }
   _syncHatsuProficiencyEffect(...args)     { return CharacterActorSheet.prototype._syncHatsuProficiencyEffect.call(this, ...args); }
   _onHatsuDropSpell(...args)               { return CharacterActorSheet.prototype._onHatsuDropSpell.call(this, ...args); }
   _isHatsuItemBlocked(...args)             { return CharacterActorSheet.prototype._isHatsuItemBlocked.call(this, ...args); }
+  _getPrimaryNenCategory(...args)          { return CharacterActorSheet.prototype._getPrimaryNenCategory.call(this, ...args); }
 
   /* -------------------------------------------- */
 
@@ -1486,6 +1490,9 @@ export default class NPCActorSheet extends BaseActorSheet {
       this._renderCreateInventory();
       this._renderAttunement(context, options);
       this._renderSpellbook(context, options);
+      // Rodas dos Princípios de Nen: abrir/fechar no clique do hub (igual à ficha de
+      // personagem). Sem isso, clicar num princípio no NPC não revelava as habilidades.
+      setupNenWheels(this.element);
     }
 
     const elements = this.element.querySelector(".header-elements .cr-xp");
@@ -1569,9 +1576,8 @@ export default class NPCActorSheet extends BaseActorSheet {
       });
     });
 
-    // ── Hatsu — restaura collapsed + sync AE de proficiência
+    // ── Hatsu — sync AE de proficiência
     if ( this.actor.isOwner ) this._syncHatsuProficiencyEffect();
-    this._restoreHatsuCollapsedSections();
 
     // (context menu registrado em _onFirstRender)
 

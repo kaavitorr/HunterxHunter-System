@@ -388,6 +388,28 @@ export function registerSystemSettings() {
     onChange: () => dnd5e.ui.calendar?._syncAutoTimeState?.()
   });
 
+  // Ritmo do tempo automático FORA de combate: a cada `intervalSeconds` reais, avança
+  // `amount` `unit`. Configurável pelo botão direito no relógio (ver CalendarHUD#configureTime).
+  game.settings.register("hunter-system", "calendarAutoTimeRate", {
+    name: "Ritmo do Tempo Automático",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: { intervalSeconds: 10, amount: 5, unit: "minute" },
+    onChange: () => dnd5e.ui.calendar?._resyncAutoTime?.()
+  });
+
+  // Segundos de mundo avançados por rodada de combate. O Foundry usa CONFIG.time.roundTime
+  // para adiantar o relógio a cada rodada; este setting o alimenta (ex.: 60 = 1 min/rodada).
+  game.settings.register("hunter-system", "calendarCombatRoundSeconds", {
+    name: "Segundos por Rodada de Combate",
+    scope: "world",
+    config: false,
+    type: Number,
+    default: 6,
+    onChange: value => { CONFIG.time.roundTime = Math.max(0, Number(value) || 6); }
+  });
+
   // Combat Settings
   game.settings.registerMenu("hunter-system", "combatConfiguration", {
     name: "SETTINGS.DND5E.COMBAT.Name",
@@ -491,7 +513,7 @@ export function registerSystemSettings() {
     hint: "SETTINGS.DND5E.VARIANT.CurrencyWeight.Hint",
     scope: "world",
     config: false,
-    default: true,
+    default: false,   // moedas NÃO contam peso por padrão neste sistema
     type: Boolean
   });
 

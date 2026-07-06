@@ -161,12 +161,38 @@
   padding-top: 16px; position: sticky; top: 0;
 }
 .hc-portrait img {
-  width: 100%; height: auto; max-height: 82vh;
+  /* Tamanho MÁXIMO uniforme p/ toda espécie/categoria: cabe na coluna e nunca passa
+     do teto; encolhe em telas menores (min()), mas nunca ultrapassa o máximo. */
+  width: auto; height: auto;
+  max-width: 100%; max-height: min(420px, 52vh);
   object-fit: contain;
   border: none; background: none; box-shadow: none; border-radius: 0;
   mix-blend-mode: lighten;
 }
 .hc-portrait figcaption { margin-top: 10px; font-size: 12px; font-style: italic; color: #8a8f9c; }
+
+/* ── Coluna da direita: imagem no topo + pickers logo ABAIXO (padrão One Piece) ── */
+.hc-portrait-col {
+  flex: 0 0 32vw; width: 32vw; max-width: 540px; min-width: 250px; margin: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding-top: 16px; position: sticky; top: 0; overflow-y: auto; max-height: 100vh;
+}
+.hc-portrait-col .hc-portrait {
+  flex: 0 0 auto; width: 100%; padding-top: 0; position: static;
+}
+.hc-cat-skill-picker {
+  width: 100%; padding: 12px 14px; box-sizing: border-box;
+  background: rgba(200,168,75,0.06);
+  border: 1px solid rgba(200,168,75,0.25);
+  border-radius: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+  text-align: left;
+}
+.hc-cat-skill-title {
+  font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+  color: #c8a84b; margin: 0;
+}
+.hc-cat-skill-picker .hc-skill-grid { gap: 6px; }
 
 /* ── Passo Categoria ── */
 .hc-category { gap: 28px; align-items: flex-start; }

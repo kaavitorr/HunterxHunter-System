@@ -6,7 +6,7 @@
  * no fim deste arquivo).
  */
 import Application5e from "../api/application.mjs";
-import { findOrCreateSessionLogJournal, buildSessionLogPageHTML } from "./session-log-journal.mjs";
+import { findOrCreateSessionLogJournal, buildSessionLogPageHTML, formatYen } from "./session-log-journal.mjs";
 
 /* -------------------------------------------- */
 /*  Estilos (injetados via JS — não dependem de reiniciar o mundo pra reler o system.json;
@@ -98,6 +98,21 @@ const CSS_TEXT = `
   color: #e2e2ea; overflow: auto; cursor: text;
 }
 .session-log-session-notes prose-mirror .editor-content { min-height: 130px; }
+.session-log-missions { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(200,168,75,0.18); padding-top: 10px; }
+.session-log-missions-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #c8a84b; font-weight: 700; }
+.session-log-mission {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: rgba(0,0,0,0.25); border: 1px solid rgba(200,168,75,0.2); border-radius: 6px; padding: 6px 10px;
+}
+.session-log-mission-name { font-size: 13px; color: #e2e2ea; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-log-mission-marks { display: flex; gap: 6px; flex: 0 0 auto; }
+.session-log-mission-btn {
+  background: rgba(0,0,0,0.35); border: 1px solid rgba(200,168,75,0.35); border-radius: 20px;
+  color: #b8b8c4; font-size: 11px; font-weight: 700; padding: 3px 10px; cursor: pointer; width: auto;
+}
+.session-log-mission-btn:hover { border-color: #d9b355; color: #e8d9a8; }
+.session-log-mission-btn.is-on { background: rgba(200,168,75,0.22); color: #f0d070; border-color: #d9b355; }
+.session-log-mission-btn--done.is-on { background: rgba(106,184,106,0.22); color: #bfe6bf; border-color: #6ab86a; }
 .session-log-page h2 { color: #d9b355; margin-bottom: 6px; }
 .session-log-page h3 { color: #c8a84b; margin-bottom: 4px; }
 .session-log-page hr { border: none; border-top: 1px solid rgba(200,168,75,0.25); margin: 12px 0; }
@@ -156,6 +171,16 @@ function getEligibleActors() {
   ).sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** Escopo de flag do módulo opcional "Arquivos Hunter" (onde vivem as missões). */
+const ARQ = "hunter-arquivos";
+
+/** Missões registradas no módulo Arquivos Hunter (vazio se o módulo não estiver ativo). */
+function getArchiveMissions() {
+  return game.journal
+    .filter(j => j.getFlag(ARQ, "tipo") === "missao")
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export default class SessionLogApp extends Application5e {
   /** @inheritDoc */
   static DEFAULT_OPTIONS = {
@@ -168,6 +193,7 @@ export default class SessionLogApp extends Application5e {
       togglePlayerCard: SessionLogApp.#togglePlayerCard,
       savePlayerCard: SessionLogApp.#savePlayerCard,
       removeStagedItem: SessionLogApp.#removeStagedItem,
+      markMission: SessionLogApp.#markMission,
       createLog: SessionLogApp.#createLog
     }
   };
@@ -194,6 +220,12 @@ export default class SessionLogApp extends Application5e {
    * @type {string}
    */
   #sessionNotes = "";
+
+  /**
+   * Missões marcadas nesta sessão: uuid da missão → "adquirida" | "completa". Em memória só.
+   * @type {Map<string, string>}
+   */
+  #missionMarks = new Map();
 
   /**
    * Trava de re-entrância pra "Criar Log" — impede que um clique-duplo aplique tudo duas vezes.
@@ -251,7 +283,9 @@ export default class SessionLogApp extends Application5e {
       const actorId = card.dataset.actorId;
       const actor = actorId ? game.actors.get(actorId) : null;
       if ( !actor ) return;
-      const readNum = (field) => Math.max(0, parseInt(card.querySelector(`[data-field="${field}"]`)?.value) || 0);
+      // Tira tudo que não for dígito antes de converter — necessário pro campo de Yen,
+      // que exibe separador de milhar ("100.000") num input de texto, não numérico.
+      const readNum = (field) => Math.max(0, parseInt(String(card.querySelector(`[data-field="${field}"]`)?.value ?? "").replace(/\D/g, "")) || 0);
       const grant = this.#staged.get(actorId) ?? emptyGrant(actor);
       grant.trainingPoints = readNum("trainingPoints");
       grant.cursePoints = readNum("cursePoints");
@@ -283,12 +317,20 @@ export default class SessionLogApp extends Application5e {
         trainingPoints: staged?.trainingPoints ?? 0,
         cursePoints: staged?.cursePoints ?? 0,
         currency: staged?.currency ?? 0,
+        currencyDisplay: formatYen(staged?.currency ?? 0),
         intensiveTrainingsNote: staged?.intensiveTrainingsNote ?? 0,
         items: staged?.items ?? [],
         notes: staged?.notes ?? ""
       };
     });
     context.sessionNotes = this.#sessionNotes;
+
+    // Missões do módulo Arquivos Hunter (some a seção inteira se o módulo não estiver ativo).
+    context.missions = getArchiveMissions().map(m => {
+      const mark = this.#missionMarks.get(m.uuid) ?? null;
+      return { uuid: m.uuid, name: m.name, adquirida: mark === "adquirida", completa: mark === "completa" };
+    });
+    context.hasMissions = context.missions.length > 0;
     return context;
   }
 
@@ -301,6 +343,13 @@ export default class SessionLogApp extends Application5e {
     this.element.querySelectorAll(".session-log-dropzone").forEach(zone => {
       zone.addEventListener("dragover", event => event.preventDefault());
       zone.addEventListener("drop", event => this.#onDropItem(event, zone));
+    });
+    // Formata o campo de Yen com separador de milhar enquanto o GM digita.
+    this.element.querySelectorAll('[data-field="currency"]').forEach(input => {
+      input.addEventListener("input", () => {
+        const digits = input.value.replace(/\D/g, "");
+        input.value = digits ? formatYen(digits) : "";
+      });
     });
   }
 
@@ -401,12 +450,22 @@ export default class SessionLogApp extends Application5e {
    * Aplica todas as concessões configuradas nas fichas de verdade e cria a página do log.
    * @this {SessionLogApp}
    */
+  /** Alterna a marca de uma missão: Adquirida / Completa / nenhuma. */
+  static #markMission(event, target) {
+    if ( !game.user.isGM ) return;
+    const { uuid, mark } = target.dataset;
+    if ( this.#missionMarks.get(uuid) === mark ) this.#missionMarks.delete(uuid);
+    else this.#missionMarks.set(uuid, mark);
+    this.#captureState();   // não perde o que estiver digitado nos cards
+    this.render();
+  }
+
   static async #createLog(event, target) {
     if ( !game.user.isGM || this.#committing ) return;
     // Captura o que estiver digitado em cards abertos + narrativa antes de comprometer nada.
     this.#captureState();
-    if ( !this.#staged.size && !hasRichText(this.#sessionNotes) ) {
-      ui.notifications.warn("Nada configurado ainda — adicione concessões ou uma narrativa.");
+    if ( !this.#staged.size && !hasRichText(this.#sessionNotes) && !this.#missionMarks.size ) {
+      ui.notifications.warn("Nada configurado ainda — adicione concessões, uma narrativa ou missões.");
       this.render();
       return;
     }
@@ -445,8 +504,22 @@ export default class SessionLogApp extends Application5e {
         }
       }
 
-      // Só aborta se não sobrou nada pra registrar (nenhuma concessão aplicada E sem narrativa).
-      if ( !entries.length && !hasRichText(this.#sessionNotes) ) {
+      // Missões marcadas → grava o timestamp (adquirida/completa) na missão do Arquivos Hunter.
+      const missionSummary = [];
+      for ( const [uuid, mark] of this.#missionMarks ) {
+        const doc = await fromUuid(uuid).catch(() => null);
+        if ( !doc ) continue;
+        try {
+          // Hora do MUNDO (game.time.worldTime), não a do PC — coerente com o display no arquivo.
+          await doc.setFlag(ARQ, mark === "completa" ? "completaEm" : "adquiridaEm", game.time.worldTime);
+          missionSummary.push({ name: doc.name, mark });
+        } catch(err) {
+          console.error(`Hunter | Fazer Log: falha ao marcar missão ${doc.name}:`, err);
+        }
+      }
+
+      // Só aborta se não sobrou nada pra registrar (nenhuma concessão, narrativa nem missão).
+      if ( !entries.length && !hasRichText(this.#sessionNotes) && !missionSummary.length ) {
         ui.notifications.error("Nenhuma concessão pôde ser aplicada. Nada foi registrado.");
         return;
       }
@@ -460,7 +533,7 @@ export default class SessionLogApp extends Application5e {
       const pages = await journal.createEmbeddedDocuments("JournalEntryPage", [{
         name: dateLabel,
         type: "text",
-        text: { content: buildSessionLogPageHTML(entries, this.#sessionNotes), format: CONST.JOURNAL_ENTRY_PAGE_FORMATS.HTML }
+        text: { content: buildSessionLogPageHTML(entries, this.#sessionNotes, missionSummary), format: CONST.JOURNAL_ENTRY_PAGE_FORMATS.HTML }
       }]);
 
       // Mostra o log grande pra todo mundo (força independente de permissão individual).
@@ -475,6 +548,7 @@ export default class SessionLogApp extends Application5e {
       this.#staged.clear();
       this.#expandedActorIds.clear();
       this.#sessionNotes = "";
+      this.#missionMarks.clear();
       this.close();
     } finally {
       this.#committing = false;
@@ -483,24 +557,45 @@ export default class SessionLogApp extends Application5e {
 }
 
 /* -------------------------------------------- */
-/*  Botão dedicado no grupo "Notes" dos controles de cena                       */
+/*  Grupo próprio "GM Tools" nos controles de cena — fica logo abaixo de
+    "Notes" (order 8 no core). "Missões e Arquivos" abre o módulo opcional
+    "hunter-arquivos" (game.hunterArquivos) — Bestiário, Profiles/Licença
+    e Quadro de Missões.                                                 */
 /* -------------------------------------------- */
 
 Hooks.on("getSceneControlButtons", controls => {
-  const notes = controls.notes;
-  if ( !notes ) return;
-  notes.tools.sessionLog = {
-    name: "sessionLog",
-    // Ordem alta pra sentar no fim do grupo, sem empatar com as ferramentas nativas (select,
-    // journal, toggle...) — o empate deixava a posição indeterminada.
-    order: 100,
-    title: "Fazer Log",
-    icon: "fa-solid fa-clipboard-list",
-    button: true,
+  controls.gmTools = {
+    name: "gmTools",
+    order: 9,
+    title: "GM Tools",
+    icon: "fa-solid fa-toolbox",
     visible: game.user.isGM,
-    onChange: (event, active) => {
-      if ( !game.user.isGM ) return;
-      SessionLogApp.open();
+    tools: {
+      sessionLog: {
+        name: "sessionLog",
+        order: 1,
+        title: "Fazer Log",
+        icon: "fa-solid fa-clipboard-list",
+        button: true,
+        visible: game.user.isGM,
+        onChange: (event, active) => {
+          if ( !game.user.isGM ) return;
+          SessionLogApp.open();
+        }
+      },
+      missoesArquivos: {
+        name: "missoesArquivos",
+        order: 2,
+        title: "Missões e Arquivos",
+        icon: "fa-solid fa-book-atlas",
+        button: true,
+        visible: game.user.isGM,
+        onChange: (event, active) => {
+          if ( !game.user.isGM ) return;
+          if ( typeof game.hunterArquivos === "function" ) game.hunterArquivos();
+          else ui.notifications.warn('Ative o módulo "Arquivos Hunter" para usar Missões e Arquivos.');
+        }
+      }
     }
   };
 });

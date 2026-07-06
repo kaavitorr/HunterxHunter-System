@@ -72,21 +72,6 @@
 
         <p class="hc-talent-note"><i class="fas fa-star" inert></i> Toda espécie concede pelo menos <strong>1 talento</strong>.</p>
 
-          <div class="hc-guide-block">
-            <h3 class="hc-guide-title">Ajuste de Atributo — {{chosenSpecies.abilityAdjust.left}}/{{chosenSpecies.abilityAdjust.total}} ponto(s) restante(s)</h3>
-            <p class="hc-attr-hint">Distribua {{chosenSpecies.abilityAdjust.total}} ponto(s) entre os atributos (pode pôr os dois no mesmo).</p>
-            <div class="hc-adjust-grid">
-              {{#each chosenSpecies.abilityAdjust.rows as |r|}}
-              <div class="hc-adjust-row {{#if r.add}}has-bonus{{/if}}">
-                <span class="hc-adjust-abbr">{{r.abbr}}</span>
-                <button type="button" class="hc-adjust-btn" data-action="bonusDec" data-ability="{{r.key}}" {{#unless r.canDec}}disabled{{/unless}}>−</button>
-                <span class="hc-adjust-val">{{r.value}}{{#if r.add}} <small>(+{{r.add}})</small>{{/if}}</span>
-                <button type="button" class="hc-adjust-btn" data-action="bonusInc" data-ability="{{r.key}}" {{#unless r.canInc}}disabled{{/unless}}>+</button>
-              </div>
-              {{/each}}
-            </div>
-          </div>
-
           {{#if chosenSpecies.traits}}
           <div class="hc-guide-block">
             <h3 class="hc-guide-title">Traços Animais</h3>
@@ -125,61 +110,82 @@
             </ul>
             {{/if}}
           </div>
-          {{else}}
-          {{#if chosenSpecies.choice}}
-          <div class="hc-guide-block">
-            <h3 class="hc-guide-title">{{chosenSpecies.choice.title}}</h3>
-            <select class="hc-sp-variant">
-              <option value="">— escolher —</option>
-              {{#each chosenSpecies.choice.options as |o|}}
-              <option value="{{o.id}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>
-              {{/each}}
-            </select>
-            {{#if chosenSpecies.choice.selectedNote}}
-            <p class="hc-variant-note">{{chosenSpecies.choice.selectedNote}}</p>
-            {{/if}}
-          </div>
           {{/if}}
-          {{/if}}
-
-          <div class="hc-guide-block">
-            <h3 class="hc-guide-title">Talentos — {{chosenSpecies.talentCount}}/{{chosenSpecies.talentLimit}} escolhido(s)</h3>
-            <p class="hc-attr-hint">Escolha até <strong>{{chosenSpecies.talentLimit}}</strong> talento(s) (base 2 da Adaptação + bônus da variante/aparência).</p>
-
-            {{#if chosenSpecies.speciesTalents.length}}
-            <h4 class="hc-trait-grouptitle">Talentos de Espécie</h4>
-            <div class="hc-trait-grid hc-talent-grid">
-              {{#each chosenSpecies.speciesTalents as |t|}}
-              <button type="button" class="hc-trait hc-talent-species {{#if t.selected}}is-selected{{/if}}"
-                      data-action="toggleTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
-                {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
-              </button>
-              {{/each}}
-            </div>
-            {{/if}}
-
-            {{#if chosenSpecies.commonTalents.length}}
-            <h4 class="hc-trait-grouptitle">Talentos Comuns</h4>
-            <div class="hc-trait-grid hc-talent-grid">
-              {{#each chosenSpecies.commonTalents as |t|}}
-              <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
-                      data-action="toggleTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
-                {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
-              </button>
-              {{/each}}
-            </div>
-            {{/if}}
-          </div>
         {{/if}}
         {{/if}}
       </div>
 
-      {{#if chosenSpecies}}{{#unless chosenSpecies.editable}}{{#if chosenSpecies.img}}
-      <figure class="hc-portrait flexcol">
-        <img src="{{chosenSpecies.img}}" alt="{{chosenSpecies.name}}">
-        <figcaption>Exemplo de {{chosenSpecies.name}}</figcaption>
-      </figure>
-      {{/if}}{{/unless}}{{/if}}
+      {{#if chosenSpecies}}{{#unless chosenSpecies.editable}}
+      <div class="hc-portrait-col flexcol">
+        {{#if chosenSpecies.img}}
+        <figure class="hc-portrait flexcol">
+          <img src="{{chosenSpecies.img}}" alt="{{chosenSpecies.name}}">
+          <figcaption>Exemplo de {{chosenSpecies.name}}</figcaption>
+        </figure>
+        {{/if}}
+
+        <div class="hc-cat-skill-picker">
+          <h4 class="hc-cat-skill-title">Ajuste de Atributo — {{chosenSpecies.abilityAdjust.left}}/{{chosenSpecies.abilityAdjust.total}} ponto(s) restante(s)</h4>
+          <p class="hc-hb-label">Distribua {{chosenSpecies.abilityAdjust.total}} ponto(s) entre os atributos (pode pôr os dois no mesmo).</p>
+          <div class="hc-adjust-grid">
+            {{#each chosenSpecies.abilityAdjust.rows as |r|}}
+            <div class="hc-adjust-row {{#if r.add}}has-bonus{{/if}}">
+              <span class="hc-adjust-abbr">{{r.abbr}}</span>
+              <button type="button" class="hc-adjust-btn" data-action="bonusDec" data-ability="{{r.key}}" {{#unless r.canDec}}disabled{{/unless}}>−</button>
+              <span class="hc-adjust-val">{{r.value}}{{#if r.add}} <small>(+{{r.add}})</small>{{/if}}</span>
+              <button type="button" class="hc-adjust-btn" data-action="bonusInc" data-ability="{{r.key}}" {{#unless r.canInc}}disabled{{/unless}}>+</button>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+
+        {{#unless chosenSpecies.traits}}
+        {{#if chosenSpecies.choice}}
+        <div class="hc-cat-skill-picker">
+          <h4 class="hc-cat-skill-title">{{chosenSpecies.choice.title}}</h4>
+          <select class="hc-sp-variant">
+            <option value="">— escolher —</option>
+            {{#each chosenSpecies.choice.options as |o|}}
+            <option value="{{o.id}}" {{#if o.selected}}selected{{/if}}>{{o.label}}</option>
+            {{/each}}
+          </select>
+          {{#if chosenSpecies.choice.selectedNote}}
+          <p class="hc-variant-note">{{chosenSpecies.choice.selectedNote}}</p>
+          {{/if}}
+        </div>
+        {{/if}}
+        {{/unless}}
+
+        <div class="hc-cat-skill-picker">
+          <h4 class="hc-cat-skill-title">Talentos — {{chosenSpecies.talentCount}}/{{chosenSpecies.talentLimit}} escolhido(s)</h4>
+          <p class="hc-hb-label">Escolha até <strong>{{chosenSpecies.talentLimit}}</strong> talento(s) (base 2 da Adaptação + bônus da variante/aparência).</p>
+
+          {{#if chosenSpecies.speciesTalents.length}}
+          <h4 class="hc-trait-grouptitle">Talentos de Espécie</h4>
+          <div class="hc-trait-grid hc-talent-grid">
+            {{#each chosenSpecies.speciesTalents as |t|}}
+            <button type="button" class="hc-trait hc-talent-species {{#if t.selected}}is-selected{{/if}}"
+                    data-action="toggleTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
+              {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+          {{/if}}
+
+          {{#if chosenSpecies.commonTalents.length}}
+          <h4 class="hc-trait-grouptitle">Talentos Comuns</h4>
+          <div class="hc-trait-grid hc-talent-grid">
+            {{#each chosenSpecies.commonTalents as |t|}}
+            <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
+                    data-action="toggleTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
+              {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+          {{/if}}
+        </div>
+      </div>
+      {{/unless}}{{/if}}
     </section>
     {{/if}}
 
@@ -220,78 +226,6 @@
         {{/unless}}
         <div class="hc-detail-desc {{#unless chosenCategory.longDesc}}hc-detail-center{{/unless}}">{{{chosenCategory.desc}}}</div>
 
-        {{#if chosenCategory.primary}}
-        <div class="hc-cat-meta">
-          <span class="hc-cat-meta-item">
-            <i class="fas fa-star" inert></i> Atributo Principal:
-            <select class="hc-primary-select">
-              <option value="">— escolher —</option>
-              {{#each chosenCategory.primary.options as |o|}}
-              <option value="{{o.key}}" {{#if o.selected}}selected{{/if}} {{#if o.disabled}}disabled{{/if}}>{{o.label}}</option>
-              {{/each}}
-            </select>
-          </span>
-          {{#unless semChoices}}{{#if chosenCategory.saves.length}}
-          <span class="hc-cat-meta-sep">·</span>
-          <span class="hc-cat-meta-item"><i class="fas fa-shield-halved" inert></i> Salvaguarda: <strong>{{#each chosenCategory.saves as |s|}}{{#unless @first}}, {{/unless}}{{s}}{{/each}}</strong></span>
-          {{/if}}{{/unless}}
-        </div>
-        {{else}}{{#if chosenCategory.saves.length}}
-        <div class="hc-cat-meta">
-          <span class="hc-cat-meta-item"><i class="fas fa-shield-halved" inert></i> Salvaguarda: <strong>{{#each chosenCategory.saves as |s|}}{{#unless @first}}, {{/unless}}{{s}}{{/each}}</strong></span>
-        </div>
-        {{/if}}{{/if}}
-
-        {{#if semChoices}}
-        <div class="hc-guide-block">
-          <h3 class="hc-guide-title">Salvaguardas — escolha 2 ({{semChoices.saves.chosen}}/{{semChoices.saves.count}})</h3>
-          <div class="hc-skill-grid">
-            {{#each semChoices.saves.options as |s|}}
-            <button type="button" class="hc-skill {{#if s.selected}}is-selected{{/if}}"
-                    data-action="toggleSemSave" data-save="{{s.key}}" {{#if s.disabled}}disabled{{/if}}>{{s.label}}</button>
-            {{/each}}
-          </div>
-        </div>
-        <div class="hc-guide-block">
-          <h3 class="hc-guide-title">Talento à escolha</h3>
-          <div class="hc-trait-grid hc-talent-grid">
-            {{#each semChoices.talents as |t|}}
-            <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
-                    data-action="chooseSemTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
-              {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
-            </button>
-            {{/each}}
-          </div>
-        </div>
-        {{/if}}
-
-        {{#if hb.available}}
-        <div class="hc-guide-block hc-hb-block">
-          <h3 class="hc-guide-title">Habilidades Básicas</h3>
-          {{#if hb.showRestricted}}
-          <p class="hc-hb-label">Escolha 1:</p>
-          <div class="hc-trait-grid hc-hb-grid">
-            {{#each hb.restricted as |h|}}
-            <button type="button" class="hc-trait {{#if h.selected}}is-selected{{/if}}"
-                    data-action="chooseHBRestricted" data-hb-id="{{h.id}}" data-tip-uuid="{{h.uuid}}" title="{{h.name}}">
-              {{#if h.img}}<img src="{{h.img}}" alt="{{h.name}}">{{/if}}<span>{{h.name}}</span>
-            </button>
-            {{/each}}
-          </div>
-          {{/if}}
-          <p class="hc-hb-label">{{#if hb.showRestricted}}Mais 1 à sua escolha{{else}}Escolha 1 à sua escolha{{/if}} — {{hb.freeCount}}/{{hb.freeLimit}}:</p>
-          <div class="hc-trait-grid hc-hb-grid hc-talent-grid">
-            {{#each hb.free as |h|}}
-            <button type="button" class="hc-trait {{#if h.selected}}is-selected{{/if}}"
-                    data-action="toggleHBFree" data-hb-id="{{h.id}}" data-tip-uuid="{{h.uuid}}" title="{{h.name}}"
-                    {{#if h.disabled}}disabled{{/if}}>
-              {{#if h.img}}<img src="{{h.img}}" alt="{{h.name}}">{{/if}}<span>{{h.name}}</span>
-            </button>
-            {{/each}}
-          </div>
-        </div>
-        {{/if}}
-
         {{#if chosenCategory.features.length}}
         <div class="hc-guide-block" {{#if chosenCategory.color}}style="--cat-color:{{chosenCategory.color}}"{{/if}}>
           <h3 class="hc-guide-title">Características da Categoria</h3>
@@ -325,14 +259,83 @@
         {{/if}}
       </div>
 
-      {{#if chosenCategory.img}}
-      <figure class="hc-portrait flexcol">
-        <img src="{{chosenCategory.img}}" alt="{{chosenCategory.label}}">
-        <figcaption>{{chosenCategory.label}}</figcaption>
-      </figure>
-      {{else}}
-      <div class="hc-portrait hc-portrait-empty" aria-hidden="true"></div>
-      {{/if}}
+      <div class="hc-portrait-col flexcol">
+        {{#if chosenCategory.img}}
+        <figure class="hc-portrait flexcol">
+          <img src="{{chosenCategory.img}}" alt="{{chosenCategory.label}}">
+          <figcaption>{{chosenCategory.label}}</figcaption>
+        </figure>
+        {{else}}
+        <div class="hc-portrait hc-portrait-empty" aria-hidden="true"></div>
+        {{/if}}
+
+        {{#if chosenCategory.primary}}
+        <div class="hc-cat-skill-picker">
+          <h4 class="hc-cat-skill-title"><i class="fas fa-star" inert></i> Atributo Principal</h4>
+          <select class="hc-primary-select">
+            <option value="">— escolher —</option>
+            {{#each chosenCategory.primary.options as |o|}}
+            <option value="{{o.key}}" {{#if o.selected}}selected{{/if}} {{#if o.disabled}}disabled{{/if}}>{{o.label}}</option>
+            {{/each}}
+          </select>
+        </div>
+        {{/if}}
+
+        {{#if semChoices}}
+        <div class="hc-cat-skill-picker">
+          <h4 class="hc-cat-skill-title">Salvaguardas — escolha 2 ({{semChoices.saves.chosen}}/{{semChoices.saves.count}})</h4>
+          <div class="hc-skill-grid">
+            {{#each semChoices.saves.options as |s|}}
+            <button type="button" class="hc-skill {{#if s.selected}}is-selected{{/if}}"
+                    data-action="toggleSemSave" data-save="{{s.key}}" {{#if s.disabled}}disabled{{/if}}>{{s.label}}</button>
+            {{/each}}
+          </div>
+        </div>
+        <div class="hc-cat-skill-picker">
+          <h4 class="hc-cat-skill-title">Talento à escolha</h4>
+          <div class="hc-trait-grid hc-talent-grid">
+            {{#each semChoices.talents as |t|}}
+            <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
+                    data-action="chooseSemTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}">
+              {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+        </div>
+        {{else}}{{#if chosenCategory.saves.length}}
+        <div class="hc-cat-skill-picker">
+          <h4 class="hc-cat-skill-title"><i class="fas fa-shield-halved" inert></i> Salvaguarda</h4>
+          <p class="hc-variant-note">{{#each chosenCategory.saves as |s|}}{{#unless @first}}, {{/unless}}{{s}}{{/each}}</p>
+        </div>
+        {{/if}}{{/if}}
+
+        {{#if hb.available}}
+        <div class="hc-cat-skill-picker hc-hb-block">
+          <h4 class="hc-cat-skill-title">Habilidades Básicas</h4>
+          {{#if hb.showRestricted}}
+          <p class="hc-hb-label">Escolha 1:</p>
+          <div class="hc-trait-grid hc-hb-grid">
+            {{#each hb.restricted as |h|}}
+            <button type="button" class="hc-trait {{#if h.selected}}is-selected{{/if}}"
+                    data-action="chooseHBRestricted" data-hb-id="{{h.id}}" data-tip-uuid="{{h.uuid}}" title="{{h.name}}">
+              {{#if h.img}}<img src="{{h.img}}" alt="{{h.name}}">{{/if}}<span>{{h.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+          {{/if}}
+          <p class="hc-hb-label">{{#if hb.showRestricted}}Mais 1 à sua escolha{{else}}Escolha 1 à sua escolha{{/if}} — {{hb.freeCount}}/{{hb.freeLimit}}:</p>
+          <div class="hc-trait-grid hc-hb-grid hc-talent-grid">
+            {{#each hb.free as |h|}}
+            <button type="button" class="hc-trait {{#if h.selected}}is-selected{{/if}}"
+                    data-action="toggleHBFree" data-hb-id="{{h.id}}" data-tip-uuid="{{h.uuid}}" title="{{h.name}}"
+                    {{#if h.disabled}}disabled{{/if}}>
+              {{#if h.img}}<img src="{{h.img}}" alt="{{h.name}}">{{/if}}<span>{{h.name}}</span>
+            </button>
+            {{/each}}
+          </div>
+        </div>
+        {{/if}}
+      </div>
     </section>
     {{/if}}
 
@@ -510,7 +513,7 @@
           <h3 class="hc-guide-title">Proficiência em Salvaguarda</h3>
           <select class="hc-origin-save">
             <option value="">— escolher salvaguarda —</option>
-            {{#each originSaves as |s|}}<option value="{{s.key}}" {{#if s.selected}}selected{{/if}}>{{s.label}}</option>{{/each}}
+            {{#each originSaves as |s|}}<option value="{{s.key}}" {{#if s.selected}}selected{{/if}} {{#if s.disabled}}disabled{{/if}}>{{s.label}}{{#if s.disabled}} (já tem){{/if}}</option>{{/each}}
           </select>
         </div>
 

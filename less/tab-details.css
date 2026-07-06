@@ -84,35 +84,8 @@
   background: linear-gradient(to right, #2bd6c8 0%, #128a84 100%);
 }
 
-/* Energia fluindo POR DENTRO do preenchimento de Pontos de Aura — mesmo inset/
-   inline-size do ::before (preenchimento), então nunca ultrapassa a barra; sem
-   box-shadow/blur, então não gera brilho por fora. Listras claras desenhadas
-   diretamente por cima (sem mix-blend-mode) pra garantir contraste visível
-   contra o gradiente laranja, não importa o tom de fundo. */
-.dnd5e2.sheet.actor.npc .meter.aura-points .progress::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  inset: 1px auto 1px 1px;
-  inline-size: calc(var(--bar-percentage) - 2px);
-  border-radius: 2px;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    100deg,
-    rgba(255, 255, 255, 0)    0px,
-    rgba(255, 255, 255, 0)    6px,
-    rgba(255, 250, 220, 0.85) 6px,
-    rgba(255, 250, 220, 0.85) 12px,
-    rgba(255, 255, 255, 0)    12px,
-    rgba(255, 255, 255, 0)    24px
-  );
-  animation: jj-energy-flow 1.4s linear infinite;
-}
-
-@keyframes jj-energy-flow {
-  from { background-position: 0 0; }
-  to   { background-position: -24px 0; }
-}
+/* (REMOVIDO) Efeito de "aura fluindo" (listras animadas jj-energy-flow) sobre a barra
+   de Pontos de Aura do NPC — ficou ruim; a ser refeito depois com outra abordagem. */
 
 /* Habilita click-to-edit nas barras (igual a .hit-points) */
 .dnd5e2.sheet.actor .meter.sectioned > .aura-points,
@@ -691,3 +664,71 @@ filigree-box.jj-foco-defensivo-box {
 .hc-hp-label .hc-aura-toggle { box-sizing: border-box; }
 /* Puxa a barra de Vida/Vitalidade pra perto do título. */
 .hc-hp-bars { margin-top: -1px !important; }
+
+/* ── Caminho (Objetivo × Meio) na aba Biografia — mesmo visual do OPRPG ── */
+.op-pers-field { display: flex; flex-direction: column; gap: 4px; }
+.op-pers-field > span { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #e3b53c; }
+.op-pers-field input, .op-pers-field select, .op-pers-field textarea {
+  background: rgba(20,16,26,0.6); border: 1px solid rgba(200,168,75,0.35); border-radius: 8px;
+  color: #e8e8e8; padding: 8px 10px; font-size: 13px;
+}
+.op-pers-field input:focus, .op-pers-field select:focus, .op-pers-field textarea:focus { border-color: #c8a84b; outline: none; }
+.op-pers-field select, .op-pers-field input { height: 40px; box-sizing: border-box; }
+.op-pers-field select { padding: 0 10px; line-height: 1.4; }
+.op-pers-field select option { background: #141824; color: #d7dce6; }
+
+.op-pers-sep { display: flex; align-items: center; gap: 12px; margin: 18px 0 12px; }
+.op-pers-sep::before, .op-pers-sep::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(200,168,75,0.5), transparent); }
+.op-pers-sep span { font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #e3b53c; white-space: nowrap; }
+.op-pers-sep span i { color: #b23a2b; margin-right: 6px; }
+
+.op-caminho { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+.op-caminho-selects { display: flex; align-items: flex-end; gap: 12px; }
+.op-caminho-selects .op-pers-field { flex: 1; }
+.op-caminho-x { font-size: 20px; font-weight: 900; color: #8a8f9c; padding-bottom: 8px; }
+.op-caminho-result {
+  padding: 14px 16px; border-radius: 12px;
+  background: linear-gradient(160deg, rgba(200,168,75,0.1), rgba(20,16,26,0.6));
+  border: 1px solid #c8a84b;
+}
+.op-caminho-name { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 900; color: #f0ecda; margin-bottom: 8px; }
+.op-caminho-code {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 30px; padding: 0 8px;
+  border-radius: 8px; background: #c8a84b; color: #1a1206; font-size: 15px; font-weight: 900;
+}
+.op-caminho-desc { font-size: 12.5px; line-height: 1.55; color: #b8bcc6; margin: 0; }
+.op-caminho-hint { font-size: 12px; color: #8a8f9c; font-style: italic; margin: 0; }
+
+/* ── Seletor de Talentos & Defeitos na Biografia (visual do OP) ── */
+.op-sing-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px; }
+.op-sing-coltitle { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.op-sing-coltitle.sing, .op-sing-coltitle.sing i { color: #e3b53c; }
+.op-sing-coltitle.def, .op-sing-coltitle.def i { color: #b23a2b; }
+.op-sing-select {
+  width: 100%; height: 34px; padding: 0 10px; margin-bottom: 10px;
+  background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; color: #b8bcc6; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.op-sing-select:hover, .op-sing-select:focus { border-color: #c8a84b; outline: none; }
+.op-sing-select option { background: #141824; color: #d7dce6; }
+.op-sing-selected {
+  display: flex; flex-direction: column; gap: 8px; min-height: 52px;
+  padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.06);
+}
+.op-sing-empty { font-size: 11px; color: #8a8f9c; font-style: italic; }
+.op-sing-card {
+  display: flex; width: 100%; align-items: center; gap: 8px; height: 32px; padding: 0 10px; cursor: pointer;
+  border-radius: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+  color: #b8bcc6; background: rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.12);
+  position: relative; transition: transform 130ms, filter 130ms, border-color 130ms;
+}
+.op-sing-card::before { content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; border-radius: 3px; }
+.op-sing-card:hover { transform: translateY(-1px); filter: brightness(1.1); }
+.op-sing-card.sing.selected { background: linear-gradient(135deg, rgba(227,181,60,0.16), rgba(0,0,0,0.34)); border-color: rgba(227,181,60,0.5); color: #e3b53c; }
+.op-sing-card.sing.selected::before { background: #c8a84b; }
+.op-sing-card.def.selected { background: linear-gradient(135deg, rgba(178,58,43,0.18), rgba(0,0,0,0.34)); border-color: rgba(178,58,43,0.5); color: #f0a59c; }
+.op-sing-card.def.selected::before { background: #b23a2b; }
+.op-sing-name { pointer-events: none; flex: 1 1 auto; text-align: left; padding-left: 8px; }
+.op-sing-card .op-sing-esp { font-size: 9px; font-weight: 900; line-height: 1; padding: 0 5px; height: 16px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(0,0,0,0.45); color: inherit; opacity: 0.85; pointer-events: none; }
+.op-sing-card .op-sing-rm { font-size: 10px; width: 19px; height: 19px; border-radius: 50%; opacity: 0.5; display: inline-flex; align-items: center; justify-content: center; transition: all 120ms; }
+.op-sing-card:hover .op-sing-rm { opacity: 1; background: rgba(178,58,43,0.22); color: #b23a2b; }

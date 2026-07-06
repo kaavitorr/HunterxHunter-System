@@ -806,7 +806,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
 
     const multiplier = options.multiplier ?? 1;
     const treatAs = options.originatingMessage?.flags?.dnd5e?.roll?.type
-      ? options.originatingMessage.flags.JujutsuLegacy.roll.type === "healing" ? "healing" : "damage"
+      ? (options.originatingMessage.flags.dnd5e.roll.type === "healing" ? "healing" : "damage")
       : options.only ?? "damage";
 
     const skipped = type => {

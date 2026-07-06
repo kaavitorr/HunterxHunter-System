@@ -186,6 +186,11 @@
         <input type="text" name="system.attributes.pve.value" data-dtype="Number"
                data-max="{{ max }}" placeholder="0" value="{{ value }}" hidden>
       </div>
+      <div class="tmp">
+        <input type="text" name="system.attributes.pve.temp" data-dtype="Number"
+               placeholder="{{ localize 'DND5E.TMP' }}"
+               value="{{#if temp}}{{ temp }}{{/if}}">
+      </div>
     </div>
     {{/with}}
     {{/if}}

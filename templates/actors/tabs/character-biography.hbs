@@ -18,21 +18,71 @@
         </ul>
     </div>
 
-    {{!-- Ideals, Bonds, Flaws, Personality Traits, & Appearance --}}
-    <div class="middle">
-        <div class="left">
-            {{~> "dnd5e.biography-textbox" name="system.details.ideal" value=system.details.ideal label="DND5E.Ideals"
-                icon="fas fa-seedling" class="textbox-half" ~}}
-            {{~> "dnd5e.biography-textbox" name="system.details.bond" value=system.details.bond label="DND5E.Bonds"
-                icon="fas fa-link" class="textbox-half" ~}}
-            {{~> "dnd5e.biography-textbox" name="system.details.flaw" value=system.details.flaw label="DND5E.Flaws"
-                icon="fas fa-heart-crack" class="textbox-half" ~}}
+    {{!-- Caminho (Objetivo × Meio) — mesmo framework do OPRPG --}}
+    <div class="op-pers-sep"><span><i class="fas fa-compass" inert></i> Caminho</span></div>
+    <div class="op-caminho">
+        <div class="op-caminho-selects">
+            <label class="op-pers-field"><span>Objetivo</span>
+                <select name="flags.hunter-system.caminho.objetivo">
+                    <option value="">— Escolher —</option>
+                    {{#each personalizacao.objetivos as |o|}}<option value="{{ o.id }}" {{#if o.selected}}selected{{/if}}>{{ o.label }}</option>{{/each}}
+                </select>
+            </label>
+            <span class="op-caminho-x">×</span>
+            <label class="op-pers-field"><span>Meio</span>
+                <select name="flags.hunter-system.caminho.meio">
+                    <option value="">— Escolher —</option>
+                    {{#each personalizacao.meios as |m|}}<option value="{{ m.id }}" {{#if m.selected}}selected{{/if}}>{{ m.label }}</option>{{/each}}
+                </select>
+            </label>
         </div>
-        <div class="right">
-            {{~> "dnd5e.biography-textbox" name="system.details.trait" value=system.details.trait
-                label="DND5E.PersonalityTraits" icon="fas fa-puzzle-piece" class="textbox-half" ~}}
-            {{~> "dnd5e.biography-textbox" name="system.details.appearance" value=system.details.appearance
-                label="DND5E.Appearance" icon="fas fa-image-portrait" class="textbox-half" ~}}
+        {{#if personalizacao.caminho}}
+        <div class="op-caminho-result">
+            <div class="op-caminho-name"><span class="op-caminho-code">{{ personalizacao.caminho.code }}</span> {{ personalizacao.caminho.nome }}</div>
+            <p class="op-caminho-desc">{{ personalizacao.caminho.desc }}</p>
+        </div>
+        {{else}}
+        <p class="op-caminho-hint">Selecione um <strong>Objetivo</strong> e um <strong>Meio</strong> para definir o Caminho do personagem.</p>
+        {{/if}}
+    </div>
+
+    {{!-- Talentos & Defeitos (seletor do compêndio) --}}
+    <div class="op-pers-sep"><span><i class="fas fa-star" inert></i> Talentos &amp; Defeitos</span></div>
+    <div class="op-sing-columns">
+        <div class="op-sing-col">
+            <div class="op-sing-coltitle sing"><i class="fas fa-star" inert></i> Talentos</div>
+            <select class="op-sing-select hc-bio-select" data-kind="talento">
+                <option value="">+ Adicionar talento…</option>
+                {{#each bioChoices.talentos.avail as |t|}}<option value="{{ t.uuid }}">{{ t.name }}</option>{{/each}}
+            </select>
+            <div class="op-sing-selected">
+                {{#each bioChoices.talentos.selected as |t|}}
+                <button type="button" class="op-sing-card sing selected" data-action="removeBioItem" data-item-id="{{ t.id }}" data-tooltip="Remover">
+                    <span class="op-sing-name">{{ t.name }}</span>
+                    <i class="fas fa-xmark op-sing-rm" inert></i>
+                </button>
+                {{else}}
+                <span class="op-sing-empty">Nenhum talento.</span>
+                {{/each}}
+            </div>
+        </div>
+        <div class="op-sing-col">
+            <div class="op-sing-coltitle def"><i class="fas fa-skull" inert></i> Defeitos</div>
+            <select class="op-sing-select hc-bio-select" data-kind="defeito">
+                <option value="">+ Adicionar defeito…</option>
+                {{#each bioChoices.defeitos.avail as |d|}}<option value="{{ d.uuid }}">{{ d.name }}</option>{{/each}}
+            </select>
+            <div class="op-sing-selected">
+                {{#each bioChoices.defeitos.selected as |d|}}
+                <button type="button" class="op-sing-card def selected" data-action="removeBioItem" data-item-id="{{ d.id }}" data-tooltip="Remover">
+                    <span class="op-sing-name">{{ d.name }}</span>
+                    {{#if d.pts}}<small class="op-sing-esp">{{ d.pts }}pt</small>{{/if}}
+                    <i class="fas fa-xmark op-sing-rm" inert></i>
+                </button>
+                {{else}}
+                <span class="op-sing-empty">Nenhum defeito.</span>
+                {{/each}}
+            </div>
         </div>
     </div>
 
