@@ -435,7 +435,14 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
   static #onChooseSemTalent(event, target) {
     this._captureName();
     const id = target.dataset.talentId;
-    this._creation.semTalent = (this._creation.semTalent === id) ? null : id;
+    if ( this._creation.semTalent === id ) { this._creation.semTalent = null; }
+    else {
+      if ( this._talentChosenElsewhere(id, { ignore: "sem" }) ) {
+        ui.notifications.warn("Você já escolheu esse talento em outra etapa.");
+        return;
+      }
+      this._creation.semTalent = id;
+    }
     this.render();
   }
 
@@ -881,10 +888,10 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
 
   /**
    * Limite de talentos escolhíveis na criação, conforme espécie/variante/aparência.
-   * Base = 2 (Adaptação: 1 Talento Simples + 1 Evolutivo) + bônus.
+   * Base = 1 talento (Adaptação) + o que a variante/aparência der.
    */
   _talentLimit() {
-    let limit = 2;
+    let limit = 1;
     const n = HunterCharacterCreation._norm(this._creation.speciesName ?? "");
     const choice = this._creation.speciesChoice;
     if ( n.includes("humano") ) {
@@ -1011,10 +1018,15 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       };
     });
 
-    // Salvaguarda à escolha (1 das 6).
+    // Salvaguarda à escolha (1 das 6). Bloqueia as que você JÁ recebeu por outra fonte
+    // (categoria/Sem Categoria) — não dá pra pegar a mesma salvaguarda duas vezes.
+    const ownedSaves = this._ownedSaves({ exceptOrigin: true });
+    // Se a de origem virou "já possuída" (mudou a categoria/sem depois), limpa a escolha.
+    if ( this._creation.originSave && ownedSaves.has(this._creation.originSave) ) this._creation.originSave = null;
     context.originSaves = HunterCharacterCreation.ABILITY_KEYS.map(k => ({
       key: k, label: game.i18n.localize(CONFIG.DND5E.abilities[k]?.label ?? k),
-      selected: this._creation.originSave === k
+      selected: this._creation.originSave === k,
+      disabled: ownedSaves.has(k)
     }));
 
     const chosen = sel ? list.find(o => o.id === sel) : null;
@@ -1059,6 +1071,26 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
         grants: [...new Set(grants)]
       };
     }
+  }
+
+  /** Salvaguardas que o personagem JÁ recebeu por categoria / Sem Categoria (usado para
+      bloquear escolher a mesma salvaguarda de novo na origem). */
+  _ownedSaves({ exceptOrigin = false } = {}) {
+    const set = new Set();
+    for ( const k of (this._creation.semSaves ?? []) ) set.add(k);         // Sem Categoria (nível 1)
+    const catKey = this._creation.category || "sem";
+    for ( const k of (this._catSaves?.[catKey] ?? []) ) set.add(k);        // Categoria (advancement)
+    if ( !exceptOrigin && this._creation.originSave ) set.add(this._creation.originSave);
+    return set;
+  }
+
+  /** true se o talento já foi escolhido em OUTRA etapa (espécie / Sem Categoria / defeitos),
+      pra não gastar duas escolhas no mesmo talento. `ignore` pula a etapa atual. */
+  _talentChosenElsewhere(id, { ignore } = {}) {
+    const inSpecies = ignore !== "species" && (this._creation.talents ?? []).includes(id);
+    const inSem     = ignore !== "sem"     && this._creation.semTalent === id;
+    const inCustom  = ignore !== "custom"  && (this._creation.customTalents ?? []).includes(id);
+    return inSpecies || inSem || inCustom;
   }
 
   /** Extrai a chave de perícia de uma trait-key dnd5e (ex.: "skills:ath" → "ath"). */
@@ -1272,6 +1304,10 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     if ( i >= 0 ) { arr.splice(i, 1); this.render(); return; }
     if ( arr.length >= (this._customTalentSlots ?? 0) ) {
       ui.notifications.warn("Pegue mais defeitos para liberar talentos (1 talento a cada 2 pontos).");
+      return;
+    }
+    if ( this._talentChosenElsewhere(id, { ignore: "custom" }) ) {
+      ui.notifications.warn("Você já escolheu esse talento em outra etapa.");
       return;
     }
     arr.push(id);
@@ -1579,6 +1615,10 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       const limit = this._talentLimit();
       if ( arr.length >= limit ) {
         ui.notifications.warn(`Você pode escolher no máximo ${limit} talento(s) nesta espécie/variante.`);
+        return;
+      }
+      if ( this._talentChosenElsewhere(id, { ignore: "species" }) ) {
+        ui.notifications.warn("Você já escolheu esse talento em outra etapa.");
         return;
       }
       arr.push(id);
@@ -2089,17 +2129,18 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
 
     // Talentos (espécie + liberados por defeitos), defeitos e métodos de combate.
     const featUuids = new Set();
+    const bioKindByUuid = new Map();   // uuid → "talento"/"defeito": marca p/ aparecer no seletor da Biografia
     const allTalents = await this._getTalents();
     for ( const id of [...(this._creation.talents ?? []), ...(this._creation.customTalents ?? []),
                        ...(this._creation.semTalent ? [this._creation.semTalent] : [])] ) {
       const t = allTalents.find(x => x.id === id);
-      if ( t?.uuid ) featUuids.add(t.uuid);
+      if ( t?.uuid ) { featUuids.add(t.uuid); bioKindByUuid.set(t.uuid, "talento"); }
     }
     const defeitos = await this._getDefeitos();
     const flatDef = [...defeitos[1], ...defeitos[3], ...defeitos[5]];
     for ( const id of (this._creation.defeitos ?? []) ) {
       const d = flatDef.find(x => x.id === id);
-      if ( d?.uuid ) featUuids.add(d.uuid);
+      if ( d?.uuid ) { featUuids.add(d.uuid); bioKindByUuid.set(d.uuid, "defeito"); }
     }
     if ( this._creation.combatBranch && this._creation.combatMethods?.length ) {
       const cm = (await this._getCombatMethods())[this._creation.combatBranch] ?? [];
@@ -2120,7 +2161,14 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       }
     }
     for ( const uuid of featUuids ) {
-      try { const doc = await fromUuid(uuid); if ( doc ) toCreate.push(tag(doc.toObject())); } catch { /* ignore */ }
+      try {
+        const doc = await fromUuid(uuid);
+        if ( !doc ) continue;
+        const o = tag(doc.toObject());
+        const kind = bioKindByUuid.get(uuid);   // marca talento/defeito p/ o seletor da Biografia
+        if ( kind ) foundry.utils.setProperty(o, "flags.hunter-system.bioKind", kind);
+        toCreate.push(o);
+      } catch { /* ignore */ }
     }
 
     // keepId: true preserva os _id da classe e dos itens de HB (necessário para a

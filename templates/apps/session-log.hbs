@@ -36,7 +36,7 @@
         </div>
         <div class="session-log-field">
           <label>Yen</label>
-          <input type="number" min="0" data-field="currency" value="{{p.currency}}" />
+          <input type="text" inputmode="numeric" data-field="currency" value="{{p.currencyDisplay}}" />
         </div>
       </div>
 
@@ -68,6 +68,23 @@
     {{/if}}
     {{/each}}
   </div>
+
+  {{#if hasMissions}}
+  <div class="session-log-missions">
+    <label class="session-log-missions-title">Missões</label>
+    {{#each missions as |m|}}
+    <div class="session-log-mission">
+      <span class="session-log-mission-name">{{m.name}}</span>
+      <span class="session-log-mission-marks">
+        <button type="button" class="session-log-mission-btn {{#if m.adquirida}}is-on{{/if}}"
+                data-action="markMission" data-uuid="{{m.uuid}}" data-mark="adquirida">Adquirida</button>
+        <button type="button" class="session-log-mission-btn session-log-mission-btn--done {{#if m.completa}}is-on{{/if}}"
+                data-action="markMission" data-uuid="{{m.uuid}}" data-mark="completa">Completa</button>
+      </span>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
 
   <div class="session-log-session-notes">
     <label>Observações finais / narrativa da sessão</label>

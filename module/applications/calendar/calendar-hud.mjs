@@ -25,18 +25,8 @@ export default class CalendarHUD extends BaseCalendarHUD {
     classes: ["faded-ui", "ui-control"]
   };
 
-  /**
-   * How many real-world milliseconds between each automatic time tick.
-   * @type {number}
-   */
-  static AUTO_TIME_INTERVAL_MS = 10000;
-
-  /**
-   * How many in-world minutes are advanced per automatic tick. At the default interval
-   * (5 min a cada 10s) uma hora do mundo passa a cada ~2 minutos reais.
-   * @type {number}
-   */
-  static AUTO_TIME_MINUTES_PER_TICK = 5;
+  // O ritmo do tempo automático fora de combate (intervalo real + quanto avança) agora vem do
+  // setting mundial `calendarAutoTimeRate`; ver #startAutoTime e #configureTime (botão direito).
 
   /* -------------------------------------------- */
 
@@ -312,6 +302,7 @@ export default class CalendarHUD extends BaseCalendarHUD {
     await super._onRender(context, options);
     await this.renderCore();
     this.#attachPartyContextMenu();
+    this.#attachTimeConfigMenu();
   }
 
   /* -------------------------------------------- */
@@ -438,6 +429,126 @@ export default class CalendarHUD extends BaseCalendarHUD {
   /* -------------------------------------------- */
 
   /**
+   * Liga o clique com o botão direito no relógio (data/hora/mostrador) ao diálogo
+   * "Configurar Tempo". Só o GM configura (settings de mundo). A "core" part não
+   * re-renderiza (ver _configureRenderOptions), então guarda-se um marcador no dataset
+   * para não empilhar listeners a cada render das outras partes.
+   */
+  #attachTimeConfigMenu() {
+    if ( !game.user.isGM ) return;
+    const core = this.element?.querySelector(".calendar-core");
+    if ( !core || core.dataset.timeMenuBound ) return;
+    core.dataset.timeMenuBound = "1";
+    core.addEventListener("contextmenu", event => {
+      event.preventDefault();
+      this.#configureTime();
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Diálogo "Configurar Tempo": ritmo do relógio em combate (segundos por rodada →
+   * CONFIG.time.roundTime) e fora de combate (intervalo real + quanto avança por tick →
+   * setting `calendarAutoTimeRate`), com uma dica de velocidade ao vivo.
+   */
+  async #configureTime() {
+    if ( !game.user.isGM ) return;
+    const UNIT_SEC = { second: 1, minute: 60, hour: 3600 };
+    const UNIT_LABEL = { second: "segundos", minute: "minutos", hour: "horas" };
+    const unitOptions = sel => Object.entries(UNIT_LABEL)
+      .map(([v, l]) => `<option value="${v}" ${v === sel ? "selected" : ""}>${l}</option>`).join("");
+    const toAmountUnit = sec => {
+      sec = Math.max(0, Math.round(Number(sec) || 0));
+      if ( sec && (sec % 3600 === 0) ) return { amount: sec / 3600, unit: "hour" };
+      if ( sec && (sec % 60 === 0) ) return { amount: sec / 60, unit: "minute" };
+      return { amount: sec, unit: "second" };
+    };
+    const fmtSpeed = (gameSecPerTick, intervalSec) => {
+      const s = gameSecPerTick / Math.max(1, intervalSec);
+      if ( !isFinite(s) || (s <= 0) ) return "tempo parado";
+      if ( Math.abs(s - 1) < 0.001 ) return "= tempo real (1×)";
+      const factor = s > 1 ? s : 1 / s;
+      const num = Number.isInteger(factor) ? factor : factor.toFixed(1);
+      return s > 1 ? `≈ ${num}× o tempo real` : `≈ ${num}× mais devagar que o real`;
+    };
+
+    const rate = game.settings.get("hunter-system", "calendarAutoTimeRate") ?? {};
+    const roundSec = Number(game.settings.get("hunter-system", "calendarCombatRoundSeconds")) || 6;
+    const combat = toAmountUnit(roundSec);
+    const oocInterval = Math.max(1, Number(rate.intervalSeconds) || 10);
+    const oocAmount = Math.max(0, Number(rate.amount ?? 5));
+    const oocUnit = UNIT_SEC[rate.unit] ? rate.unit : "minute";
+
+    const content = `
+      <div class="hxh-time-config" style="display:flex; flex-direction:column; gap:16px; padding:4px 2px 2px;">
+        <section style="display:flex; flex-direction:column; gap:6px;">
+          <b style="color:#e3b53c;"><i class="fa-solid fa-khanda" inert></i> Em combate</b>
+          <label style="display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap;">
+            Cada rodada avança
+            <input type="number" name="combatAmount" value="${combat.amount}" min="0" step="1" style="width:70px;">
+            <select name="combatUnit">${unitOptions(combat.unit)}</select>
+          </label>
+        </section>
+        <section style="display:flex; flex-direction:column; gap:6px;">
+          <b style="color:#e3b53c;"><i class="fa-solid fa-clock" inert></i> Fora de combate <span style="opacity:.6; font-weight:400;">(tempo automático&nbsp;▶)</span></b>
+          <label style="display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap;">
+            A cada
+            <input type="number" name="oocInterval" value="${oocInterval}" min="1" step="1" style="width:64px;"> segundos reais, avançar
+            <input type="number" name="oocAmount" value="${oocAmount}" min="0" step="1" style="width:64px;">
+            <select name="oocUnit">${unitOptions(oocUnit)}</select>
+          </label>
+          <div class="hxh-time-speed" style="font-size:12px; color:#9fd39f;">${fmtSpeed(oocAmount * UNIT_SEC[oocUnit], oocInterval)}</div>
+        </section>
+      </div>`;
+
+    const result = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Configurar Tempo", icon: "fa-solid fa-hourglass-half" },
+      content,
+      render: (event, dialog) => {
+        const root = dialog.element;
+        const speedEl = root.querySelector(".hxh-time-speed");
+        const update = () => {
+          const a = Number(root.querySelector("[name=oocAmount]")?.value) || 0;
+          const u = root.querySelector("[name=oocUnit]")?.value || "minute";
+          const iv = Number(root.querySelector("[name=oocInterval]")?.value) || 1;
+          if ( speedEl ) speedEl.textContent = fmtSpeed(a * (UNIT_SEC[u] || 1), iv);
+        };
+        root.querySelectorAll("[name=oocAmount], [name=oocUnit], [name=oocInterval]")
+          .forEach(el => el.addEventListener("input", update));
+      },
+      buttons: [
+        {
+          action: "save", label: "Salvar", icon: "fa-solid fa-check", default: true,
+          callback: (event, button, dialog) => {
+            const root = dialog.element;
+            const val = sel => Number(root.querySelector(sel)?.value) || 0;
+            const combatUnit = root.querySelector("[name=combatUnit]").value;
+            return {
+              roundSeconds: Math.max(0, val("[name=combatAmount]")) * (UNIT_SEC[combatUnit] || 1),
+              rate: {
+                intervalSeconds: Math.max(1, val("[name=oocInterval]") || 10),
+                amount: Math.max(0, val("[name=oocAmount]")),
+                unit: root.querySelector("[name=oocUnit]").value
+              }
+            };
+          }
+        },
+        { action: "cancel", label: "Cancelar", icon: "fa-solid fa-xmark" }
+      ],
+      rejectClose: false,
+      close: () => null
+    });
+    if ( !result ) return;
+
+    await game.settings.set("hunter-system", "calendarCombatRoundSeconds", Math.max(0, Math.round(result.roundSeconds)));
+    await game.settings.set("hunter-system", "calendarAutoTimeRate", result.rate);
+    ui.notifications.info("Configuração de tempo salva.");
+  }
+
+  /* -------------------------------------------- */
+
+  /**
    * Handle opening the set date dialog.
    * @this {CalendarHUD}
    * @param {Event} event         Triggering click event.
@@ -504,15 +615,19 @@ export default class CalendarHUD extends BaseCalendarHUD {
    */
   #startAutoTime() {
     if ( this.#autoTimeIntervalId !== null ) return;
+    const rate = game.settings.get("hunter-system", "calendarAutoTimeRate") ?? {};
+    const intervalMs = Math.max(1000, (Number(rate.intervalSeconds) || 10) * 1000);
+    const amount = Math.max(0, Number(rate.amount ?? 5));
+    const unit = ["second", "minute", "hour", "day"].includes(rate.unit) ? rate.unit : "minute";
     this.#autoTimeIntervalId = window.setInterval(() => {
-      if ( game.paused ) return;
+      if ( game.paused || (amount <= 0) ) return;
       try {
-        game.time.advance({ minute: CalendarHUD.AUTO_TIME_MINUTES_PER_TICK });
+        game.time.advance({ [unit]: amount });
       } catch(err) {
         console.error("Hunter | Erro ao avançar o tempo automaticamente:", err);
         this.#stopAutoTime();
       }
-    }, CalendarHUD.AUTO_TIME_INTERVAL_MS);
+    }, intervalMs);
   }
 
   /* -------------------------------------------- */
@@ -525,6 +640,17 @@ export default class CalendarHUD extends BaseCalendarHUD {
       window.clearInterval(this.#autoTimeIntervalId);
       this.#autoTimeIntervalId = null;
     }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Reinicia o intervalo de auto-tempo com o ritmo atual — chamado pelo onChange do setting
+   * `calendarAutoTimeRate` para que a mudança de ritmo valha na hora (sem religar o play).
+   */
+  _resyncAutoTime() {
+    this.#stopAutoTime();
+    this._syncAutoTimeState();
   }
 
   /* -------------------------------------------- */
@@ -554,6 +680,16 @@ export default class CalendarHUD extends BaseCalendarHUD {
 // Pausar/despausar o jogo muda o estado visual do botão de auto-tempo (o intervalo em si
 // já ignora ticks com o jogo pausado; aqui só refletimos isso no botão).
 Hooks.on("pauseGame", () => dnd5e.ui.calendar?._syncAutoTimeState?.());
+
+/* -------------------------------------------- */
+
+// Aplica os segundos-por-rodada configurados ao motor de combate do Foundry no início da
+// sessão (o onChange do setting cobre mudanças em tempo real). dnd5e.mjs seta um padrão (6)
+// durante o init; aqui, já com os settings disponíveis, aplicamos o valor salvo do mundo.
+Hooks.once("ready", () => {
+  const sec = Number(game.settings.get("hunter-system", "calendarCombatRoundSeconds"));
+  if ( Number.isFinite(sec) && (sec >= 0) ) CONFIG.time.roundTime = sec;
+});
 
 /* -------------------------------------------- */
 

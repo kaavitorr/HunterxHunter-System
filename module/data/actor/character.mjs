@@ -84,7 +84,10 @@ export default class CharacterData extends CreatureTemplate {
         inspiration: new BooleanField({ required: true, label: "DND5E.Inspiration" }),
         // Pontos de Vitalidade (PVE): PV da espécie + mod. de Constituição (max derivado).
         pve: new SchemaField({
-          value: new NumberField({ required: true, nullable: true, integer: true, min: 0, initial: null })
+          value: new NumberField({ required: true, nullable: true, integer: true, min: 0, initial: null }),
+          // max fica no schema (mesmo sendo derivado) pro Foundry reconhecer pve como "bar" de token.
+          max: new NumberField({ required: true, nullable: true, integer: true, min: 0, initial: null }),
+          temp: new NumberField({ required: true, integer: true, min: 0, initial: 0, label: "DND5E.HitPointsTemp" })
         }, { label: "Pontos de Vitalidade" }),
         // Aura ativa (botão). Em zetsu/esgotada, a Vitalidade prevalece sobre a Vida.
         auraActive: new BooleanField({ required: true, initial: true, label: "Aura Ativa" })

@@ -6,6 +6,8 @@ import CompendiumBrowser from "../compendium-browser.mjs";
 import ContextMenu5e from "../context-menu.mjs";
 import BaseActorSheet from "./api/base-actor-sheet.mjs";
 import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, prepareTrainings, canUnlockAbility, MANIPULATION_ABILITIES, PRINCIPLES_DATA, getAvailableTrainingPoints } from "../../systems/manipulation-data.mjs";
+import { CAMINHO_OBJETIVOS, CAMINHO_MEIOS, getCaminho } from "../../systems/caminhos.mjs";
+import { getBioTalentos, getBioDefeitos, isDefeitoItem, norm as bioNorm } from "../../systems/bio-items.mjs";
 import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory, getUnlockedMinorAbilities, getAvailableMajorAbilities, NEN_HYBRIDS, NEN_HYBRID_OPTIONS_BY_PRIMARY, getHybridSecondary } from "../../systems/nen-categories-data.mjs";
 import Item5e from "../../documents/item.mjs";
 import * as Trait from "../../documents/actor/trait.mjs";
@@ -359,9 +361,9 @@ export default class CharacterActorSheet extends BaseActorSheet {
       value: await TextEditor.enrichHTML(this.actor.system.details.biography.value, enrichmentOptions)
     };
 
-    // Characteristics
+    // Characteristics (Alinhamento e Fé removidos a pedido)
     context.characteristics = [
-      "alignment", "eyes", "height", "faith", "hair", "weight", "gender", "skin", "age"
+      "eyes", "height", "hair", "weight", "gender", "skin", "age"
     ].map(k => {
       const field = this.actor.system.schema.fields.details.fields[k];
       const name = `system.details.${k}`;
@@ -371,6 +373,44 @@ export default class CharacterActorSheet extends BaseActorSheet {
         source: foundry.utils.getProperty(this.actor._source, name) ?? ""
       };
     });
+
+    // Personalização: Caminho (Objetivo × Meio) — mesmo framework do OPRPG.
+    const cam = this.actor.getFlag("hunter-system", "caminho") ?? {};
+    context.personalizacao = {
+      objetivos: CAMINHO_OBJETIVOS.map(o => ({ ...o, selected: o.id === cam.objetivo })),
+      meios: CAMINHO_MEIOS.map(m => ({ ...m, selected: m.id === cam.meio })),
+      caminho: getCaminho(cam.objetivo, cam.meio)
+    };
+
+    // Talentos & Defeitos da Biografia — seletor lê do compêndio; guarda como itens (feat).
+    const [availTal, availDef] = await Promise.all([getBioTalentos(), getBioDefeitos()]);
+    const bioFeats = this.actor.items.filter(i => i.type === "feat");
+    const talNames = new Set(availTal.map(t => bioNorm(t.name)));
+    const selDef = bioFeats.filter(i => isDefeitoItem(i));
+    // Talento tagueado sempre; casamento por nome só p/ feats que NÃO vieram de advancement
+    // (evita listar como talento — deletável — um feat concedido por classe/avanço).
+    // Ler advancementOrigin por acesso direto aos flags: getFlag("HunterLegacy", …) LANÇA
+    // (scope não é um pacote ativo, só um namespace de manifest). O valor é gravado em
+    // flags.HunterLegacy (advancement/criação) ou flags.dnd5e (upstream), conforme a origem.
+    const fromAdvancement = i => !!(foundry.utils.getProperty(i, "flags.HunterLegacy.advancementOrigin")
+      || foundry.utils.getProperty(i, "flags.dnd5e.advancementOrigin")
+      || foundry.utils.getProperty(i, "flags.hunter-system.advancementOrigin"));
+    const selTal = bioFeats.filter(i => !isDefeitoItem(i) && (
+      i.getFlag("hunter-system", "bioKind") === "talento"
+      || (talNames.has(bioNorm(i.name)) && !fromAdvancement(i))
+    ));
+    const ownedNames = new Set([...selTal, ...selDef].map(i => bioNorm(i.name)));
+    context.bioChoices = {
+      talentos: {
+        avail: availTal.filter(t => !ownedNames.has(bioNorm(t.name))),
+        selected: selTal.map(i => ({ id: i.id, name: i.name, img: i.img }))
+      },
+      defeitos: {
+        avail: availDef.filter(d => !ownedNames.has(bioNorm(d.name))),
+        selected: selDef.map(i => ({ id: i.id, name: i.name, img: i.img,
+          pts: Number((i.name.match(/(\d+)\s*ponto/i) ?? [])[1]) || null }))
+      }
+    };
 
     return context;
   }
@@ -1206,66 +1246,18 @@ new foundry.applications.ux.ContextMenu.implementation(
       }
     }, 150);
 
-    // Rodas dos Princípios: posiciona habilidades no anel + raios SVG, e abre/fecha no clique.
-    this.element.querySelectorAll(".nen-wheel").forEach(wheel => {
-      const orbits = [...wheel.querySelectorAll(".nen-orbit")];
-      const svg = wheel.querySelector(".nen-wheel-svg");
-      const n = orbits.length;
-      let lines = "";
-      const R = 38; // raio em %
-      orbits.forEach((o, i) => {
-        const ang = (-90 + i * (360 / n)) * Math.PI / 180;
-        const x = 50 + R * Math.cos(ang);
-        const y = 50 + R * Math.sin(ang);
-        o.style.left = `${x.toFixed(2)}%`;
-        o.style.top = `${y.toFixed(2)}%`;
-        lines += `<line x1="50" y1="50" x2="${x.toFixed(2)}" y2="${y.toFixed(2)}" class="${o.classList.contains("is-unlocked") ? "on" : ""}"></line>`;
-      });
-      if ( svg ) svg.innerHTML = lines;
+    // Rodas dos Princípios de Nen (anel/raios + abrir no clique). Compartilhado com o NPC.
+    setupNenWheels(this.element);
 
-      const hub = wheel.querySelector(".nen-hub[data-wheel-toggle]");
-      if ( hub && !hub.dataset.bound ) {
-        hub.dataset.bound = "1";
-        hub.addEventListener("click", e => {
-          if ( e.target.closest("[data-action]") ) return; // mini desbloquear/desfazer do princípio
-          e.preventDefault();
-          wheel.classList.toggle("is-open");
-        });
-      }
-      // Já desbloqueado (ou com habilidade desbloqueada) → começa aberto.
-      if ( wheel.classList.contains("pr-on") || orbits.some(o => o.classList.contains("is-unlocked")) ) {
-        wheel.classList.add("is-open");
-      }
-    });
-
-    // Grade de princípios (2 colunas travadas): clique e arraste para revelar rodas fora da largura visível.
-    this.element.querySelectorAll(".nen-wheel-grid").forEach(grid => {
-      if ( grid.dataset.dragBound ) return;
-      grid.dataset.dragBound = "1";
-      let startX = 0, startScroll = 0, moved = false;
-
-      const onMove = e => {
-        const dx = e.pageX - startX;
-        if ( Math.abs(dx) > 4 ) moved = true;
-        grid.scrollLeft = startScroll - dx;
-      };
-      const onUp = () => {
-        document.removeEventListener("mousemove", onMove);
-        document.removeEventListener("mouseup", onUp);
-        grid.classList.remove("is-dragging");
-        if ( moved ) {
-          // Suprime o clique gerado ao soltar, para não acionar a roda/habilidade por baixo do arraste.
-          grid.addEventListener("click", ev => { ev.stopPropagation(); ev.preventDefault(); }, { capture: true, once: true });
-        }
-      };
-      grid.addEventListener("mousedown", e => {
-        if ( e.button !== 0 ) return;
-        startX = e.pageX;
-        startScroll = grid.scrollLeft;
-        moved = false;
-        grid.classList.add("is-dragging");
-        document.addEventListener("mousemove", onMove);
-        document.addEventListener("mouseup", onUp);
+    // Seletor de Talentos/Defeitos (aba Biografia): escolher no dropdown adiciona o item.
+    this.element.querySelectorAll("select.hc-bio-select").forEach(sel => {
+      if ( sel.dataset.bound ) return;
+      sel.dataset.bound = "1";
+      sel.addEventListener("change", ev => {
+        const uuid = ev.currentTarget.value;
+        if ( !uuid ) return;
+        this._onAddBioItem(uuid, ev.currentTarget.dataset.kind);
+        ev.currentTarget.value = "";
       });
     });
 
@@ -3898,6 +3890,9 @@ new foundry.applications.ux.ContextMenu.implementation(
   if ( action === "undoIntensiveTraining" ) {
     return this._onUndoIntensiveTraining(target.dataset.field);
   }
+  if ( action === "removeBioItem" ) {
+    return this._onRemoveBioItem(target.dataset.itemId);
+  }
   if ( action === "toggleSection" ) {
     return this._onToggleSection(target.dataset.section);
   }
@@ -4035,6 +4030,39 @@ new foundry.applications.ux.ContextMenu.implementation(
 
   /* -------------------------------------------- */
 
+  /** Adiciona um talento/defeito do compêndio à ficha (seletor da aba Biografia).
+      Se o item tem advancement, roda o fluxo do dnd5e (aplica grants e pergunta escolhas). */
+  async _onAddBioItem(uuid, kind) {
+    if ( !uuid ) return;
+    try {
+      const doc = await fromUuid(uuid);
+      if ( !doc ) return ui.notifications.warn("Item não encontrado no compêndio.");
+      const obj = doc.toObject();
+      delete obj._id;
+      foundry.utils.setProperty(obj, "flags.hunter-system.bioKind", kind);
+
+      // Com advancement (proficiências, grants, escolhas) → abre o AdvancementManager, igual a
+      // arrastar o item pra ficha: aplica os grants e pergunta as escolhas. Sem advancement, o
+      // create direto já basta (os Active Effects vêm no toObject e são transferidos ao ator).
+      const hasAdv = (obj.system?.advancement?.length ?? 0) > 0;
+      if ( hasAdv && !game.settings.get("hunter-system", "disableAdvancements") ) {
+        const manager = AdvancementManager.forNewItem(this.actor, obj);
+        if ( manager.steps.length ) return manager.render({ force: true });
+      }
+      await this.actor.createEmbeddedDocuments("Item", [obj]);
+    } catch(err) {
+      console.error("HunterSheet | falha ao adicionar talento/defeito na Biografia:", err);
+      ui.notifications.error("Falha ao adicionar o item — veja o console (F12).");
+    }
+  }
+
+  /** Remove um talento/defeito da ficha (× no card do seletor da Biografia). */
+  async _onRemoveBioItem(itemId) {
+    await this.actor.items.get(itemId)?.delete();
+  }
+
+  /* -------------------------------------------- */
+
   /**
    * Abre o dialog de Treinamento Intenso para escolher a opção de melhoria.
    */
@@ -4092,6 +4120,12 @@ new foundry.applications.ux.ContextMenu.implementation(
             </label>
 
           </div>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:12px; color:#ccc;">
+            <span>Repetir este treino</span>
+            <input type="number" name="jj-training-times" value="1" min="1" max="99"
+                   style="width:64px; text-align:center; background:#0e0e1a; border:1px solid #2a2a40; border-radius:6px; color:#fff; padding:4px;">
+            <span style="color:#8080a0;">vez(es) — pra montar personagem de nível alto de uma vez</span>
+          </label>
           <p style="margin:10px 0 0; font-size:11px; color:#6060a0;">
             ⚠️ Treino de <em>PA Gerada</em> requer 10 dias de espera antes de repetir.
           </p>
@@ -4102,8 +4136,11 @@ new foundry.applications.ux.ContextMenu.implementation(
           action: "ok",
           default: true,
           callback: (event, button, dialog) => {
-            const selected = (dialog.element ?? document).querySelector("input[name='jj-training-choice']:checked");
-            return selected?.value ?? null;
+            const root = dialog.element ?? document;
+            const selected = root.querySelector("input[name='jj-training-choice']:checked");
+            if ( !selected ) return null;
+            const times = Math.max(1, Math.min(99, Math.floor(Number(root.querySelector("input[name='jj-training-times']")?.value) || 1)));
+            return { mode: selected.value, times };
           }
         },
         {
@@ -4117,31 +4154,35 @@ new foundry.applications.ux.ContextMenu.implementation(
     });
 
     if ( !choice ) return;
+    const { mode, times } = choice;
 
     const it2 = actor.system.energy?.intensiveTraining ?? {};
 
     const updates = {};
     let chatMsg = "";
 
-    if ( choice === "maxEnergy" ) {
+    if ( mode === "maxEnergy" ) {
       // intensiveTraining.maxEnergy é um CONTADOR de treinos — character.mjs faz (contador * 5)
-      const novoContador = (it2.maxEnergy ?? 0) + 1;
+      const novoContador = (it2.maxEnergy ?? 0) + times;
       updates["system.energy.intensiveTraining.maxEnergy"] = novoContador;
-      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>PA Máximo +5</strong> (${novoContador} treino(s) = +${novoContador * 5} PA Máx total de treino).`;
-    } else if ( choice === "generatedEnergy" ) {
-      if ( generatedAtLimit ) {
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou <strong>${times}</strong> Treinamento(s) Intenso(s)! <strong>PA Máximo +${5 * times}</strong> (${novoContador} treino(s) = +${novoContador * 5} PA Máx total de treino).`;
+    } else if ( mode === "generatedEnergy" ) {
+      // Contador com teto de 20 — aplica só o que couber.
+      const atual = it2.generatedEnergy ?? 0;
+      if ( atual >= 20 ) {
         ui.notifications.warn("Limite de treinos de PA Gerada atingido (20 vezes).");
         return;
       }
-      // intensiveTraining.generatedEnergy é um CONTADOR — EnergySystem soma direto ao bônus de geração
-      const novoContador = (it2.generatedEnergy ?? 0) + 1;
+      const novoContador = Math.min(20, atual + times);
+      const aplicados = novoContador - atual;
       updates["system.energy.intensiveTraining.generatedEnergy"] = novoContador;
-      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>PA Gerada +1</strong> por turno (treino ${novoContador}/20).`;
-    } else if ( choice === "cursePoints" ) {
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou <strong>${aplicados}</strong> Treinamento(s) Intenso(s)! <strong>PA Gerada +${aplicados}</strong> por turno (treino ${novoContador}/20).`;
+      if ( aplicados < times ) ui.notifications.warn(`Só ${aplicados} treino(s) de PA Gerada couberam (limite de 20).`);
+    } else if ( mode === "cursePoints" ) {
       const current = actor.system.curseResources?.cursePoints ?? 0;
-      updates["system.curseResources.cursePoints"] = current + 4;
-      updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 4;
-      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+4 Pontos de Nen</strong> (total: ${current + 4} PM).`;
+      updates["system.curseResources.cursePoints"] = current + 4 * times;
+      updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 4 * times;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou <strong>${times}</strong> Treinamento(s) Intenso(s)! <strong>+${4 * times} Pontos de Nen</strong> (total: ${current + 4 * times} PM).`;
     }
 
     await actor.update(updates);
@@ -4151,7 +4192,7 @@ new foundry.applications.ux.ContextMenu.implementation(
       content: chatMsg
     });
 
-    ui.notifications.info("Treinamento Intenso concluído!");
+    ui.notifications.info("Treinamento(s) Intenso(s) concluído(s)!");
   }
 
   /* -------------------------------------------- */
@@ -4748,26 +4789,36 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
   if ( meta.aura ) loss *= 2;
 
   const pve = actor.system.attributes.pve;
-  const cur = pve.value ?? pve.max ?? 0;
-  const newPve = Math.max(0, cur - loss);
-  const lost = cur - newPve;
-  if ( lost <= 0 ) {
+  if ( (pve.value ?? 0) <= 0 && (pve.temp ?? 0) <= 0 ) {
     ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `🌀 <strong>${actor.name}</strong>: Vitalidade já está em 0.` });
     return;
   }
 
-  const updates = { "system.attributes.pve.value": newPve };
-  const partes = [`perdeu <strong>${lost}</strong> Ponto(s) de Vitalidade`];
-  // Acoplamento 15:1 só no ZETSU deliberado (não na aura esgotada).
-  const inZetsu = actor.system.attributes.auraActive === false;
-  if ( inZetsu ) {
-    const hp = actor.system.attributes.hp;
-    const hpSrc = actor.system._source.attributes.hp;
-    const drop = PVE_HP_RATIO * lost;
-    updates["system.attributes.hp.value"] = Math.max(0, (hp.value ?? 0) - drop);
-    updates["system.attributes.hp.tempmax"] = (hpSrc.tempmax ?? 0) - drop;
-    partes.push(`−${drop} PV (atuais e máximos)`);
+  const updates = {};
+  const partes = [];
+  let restante = loss;
+
+  // 1. Consumir Vitalidade temporária primeiro (mesma regra do PV temporário).
+  const tempAtual = pve.temp ?? 0;
+  if ( tempAtual > 0 && restante > 0 ) {
+    const consumido = Math.min(tempAtual, restante);
+    restante -= consumido;
+    updates["system.attributes.pve.temp"] = tempAtual - consumido;
+    partes.push(`Vitalidade temporária absorveu <strong>${consumido}</strong>`);
   }
+
+  // 2. Aplicar o restante na Vitalidade normal.
+  let realLost = 0;
+  if ( restante > 0 ) {
+    const cur = pve.value ?? pve.max ?? 0;
+    const newPve = Math.max(0, cur - restante);
+    realLost = cur - newPve;
+    updates["system.attributes.pve.value"] = newPve;
+    partes.push(`perdeu <strong>${realLost}</strong> Ponto(s) de Vitalidade`);
+  }
+
+  // (REMOVIDO a pedido) Acoplamento 15:1 — perder Vitalidade não reduz mais a Vida.
+  // Regra a ser refeita depois; `realLost` e PVE_HP_RATIO ficam disponíveis pra isso.
 
   await actor.update(updates);
   ChatMessage.create({
@@ -4775,6 +4826,38 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
     content: `🌀 <strong>${actor.name}</strong> (Vitalidade): ${partes.join("; ")}.`
   });
 }
+
+/* ============================================================
+ * "Aplicar Dano" padrão (card do dnd5e / token selecionado) →
+ * passa pela MESMA lógica Hunter em camadas (_applyLayeredDamageToActor),
+ * incluindo a regra de Vitalidade quando a aura está desligada.
+ * ============================================================ */
+(function _routeVanillaDamageThroughHunterLayers() {
+  // Guarda os tipos de dano da aplicação corrente (pra detectar "Verdadeiro"/force).
+  const _pendingTypes = new WeakMap();
+
+  Hooks.on("dnd5e.preCalculateDamage", (actor, damages) => {
+    try { _pendingTypes.set(actor, new Set((damages ?? []).map(d => d.type).filter(Boolean))); }
+    catch(e) { /* ignore */ }
+    return true;
+  });
+
+  Hooks.on("dnd5e.preApplyDamage", (actor, amount, updates, options) => {
+    if ( actor?.type !== "character" ) return true;                 // NPCs: fluxo padrão (Vida)
+    if ( !(amount > 0) ) return true;                                // cura / temp / zero: padrão
+    // Só intercepta dano vindo de um CARD (não edições manuais da barra do token).
+    if ( !options?.originatingMessage && !options?.origin ) return true;
+
+    const types = _pendingTypes.get(actor);
+    _pendingTypes.delete(actor);
+    const soVerdadeiro = !!types && types.size > 0 && [...types].every(t => t === "force");
+
+    // Aplica pelo sistema Hunter (Explosão Defensiva, Redução, Armadura, PV temp/PV,
+    // e Vitalidade quando a aura está desligada) e cancela o update padrão de HP.
+    _applyLayeredDamageToActor(actor, amount, { soVerdadeiro, cardMeta: null });
+    return false;
+  });
+})();
 
 (function _registerJujutsuChatCard() {
 
@@ -5052,7 +5135,7 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
   }
 
   // ── LISTENERS DO CHAT ────────────────────────────────────────────────────────
-  Hooks.on("renderChatMessage", (message, html) => {
+  Hooks.on("renderChatMessageHTML", (message, html) => {
     const root = html instanceof HTMLElement ? html : html[0];
     if ( !root ) return;
     const card = root.querySelector(".jujutsu-card:not(.jj-extra-card)");
@@ -5774,7 +5857,7 @@ function _buildBreakdown(roll) {
   }
 
   // ── LISTENERS ────────────────────────────────────────────────────────────────
-  Hooks.on("renderChatMessage", (message, html) => {
+  Hooks.on("renderChatMessageHTML", (message, html) => {
     const root = html instanceof HTMLElement ? html : html[0];
     if ( !root ) return;
     const card = root.querySelector(".jj-extra-card");
@@ -6896,6 +6979,80 @@ if ( !document.querySelector("#jj-expdef-style") ) {
     }
   `;
   document.head.appendChild(style);
+}
+
+/* ============================================================
+ * RODAS DOS PRINCÍPIOS DE NEN (compartilhado personagem + NPC)
+ * ============================================================ */
+
+/**
+ * Posiciona as habilidades no anel de cada princípio (+ raios SVG) e liga o abrir/fechar
+ * da roda no clique do hub. Usado pela ficha de personagem E pela de NPC (mesmo template).
+ * @param {HTMLElement} root  Elemento raiz da ficha.
+ */
+export function setupNenWheels(root) {
+  if ( !root ) return;
+  root.querySelectorAll(".nen-wheel").forEach(wheel => {
+    const orbits = [...wheel.querySelectorAll(".nen-orbit")];
+    const svg = wheel.querySelector(".nen-wheel-svg");
+    const n = orbits.length;
+    let lines = "";
+    const R = 38; // raio em %
+    orbits.forEach((o, i) => {
+      const ang = (-90 + i * (360 / n)) * Math.PI / 180;
+      const x = 50 + R * Math.cos(ang);
+      const y = 50 + R * Math.sin(ang);
+      o.style.left = `${x.toFixed(2)}%`;
+      o.style.top = `${y.toFixed(2)}%`;
+      lines += `<line x1="50" y1="50" x2="${x.toFixed(2)}" y2="${y.toFixed(2)}" class="${o.classList.contains("is-unlocked") ? "on" : ""}"></line>`;
+    });
+    if ( svg ) svg.innerHTML = lines;
+
+    const hub = wheel.querySelector(".nen-hub[data-wheel-toggle]");
+    if ( hub && !hub.dataset.bound ) {
+      hub.dataset.bound = "1";
+      hub.addEventListener("click", e => {
+        if ( e.target.closest("[data-action]") ) return; // mini desbloquear/desfazer do princípio
+        e.preventDefault();
+        wheel.classList.toggle("is-open");
+      });
+    }
+    // Já desbloqueado (ou com habilidade desbloqueada) → começa aberto.
+    if ( wheel.classList.contains("pr-on") || orbits.some(o => o.classList.contains("is-unlocked")) ) {
+      wheel.classList.add("is-open");
+    }
+  });
+
+  // Grade de princípios (2 colunas travadas): clique e arraste para revelar rodas fora da largura visível.
+  root.querySelectorAll(".nen-wheel-grid").forEach(grid => {
+    if ( grid.dataset.dragBound ) return;
+    grid.dataset.dragBound = "1";
+    let startX = 0, startScroll = 0, moved = false;
+
+    const onMove = e => {
+      const dx = e.pageX - startX;
+      if ( Math.abs(dx) > 4 ) moved = true;
+      grid.scrollLeft = startScroll - dx;
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      grid.classList.remove("is-dragging");
+      if ( moved ) {
+        // Suprime o clique gerado ao soltar, para não acionar a roda/habilidade por baixo do arraste.
+        grid.addEventListener("click", ev => { ev.stopPropagation(); ev.preventDefault(); }, { capture: true, once: true });
+      }
+    };
+    grid.addEventListener("mousedown", e => {
+      if ( e.button !== 0 ) return;
+      startX = e.pageX;
+      startScroll = grid.scrollLeft;
+      moved = false;
+      grid.classList.add("is-dragging");
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
+  });
 }
 
 /* ============================================================
