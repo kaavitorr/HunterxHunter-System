@@ -102,7 +102,10 @@ Mantém `requires: hunter-economia`. Mantém os **registros legados** dos settin
 
 - Movem de escopo `hunter-jornal` → `hunter-celular`: world settings `posts`, `zap`, `site`,
   `siteFamilias`, `fama`, `caridade`; flags de usuário `wallpaper`, `zapVisto`, `perfilVisto`,
-  `jornalVisto`, `plantaoVisto`, `diarioId`, `gmComo`.
+  `jornalVisto`, `plantaoVisto`, `diarioId`, `gmComo`, `fones`, `fonesVol`, `jogos` (recordes);
+  e o **extrato de Yen** (flag de ATOR `flags.hunter-jornal.extrato` → copiado por ator, na
+  mesma passada do GM ativo). Journals de dossiê antigos guardam `siteInfoId` no escopo do
+  jornal — a leitura aceita os dois escopos.
 - **World**: no `ready`, o **GM ativo** copia os 6 settings se `hunter-celular.migradoDoJornal`
   for false e o jornal estiver ativo; marca o guard ao final. Originais permanecem no jornal.
 - **Flags**: cada cliente copia as próprias flags (por flag: copia se a nova está `undefined`
