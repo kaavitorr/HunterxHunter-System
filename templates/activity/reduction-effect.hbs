@@ -7,6 +7,16 @@
             Fórmula do escudo de redução — pode ser dado ou valor fixo (ex: <code>2d6+3</code> ou <code>5</code>).
             Ao usar, você confirma/ajusta este valor e escolhe se vale para um único ataque ou até o início do próximo turno.
         </p>
+        <label class="checkbox" style="margin-top:6px;">
+            {{ formInput fields.reduction.fields.constant value=source.reduction.constant
+                         input=@root.inputs.createCheckboxInput }}
+            Redução Constante <i class="fas fa-shield-halved" inert></i>
+        </label>
+        <p class="hint">
+            Marcada: a técnica fica <strong>ativa</strong> ao usar (aparece no HUD de combate) e reduz
+            <strong>todo dano sofrido</strong> pela fórmula acima, rolada a cada golpe — em vez do escudo de uso único.
+            Combine com o <strong>Custo Constante</strong> abaixo se ela deve custar PA por turno.
+        </p>
     </fieldset>
     {{> "systems/hunter-system/templates/activity/parts/jj-scale.hbs" }}
     {{> "systems/hunter-system/templates/activity/parts/constant-cost.hbs" }}

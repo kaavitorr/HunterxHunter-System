@@ -189,6 +189,76 @@
     </section>
     {{/if}}
 
+    {{#if isAgua}}
+    <section class="hc-step-pane hc-agua">
+      <h2 class="hc-agua__titulo">ÁGUA DA ADIVINHAÇÃO</h2>
+      <p class="hc-agua__lore">
+        Um copo cheio até a borda. Uma folha flutuando no centro.
+        {{#if agua.nome}}<b>{{agua.nome}}</b>, coloque{{else}}Coloque{{/if}} as mãos ao redor do copo e use <b>Ren</b> —
+        sua aura vai tocar a água, e a água vai contar quem você é.
+      </p>
+
+      <div class="hc-agua__copo {{#if agua.reveladaId}}is-revelada is-{{agua.reveladaId}}{{/if}}">
+        <div class="hc-agua__vidro">
+          <div class="hc-agua__liquido">
+            <span class="hc-agua__superficie"></span>
+            <span class="hc-agua__bolha b1"></span><span class="hc-agua__bolha b2"></span><span class="hc-agua__bolha b3"></span>
+            <span class="hc-agua__impureza i1"></span><span class="hc-agua__impureza i2"></span><span class="hc-agua__impureza i3"></span>
+          </div>
+          <span class="hc-agua__gota g1"></span><span class="hc-agua__gota g2"></span>
+          <span class="hc-agua__folha">🍃</span>
+        </div>
+      </div>
+
+      {{#if agua.revelada}}
+      <div class="hc-agua__veredito" style="--cor:{{agua.revelada.color}}">
+        <span class="hc-agua__kanji">{{agua.revelada.kanji}}</span>
+        <div class="hc-agua__veredito-txt">
+          <b>{{agua.revelada.texto}}</b>
+          <p>A água respondeu: você é um <b>{{agua.revelada.label}}</b>.</p>
+        </div>
+      </div>
+      {{else}}
+      <p class="hc-agua__cta">Aponte a categoria combinada com o Narrador — ou deixe a água decidir.</p>
+      {{/if}}
+
+      <div class="hc-agua__reacoes">
+        {{#each agua.reacoes}}
+        <button type="button"
+                class="hc-agua__reacao {{#if escolhida}}is-escolhida{{/if}} {{#if foiRevelada}}is-revelada{{/if}} {{#if apagada}}is-apagada{{/if}}"
+                style="--cor:{{color}}" data-action="aguaEscolher" data-categoria="{{id}}">
+          <span class="hc-agua__kanji">{{kanji}}</span>
+          <div class="hc-agua__reacao-txt">
+            <b>{{label}}</b>
+            <p>{{texto}}</p>
+          </div>
+        </button>
+        {{/each}}
+        {{#unless agua.reveladaId}}
+        <button type="button"
+                class="hc-agua__reacao hc-agua__reacao--sorte {{#if agua.aleatorioEscolhido}}is-escolhida{{/if}}"
+                style="--cor:#d8c390" data-action="aguaEscolher" data-categoria="aleatorio">
+          <span class="hc-agua__kanji"><i class="fas fa-dice" inert></i></span>
+          <div class="hc-agua__reacao-txt">
+            <b>Deixar a água decidir</b>
+            <p>A categoria é sorteada no momento da reação.</p>
+          </div>
+        </button>
+        {{/unless}}
+      </div>
+
+      {{#if agua.reveladaId}}
+      <button type="button" class="hc-agua__btn" data-action="next">
+        <i class="fa-solid fa-arrow-right" inert></i> CONTINUAR
+      </button>
+      {{else}}
+      <button type="button" class="hc-agua__btn {{#unless agua.escolhaFeita}}is-quieto{{/unless}}" data-action="aguaObservar">
+        <i class="fa-solid fa-droplet" inert></i> OBSERVAR A REAÇÃO
+      </button>
+      {{/if}}
+    </section>
+    {{/if}}
+
     {{#if isCategory}}
     <section class="hc-step-pane hc-species3 flexrow">
       <menu class="hc-option-menu">
@@ -312,18 +382,7 @@
         {{#if hb.available}}
         <div class="hc-cat-skill-picker hc-hb-block">
           <h4 class="hc-cat-skill-title">Habilidades Básicas</h4>
-          {{#if hb.showRestricted}}
-          <p class="hc-hb-label">Escolha 1:</p>
-          <div class="hc-trait-grid hc-hb-grid">
-            {{#each hb.restricted as |h|}}
-            <button type="button" class="hc-trait {{#if h.selected}}is-selected{{/if}}"
-                    data-action="chooseHBRestricted" data-hb-id="{{h.id}}" data-tip-uuid="{{h.uuid}}" title="{{h.name}}">
-              {{#if h.img}}<img src="{{h.img}}" alt="{{h.name}}">{{/if}}<span>{{h.name}}</span>
-            </button>
-            {{/each}}
-          </div>
-          {{/if}}
-          <p class="hc-hb-label">{{#if hb.showRestricted}}Mais 1 à sua escolha{{else}}Escolha 1 à sua escolha{{/if}} — {{hb.freeCount}}/{{hb.freeLimit}}:</p>
+          <p class="hc-hb-label">Escolha {{hb.freeLimit}} à sua escolha — {{hb.freeCount}}/{{hb.freeLimit}}:</p>
           <div class="hc-trait-grid hc-hb-grid hc-talent-grid">
             {{#each hb.free as |h|}}
             <button type="button" class="hc-trait {{#if h.selected}}is-selected{{/if}}"
@@ -571,7 +630,7 @@
           <h3 class="hc-guide-title">Defeitos — {{defeitoCount}}/{{defeitoMax}} · {{defeitoPoints}} ponto(s) · libera {{customTalentSlots}} talento(s)</h3>
           {{#unless defeitoHasAny}}<p class="hc-detail-empty">Nenhum defeito encontrado no compêndio.</p>{{/unless}}
           {{#each defeitoGroups as |g|}}
-          <h4 class="hc-trait-grouptitle">Defeitos de {{g.points}} ponto(s)</h4>
+          <h4 class="hc-trait-grouptitle">{{g.label}}</h4>
           <div class="hc-trait-grid hc-talent-grid">
             {{#each g.items as |d|}}
             <button type="button" class="hc-trait {{#if d.selected}}is-selected{{/if}}"
@@ -587,15 +646,30 @@
         <div class="hc-custom-talents">
           <h3 class="hc-guide-title">Talentos — {{customTalentUsed}}/{{customTalentSlots}} ({{customTalentLeft}} restante(s))</h3>
           {{#if customTalentSlots}}
-          <div class="hc-trait-grid hc-talent-grid">
-            {{#each customTalents as |t|}}
-            <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
-                    data-action="toggleCustomTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}"
-                    {{#if t.disabled}}disabled{{/if}}>
-              {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
-            </button>
+            {{#each talentGroups as |g|}}
+            <h4 class="hc-trait-grouptitle">{{g.label}}</h4>
+            <div class="hc-trait-grid hc-talent-grid">
+              {{#each g.items as |t|}}
+              <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
+                      data-action="toggleCustomTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}"
+                      {{#if t.disabled}}disabled{{/if}}>
+                {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+              </button>
+              {{/each}}
+            </div>
             {{/each}}
-          </div>
+            {{#if talentEspeciais.length}}
+            <h4 class="hc-trait-grouptitle hc-trait-grouptitle--especial"><i class="fas fa-star" inert></i> Talentos Especiais</h4>
+            <div class="hc-trait-grid hc-talent-grid">
+              {{#each talentEspeciais as |t|}}
+              <button type="button" class="hc-trait {{#if t.selected}}is-selected{{/if}}"
+                      data-action="toggleCustomTalent" data-talent-id="{{t.id}}" data-tip-uuid="{{t.uuid}}" title="{{t.name}}"
+                      {{#if t.disabled}}disabled{{/if}}>
+                {{#if t.img}}<img src="{{t.img}}" alt="{{t.name}}">{{/if}}<span>{{t.name}}</span>
+              </button>
+              {{/each}}
+            </div>
+            {{/if}}
           {{else}}
           <p class="hc-detail-empty">Pegue defeitos (2 pontos = 1 talento) para liberar talentos.</p>
           {{/if}}

@@ -32,6 +32,8 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       name: startName,
       category: "",          // "" = Sem Categoria (padrão); guarda a categoria PLANEJADA (aplica no nv2)
       randomCategory: false, // true = categoria aleatória definida no nv2
+      aguaEscolha: null,     // Água da Adivinhação: categoria apontada ("aleatorio" = a água decide)
+      aguaRevelada: null,    // Água da Adivinhação: categoria que o copo revelou (null até observar)
       attrMethod: null,      // "standard" | "roll"
       rolledValues: null,    // 6 valores (array padrão ou rolagens 4d6kh3) ou null
       abilities: { str: null, dex: null, con: null, int: null, wis: null, cha: null }, // ability → índice no pool
@@ -46,25 +48,30 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       combatMethods: [],     // métodos de combate escolhidos (ids, máx 3)
       combatFocus: null,     // método em destaque (preview do texto + técnica)
       primaryAbility: null,  // atributo principal escolhido (para a categoria/técnicas)
-      hbRestricted: null,    // HB obrigatória (Corpo de Lutador | Proficiência Avançada) — nível 1
-      hbFree: [],            // HB(s) à escolha livre
+      hbFree: [],            // Habilidades Básicas à escolha livre (nível 1: 2; nível 2 REFAZ tudo: 3)
       semSaves: [],          // Sem Categoria: 2 salvaguardas à escolha
       semTalent: null,       // Sem Categoria: 1 talento à escolha
       img: this.actor?.img ?? null,                                  // imagem de perfil
       tokenImg: this.actor?.prototypeToken?.texture?.src ?? null     // imagem do token
     };
 
-    // Nível 2: só Categoria e Token aparecem; começa na Categoria.
-    if ( this._levelup ) this._creation.step = "category";
+    // Nível 2: Água da Adivinhação → Categoria → Token; começa no ritual.
+    // As HBs vêm pré-marcadas com as escolhas atuais — o jogador REFAZ o conjunto
+    // (talentos são fixos; Habilidades Básicas podem mudar nessa etapa).
+    if ( this._levelup ) {
+      this._creation.step = "agua";
+      this._creation.hbFree = [...(this.actor?.getFlag("hunter-system", "creation")?.basicAbilities ?? [])];
+    }
   }
 
-  /** Passos ativos: criação = todos; nível 2 = só Categoria e Token. */
+  /** Passos ativos: criação = todos; nível 2 = Adivinhação, Categoria e Token. */
   _activeSteps() {
     if ( !this._levelup ) return HunterCharacterCreation.STEPS;
     const numerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
-    return HunterCharacterCreation.STEPS
-      .filter(s => s.id === "category" || s.id === "token")
-      .map((s, i) => ({ ...s, numeral: numerals[i] }));
+    return [
+      { id: "agua", label: "Adivinhação" },
+      ...HunterCharacterCreation.STEPS.filter(s => s.id === "category" || s.id === "token")
+    ].map((s, i) => ({ ...s, numeral: numerals[i] }));
   }
 
   /* -------------------------------------------- */
@@ -93,6 +100,16 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     conjurador:   { color: "#3A8FD4", kanji: "具", img: "systems/hunter-system/assets/Categorias/conj-mini.png",  guide: "systems/hunter-system/assets/Categorias/Categorias-Image/conj.webp" },
     manipulador:  { color: "#2ECC71", kanji: "操", img: "systems/hunter-system/assets/Categorias/mani-mini.png",  guide: "systems/hunter-system/assets/Categorias/Categorias-Image/manip.png" },
     especialista: { color: "#AAAAAA", kanji: "特", img: "systems/hunter-system/assets/Categorias/esp-mini.png",   guide: "systems/hunter-system/assets/Categorias/Categorias-Image/esp.png" }
+  };
+
+  /** O teste da Água da Adivinhação — como o copo reage por categoria. */
+  static AGUA_REACAO = {
+    aprimorador:  "O volume da água AUMENTA — o copo transborda.",
+    emissor:      "A COR da água muda.",
+    transmutador: "O SABOR da água muda.",
+    conjurador:   "IMPUREZAS surgem na água — algo se forma dentro dela.",
+    manipulador:  "A FOLHA se move sobre a superfície.",
+    especialista: "Qualquer OUTRA mudança, inteiramente diferente."
   };
 
   /** Texto-guia de criação rápida + inclinações (caminhos híbridos) por categoria. */
@@ -172,7 +189,8 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       deleteSpecies:   HunterCharacterCreation.#onDeleteSpecies,
       chooseCategory:  HunterCharacterCreation.#onChooseCategory,
       randomCategory:  HunterCharacterCreation.#onRandomCategory,
-      chooseHBRestricted: HunterCharacterCreation.#onChooseHBRestricted,
+      aguaEscolher:    HunterCharacterCreation.#onAguaEscolher,
+      aguaObservar:    HunterCharacterCreation.#onAguaObservar,
       toggleHBFree:    HunterCharacterCreation.#onToggleHBFree,
       toggleSemSave:   HunterCharacterCreation.#onToggleSemSave,
       chooseSemTalent: HunterCharacterCreation.#onChooseSemTalent,
@@ -211,6 +229,21 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     }
   };
 
+  /**
+   * Contêineres roláveis cuja posição é preservada entre re-renders. Clicar num talento/
+   * habilidade re-renderiza a tela inteira; a preservação nativa (`scrollable` acima) não
+   * estava segurando aqui (perde para o restauro de foco/altura do Foundry), então
+   * capturamos e restauramos à mão em _preRender/_onRender.
+   * @type {string[]}
+   */
+  static #SCROLLERS = [".hc-body", ".hc-center", ".hc-portrait-col", ".hc-talent-grid", ".hc-combat-list", ".hc-detail", ".hc-debug-list"];
+
+  /**
+   * Posições de rolagem capturadas em _preRender para restaurar em _onRender.
+   * @type {Object<string, number[]>|null}
+   */
+  #scrollMemory = null;
+
   /* -------------------------------------------- */
 
   /**
@@ -219,6 +252,41 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
    */
   static isAvailable() {
     return game.modules.get("hunter-legacy-module")?.active === true;
+  }
+
+  /* -------------------------------------------- */
+
+  /** @inheritDoc */
+  async _preRender(context, options) {
+    await super._preRender?.(context, options);
+    // O DOM antigo ainda existe aqui: captura a rolagem atual de cada contêiner rolável.
+    const mem = {};
+    for ( const sel of HunterCharacterCreation.#SCROLLERS ) {
+      const els = this.element?.querySelectorAll(sel);
+      if ( els?.length ) mem[sel] = [...els].map(el => el.scrollTop);
+    }
+    this.#scrollMemory = mem;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Restaura a rolagem capturada em _preRender — agora e no próximo frame, caso o restauro
+   * de foco do Foundry role a tela depois deste _onRender.
+   */
+  #restoreScroll() {
+    const mem = this.#scrollMemory;
+    if ( !mem ) return;
+    this.#scrollMemory = null;
+    const apply = () => {
+      for ( const [sel, tops] of Object.entries(mem) ) {
+        this.element?.querySelectorAll(sel).forEach((el, i) => {
+          if ( tops[i] != null ) el.scrollTop = tops[i];
+        });
+      }
+    };
+    apply();
+    requestAnimationFrame(apply);
   }
 
   /* -------------------------------------------- */
@@ -273,6 +341,9 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     // ProseMirror da descrição da espécie: guarda o valor ao editar/salvar.
     const pm = this.element?.querySelector("prose-mirror[name='hc-sp-desc']");
     if ( pm ) pm.addEventListener("change", ev => { this._creation._descBuffer = ev.target.value; });
+
+    // Mantém o jogador na mesma posição de rolagem (não sobe pro topo ao clicar num talento).
+    this.#restoreScroll();
   }
 
   /** @inheritDoc */
@@ -303,6 +374,7 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     }));
 
     // Flags por passo (evita helper `eq` no template)
+    context.isAgua       = this._creation.step === "agua";
     context.isSpecies    = this._creation.step === "species";
     context.isCategory   = this._creation.step === "category";
     context.isAttributes = this._creation.step === "attributes";
@@ -311,6 +383,34 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     context.isCustomization = this._creation.step === "customization";
     context.isToken      = this._creation.step === "token";
 
+    if ( context.isAgua ) {
+      const escolha = this._creation.aguaEscolha;
+      const revelada = this._creation.aguaRevelada;
+      const st = HunterCharacterCreation.CATEGORY_STYLE;
+      context.agua = {
+        nome: this._creation.name || this.actor?.name || "",
+        escolhaFeita: !!escolha,
+        aleatorioEscolhido: escolha === "aleatorio",
+        reveladaId: revelada,
+        revelada: revelada ? {
+          id: revelada,
+          label: NEN_CATEGORIES_DATA[revelada]?.label ?? revelada,
+          color: st[revelada]?.color ?? "#888",
+          kanji: st[revelada]?.kanji ?? "",
+          texto: HunterCharacterCreation.AGUA_REACAO[revelada] ?? ""
+        } : null,
+        reacoes: HunterCharacterCreation.CATEGORY_IDS.map(id => ({
+          id,
+          label: NEN_CATEGORIES_DATA[id]?.label ?? id,
+          color: st[id]?.color ?? "#888",
+          kanji: st[id]?.kanji ?? "",
+          texto: HunterCharacterCreation.AGUA_REACAO[id] ?? "",
+          escolhida: escolha === id,
+          foiRevelada: revelada === id,
+          apagada: !!revelada && revelada !== id
+        }))
+      };
+    }
     if ( context.isSpecies ) await this._prepareSpeciesContext(context);
     if ( context.isCategory ) await this._prepareCategoryContext(context);
     if ( context.isCombat ) await this._prepareCombatContext(context);
@@ -450,29 +550,29 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
   /*  Habilidades Básicas (HB)                    */
   /* -------------------------------------------- */
 
-  /** Nomes das HB obrigatórias (escolha 1) no nível 1. */
-  static HB_RESTRICTED = ["corpo de lutador", "proficiencia avancada"];
-
-  /** HBs do compêndio (pasta "Categorias" › "Habilidades Básicas (HB)"). Cacheado. */
+  /** HBs do compêndio (pasta "Categorias" › "Habilidades Básicas (HB)"). Cacheado.
+      Pega TODOS os itens da pasta (e subpastas) — só descarta separadores/marcadores
+      (nome com 3+ "=" seguidos, ex.: "==========Categorias=========="). */
   async _getBasicAbilities() {
     if ( this._hbList ) return this._hbList;
-    const list = (await this._collectFolderItems({ leaf: "habilidades basicas", ancestor: "categoria" }))
-      .filter(x => x.name && !x.name.includes("="));
+    const all = await this._collectFolderItems({ leaf: "habilidades basicas", ancestor: "categoria" });
+    const list = all.filter(x => x.name && !/={3,}/.test(x.name));
+    console.log(`[HunterCreation] HB: ${list.length} de ${all.length} itens na pasta "Habilidades Básicas (HB)" →`,
+      list.map(x => `${x.name}${x.folderName ? ` [${x.folderName}]` : ""}`).join(" · "));
     return (this._hbList = list);
   }
 
-  /** UUIDs das HB escolhidas, por nível (L1 → {1:[2]}; L2 → {1:[carregadas], 2:[nova]}). */
-  async _hbByLevel(prevBasic) {
+  /**
+   * UUIDs das HB escolhidas, por nível. Nível 1 → {1: [2 escolhas]}.
+   * Nível 2 REFAZ o conjunto inteiro (hbFree = 3 escolhas): as 2 primeiras entram
+   * como nível 1 e o resto como nível 2 no bookkeeping do advancement.
+   */
+  async _hbByLevel() {
     const all = await this._getBasicAbilities();
     const toUuid = id => all.find(x => x.id === id)?.uuid;
-    if ( !this._levelup ) {
-      const l1 = [this._creation.hbRestricted, ...(this._creation.hbFree ?? [])].map(toUuid).filter(Boolean);
-      return { 1: l1 };
-    }
-    return {
-      1: (prevBasic ?? []).map(toUuid).filter(Boolean),
-      2: (this._creation.hbFree ?? []).map(toUuid).filter(Boolean)
-    };
+    const livres = (this._creation.hbFree ?? []).map(toUuid).filter(Boolean);
+    if ( !this._levelup ) return { 1: livres };
+    return { 1: livres.slice(0, 2), 2: livres.slice(2) };
   }
 
   /**
@@ -508,6 +608,7 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
         foundry.utils.setProperty(o, "flags.HunterLegacy.advancementOrigin", `${classId}.${adv._id}`);
         foundry.utils.setProperty(o, "flags.hunter-system.creationItem", true);
         foundry.utils.setProperty(o, "flags.hunter-system.hbItem", true);
+        foundry.utils.setProperty(o, "flags.hunter-system.featureSection", "jj-basic");
         items.push(o);
         added[itemId] = uuid;
       }
@@ -517,42 +618,35 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     return { found: true, items };
   }
 
-  /** Monta o contexto do picker de HB (L1: 1 restrita + 1 livre · L2: 1 livre). */
+  /** Monta o contexto do picker de HB. Sem fixas: escolhe livremente 2 na criação
+      (nível 1); no nível 2 REFAZ o conjunto todo — 3 (as 2 do nível 1 repensadas + 1 nova). */
   async _buildHBContext() {
-    const N = HunterCharacterCreation._norm;
     const all = await this._getBasicAbilities();
-    const rChosen = this._creation.hbRestricted;
-    const free = this._creation.hbFree ?? [];
-    const freeLimit = 1;
-    const restricted = all.filter(x => HunterCharacterCreation.HB_RESTRICTED.some(r => N(x.name).startsWith(r)));
-    const freePool = all.filter(x => x.id !== rChosen);
+    // poda ids que não existem mais no compêndio (senão contariam contra o limite sem aparecer)
+    this._creation.hbFree = (this._creation.hbFree ?? []).filter(id => all.some(x => x.id === id));
+    const free = this._creation.hbFree;
+    const freeLimit = this._levelup ? 3 : 2;
     return {
       available: all.length > 0,
-      showRestricted: !this._levelup,          // só o nível 1 tem a escolha obrigatória
-      restricted: restricted.map(x => ({ ...x, selected: rChosen === x.id })),
-      free: freePool.map(x => ({
+      freeLimit, freeCount: free.length,
+      free: all.map(x => ({
         ...x, selected: free.includes(x.id),
         disabled: !free.includes(x.id) && free.length >= freeLimit
-      })),
-      freeLimit, freeCount: free.length
+      }))
     };
-  }
-
-  static #onChooseHBRestricted(event, target) {
-    this._captureName();
-    const id = target.dataset.hbId;
-    this._creation.hbRestricted = (this._creation.hbRestricted === id) ? null : id;
-    const f = this._creation.hbFree; const i = f.indexOf(id); if ( i >= 0 ) f.splice(i, 1);
-    this.render();
   }
 
   static #onToggleHBFree(event, target) {
     this._captureName();
     const id = target.dataset.hbId;
     const f = this._creation.hbFree;
+    const limit = this._levelup ? 3 : 2;
     const i = f.indexOf(id);
     if ( i >= 0 ) { f.splice(i, 1); this.render(); return; }
-    if ( f.length >= 1 ) { ui.notifications.warn("Escolha apenas 1 Habilidade Básica livre."); return; }
+    if ( f.length >= limit ) {
+      ui.notifications.warn(`Escolha até ${limit} ${limit > 1 ? "Habilidades Básicas" : "Habilidade Básica"}.`);
+      return;
+    }
     f.push(id);
     this.render();
   }
@@ -1183,34 +1277,82 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
   async _getDefeitos() {
     if ( this._defeitos ) return this._defeitos;
     const N = HunterCharacterCreation._norm;
-    const groups = { 1: [], 3: [], 5: [] };
     const parentId = f => f.folder?.id ?? (typeof f.folder === "string" ? f.folder : f.folder?._id) ?? null;
+    // Uma divisória por subpasta de "Defeitos" (dinâmico). Pontos vêm do nome da pasta
+    // ("… 3 Pontos" → 3); pasta sem número (ex.: "Especiais") = 0. Nova pasta → nova divisória.
+    const byFolder = new Map();   // folderId → { label, points, items:[] }
+    // Registra as pastas válidas de uma coleção (raiz "Defeitos" TOP + descendentes),
+    // valendo tanto para pastas de compêndio quanto para pastas de Item do Mundo.
+    const registrar = folders => {
+      if ( !folders.length ) return false;
+      const byId = new Map(folders.map(f => [f.id, f]));
+      // Raiz: prefere o nome EXATO "Defeitos", depois "Defeitos …", depois qualquer um
+      // que contenha. Em estruturas como "Talentos e Defeitos" > "Defeitos" > "Defeitos -
+      // 1 ponto", a regra antiga ("pai não contém defeito") elegia o ANCESTRAL compartilhado
+      // e o veto de "talento" descartava todas as subpastas.
+      const cands = folders.filter(f => N(f.name).includes("defeito"));
+      if ( !cands.length ) return false;
+      const nota = f => {
+        const n = N(f.name).trim();
+        if ( n === "defeitos" || n === "defeito" ) return 0;
+        return n.startsWith("defeito") ? 1 : 2;
+      };
+      const root = cands.sort((a, b) => nota(a) - nota(b))[0];
+      const isUnder = (f, rootId) => { let c = f, g = 0; while ( c && g++ < 12 ) { if ( c.id === rootId ) return true; c = byId.get(parentId(c)); } return false; };
+      // Vetos por nome valem só ENTRE a pasta e a raiz (exclusivo): o nome de um ancestral
+      // ACIMA da raiz (ex.: "Talentos e Defeitos") não pode desqualificar as subpastas.
+      const entreAteRaiz = (f, name) => {
+        let c = f, g = 0;
+        while ( c && c.id !== root.id && g++ < 12 ) {
+          if ( N(c.name).includes(name) ) return true;
+          c = byId.get(parentId(c));
+        }
+        return false;
+      };
+      for ( const f of folders ) {
+        if ( f.id !== root.id && !isUnder(f, root.id) ) continue;   // raiz "Defeitos" + descendentes
+        if ( f.id !== root.id && entreAteRaiz(f, "talento") ) continue;   // pasta "Talentos" aninhada NÃO é defeito
+        if ( f.id !== root.id && entreAteRaiz(f, "especia") ) continue;   // "Defeitos - Especiais" = obrigatórios de variante, fora da escolha livre
+        if ( HunterCharacterCreation._isSpeciesFolder(f.name) ) continue;   // traços de espécie (concedidos pela espécie), não defeitos escolhíveis
+        const m = N(f.name).match(/(\d+)\s*ponto/);
+        byFolder.set(f.id, { label: f.name, points: m ? Number(m[1]) : 0, items: [] });
+      }
+      return true;
+    };
+    // Compêndios de Item
     for ( const pack of game.packs ) {
       if ( pack.metadata.type !== "Item" ) continue;
-      const folders = Array.from(pack.folders ?? []);
-      if ( !folders.length ) continue;
-      const byId = new Map(folders.map(f => [f.id, f]));
-      const root = folders.find(f => N(f.name) === "defeitos");
-      if ( !root ) continue;
-      const isUnder = (f, rootId) => { let c = f, g = 0; while ( c && g++ < 12 ) { if ( c.id === rootId ) return true; c = byId.get(parentId(c)); } return false; };
-      // folderId → pontos (1/3/5) ou null (Especiais/raiz)
-      const folderPts = new Map();
-      for ( const f of folders ) {
-        if ( f.id !== root.id && !isUnder(f, root.id) ) continue;
-        const n = N(f.name);
-        if ( n.includes("espec") ) { folderPts.set(f.id, null); continue; }   // Especiais: obrigatórios por origem, não escolhíveis
-        const m = n.match(/(\d+)\s*ponto/);
-        folderPts.set(f.id, m ? Number(m[1]) : null);
-      }
+      if ( !registrar(Array.from(pack.folders ?? [])) ) continue;
       const index = await pack.getIndex({ fields: ["img", "name", "folder", "type"] });
       for ( const e of index ) {
-        if ( e.type === "folder" ) continue;
-        const pts = folderPts.get(e.folder);
-        if ( !pts || !groups[pts] ) continue;
-        groups[pts].push({ id: e._id, uuid: e.uuid ?? `Compendium.${pack.collection}.Item.${e._id}`, name: e.name, img: e.img, pts });
+        if ( e.type === "folder" || /={3,}/.test(e.name ?? "") ) continue;   // pula pastas e separadores ("==========")
+        const g = byFolder.get(e.folder);
+        if ( !g ) continue;
+        g.items.push({ id: e._id, uuid: e.uuid ?? `Compendium.${pack.collection}.Item.${e._id}`, name: e.name, img: e.img, pts: g.points });
       }
     }
-    for ( const k of Object.keys(groups) ) groups[k].sort((a, b) => a.name.localeCompare(b.name));
+    // Itens do MUNDO (pasta "Defeitos" na barra lateral) também contam
+    if ( registrar((game.folders ?? []).filter(f => f.type === "Item")) ) {
+      for ( const i of game.items ) {
+        if ( /={3,}/.test(i.name ?? "") ) continue;
+        const g = byFolder.get(i.folder?.id);
+        if ( g ) g.items.push({ id: i.id, uuid: i.uuid, name: i.name, img: i.img, pts: g.points });
+      }
+    }
+    const groups = [...byFolder.values()].filter(g => g.items.length);
+    groups.forEach(g => g.items.sort((a, b) => a.name.localeCompare(b.name)));
+    groups.sort((a, b) => a.points - b.points || a.label.localeCompare(b.label));
+    // Diagnóstico: se nada foi achado, lista as pastas reais que o código enxerga.
+    if ( !groups.length ) {
+      const vistas = [];
+      for ( const pack of game.packs ) {
+        if ( pack.metadata.type !== "Item" ) continue;
+        for ( const f of (pack.folders ?? []) ) vistas.push(`📦 ${pack.metadata.label}: "${f.name}"`);
+      }
+      for ( const f of (game.folders ?? []).filter(f => f.type === "Item") ) vistas.push(`🌍 Mundo: "${f.name}"`);
+      console.warn("HunterCreation | nenhuma pasta 'Defeitos' com itens foi encontrada (compêndios de Item + Mundo). Pastas vistas:", vistas);
+    }
+    console.log(`[HunterCreation] Defeitos: ${groups.length} pasta(s) →`, groups.map(g => `${g.label} (${g.items.length})`).join(" · "));
     this._defeitos = groups;
     return groups;
   }
@@ -1230,17 +1372,18 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
 
     // Pontos de defeito e talentos liberados (1 talento a cada 2 pontos).
     const ptsById = new Map();
-    for ( const k of [1, 3, 5] ) for ( const d of groups[k] ) ptsById.set(d.id, d.pts);
+    for ( const g of groups ) for ( const d of g.items ) ptsById.set(d.id, d.pts);
     const totalPoints = sel.reduce((s, id) => s + (ptsById.get(id) ?? 0), 0);
     const talentSlots = Math.floor(totalPoints / 2);
     this._customTalentSlots = talentSlots;
 
     const maxDef = HunterCharacterCreation.MAX_DEFEITOS;
     const atMax = sel.length >= maxDef;
-    context.defeitoGroups = [1, 3, 5].map(p => ({
-      points: p,
-      items: groups[p].map(d => ({ ...d, selected: sel.includes(d.id), disabled: atMax && !sel.includes(d.id) }))
-    })).filter(g => g.items.length);
+    // Uma divisória por pasta (dinâmico), com o nome da pasta como título.
+    context.defeitoGroups = groups.map(g => ({
+      label: g.label, points: g.points,
+      items: g.items.map(d => ({ ...d, selected: sel.includes(d.id), disabled: atMax && !sel.includes(d.id) }))
+    }));
     context.defeitoPoints = totalPoints;
     context.defeitoCount = sel.length;
     context.defeitoMax = maxDef;
@@ -1273,10 +1416,24 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     context.customTalentSlots = talentSlots;
     context.customTalentUsed = chosen.length;
     context.customTalentLeft = talentSlots - chosen.length;
-    context.customTalents = pool.map(t => ({
+    const mapped = pool.map(t => ({
       ...t, selected: chosen.includes(t.id),
       disabled: !chosen.includes(t.id) && chosen.length >= talentSlots
     }));
+    // Agrupa por pasta (cada subpasta = divisória). "Talentos Especiais" (pasta à parte,
+    // fora de "Talentos") vão num grupo separado, exibido embaixo.
+    const isEsp = fn => N(fn ?? "").includes("especia");
+    const regular = new Map(), especiais = [];
+    for ( const t of mapped ) {
+      if ( isEsp(t.folderName) ) { especiais.push(t); continue; }
+      const key = t.folderName || "Talentos";
+      if ( !regular.has(key) ) regular.set(key, []);
+      regular.get(key).push(t);
+    }
+    context.talentGroups = [...regular.entries()]
+      .map(([label, items]) => ({ label, items }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    context.talentEspeciais = especiais;
   }
 
   /** Número máximo de defeitos que um personagem pode ter. */
@@ -1336,8 +1493,11 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       const folders = Array.from(pack.folders ?? []);
       if ( !folders.length ) continue;
       const byId = new Map(folders.map(f => [f.id, f]));
-      // Topo EXATO "Métodos de Combate" (não o "…Avançados", que é outra árvore).
-      const root = folders.find(f => N(f.name) === "metodos de combate");
+      // Topo "Métodos de Combate" (aceita sufixo, ex.: "(MC)"), mas NÃO o "…Avançados".
+      const root = folders.find(f => {
+        const n = N(f.name);
+        return n.includes("metodos de combate") && !n.includes("avancad");
+      });
       if ( !root ) continue;
       // Ramo de uma pasta: sobe até o filho direto da raiz.
       const branchOf = fid => {
@@ -1376,6 +1536,8 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       }
     }
     for ( const b of ["divergente", "especialista"] ) result[b].sort((a, c) => a.weapon.localeCompare(c.weapon));
+    const cnt = b => result[b].reduce((s, g) => s + g.items.length, 0);
+    console.log(`[HunterCreation] Métodos: divergente=${cnt("divergente")} (${result.divergente.map(g => g.weapon).join(", ")}) · especialista=${cnt("especialista")} (${result.especialista.map(g => g.weapon).join(", ")})`);
     this._combatData = result;
     return result;
   }
@@ -1789,14 +1951,16 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     this._creation.attrPick = null;
     try {
       if ( game.dice3d ) for ( const r of rolls ) game.dice3d.showForRoll(r, game.user, true);
-      await ChatMessage.create({
+      const msg = {
         speaker: ChatMessage.getSpeaker({ actor: this.actor }),
         flavor: "🎲 Rolagem de Atributos — 4d6, descarta o menor",
         rolls,
         content: `<div class="hunter-attr-roll">${totals.map(t =>
           `<span style="display:inline-block;min-width:34px;text-align:center;font-weight:700;margin:2px;padding:2px 8px;border:1px solid #888;border-radius:6px;">${t}</span>`
         ).join("")}</div>`
-      });
+      };
+      ChatMessage.applyRollMode(msg, game.settings.get("core", "rollMode"));   // respeita Público/Privado/Cego
+      await ChatMessage.create(msg);
     } catch(e) { console.error("HunterCreation | falha ao postar rolagem no chat:", e); }
     this.render();
   }
@@ -1937,6 +2101,29 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     this.render();
   }
 
+  /** Água da Adivinhação: aponta a categoria combinada com o Narrador (ou "aleatorio"). */
+  static #onAguaEscolher(event, target) {
+    if ( this._creation.aguaRevelada ) return;   // a água já respondeu — não se pergunta duas vezes
+    this._creation.aguaEscolha = target.dataset.categoria ?? null;
+    this.render();
+  }
+
+  /** Água da Adivinhação: o Ren toca a água — a reação acontece e fica registrada. */
+  static #onAguaObservar(event, target) {
+    if ( this._creation.aguaRevelada ) return;
+    const escolha = this._creation.aguaEscolha;
+    if ( !escolha ) return void ui.notifications.warn("Aponte uma categoria — ou deixe a água decidir.");
+    const ids = HunterCharacterCreation.CATEGORY_IDS;
+    const cat = escolha === "aleatorio" ? ids[Math.floor(Math.random() * ids.length)] : escolha;
+    this._creation.aguaRevelada = cat;
+    // a revelação já deixa a Categoria pré-selecionada no passo seguinte
+    // (mesmos efeitos do #onChooseCategory: zera o atributo principal da categoria antiga)
+    this._creation.category = cat;
+    this._creation.randomCategory = false;
+    this._creation.primaryAbility = null;
+    this.render();
+  }
+
   static #onChooseOrigin(event, target) {
     this._captureName();
     this._creation.originId = target.dataset.originId ?? null;
@@ -1984,8 +2171,6 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
   static async #onComplete() {
     this._captureName();
     if ( !this.actor ) return this.close();
-    // HBs do nível 1 (capturadas antes do flag ser reescrito) — usadas no link do advancement.
-    const prevBasic = this.actor.getFlag("hunter-system", "creation")?.basicAbilities ?? [];
     const updates = { name: this._creation.name?.trim() || this.actor.name };
     if ( this._creation.img ) updates.img = this._creation.img;
     // Imagem do token (e o token herda o nome do personagem).
@@ -2027,7 +2212,7 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
         ...prevFlag,
         category: this._creation.randomCategory ? "random" : (this._creation.category || ""),
         primaryAbility: this._creation.primaryAbility ?? prevFlag.primaryAbility ?? null,
-        basicAbilities: [...(prevFlag.basicAbilities ?? []), ...(this._creation.hbFree ?? [])],
+        basicAbilities: [...(this._creation.hbFree ?? [])],   // conjunto REFEITO — substitui, não acumula
         categoryChosenAt: Date.now()
       });
     } else {
@@ -2048,7 +2233,7 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
         combatBranch: this._creation.combatBranch ?? null,
         combatMethods: this._creation.combatMethods ?? [],
         primaryAbility: this._creation.primaryAbility ?? null,
-        basicAbilities: [...(this._creation.hbRestricted ? [this._creation.hbRestricted] : []), ...(this._creation.hbFree ?? [])],
+        basicAbilities: [...(this._creation.hbFree ?? [])],
         semSaves: this._creation.semSaves ?? [],
         semTalent: this._creation.semTalent ?? null,
         attrMethod: this._creation.attrMethod ?? null,
@@ -2063,17 +2248,25 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     // Nível 2: remove a classe "Sem Categoria" e as HB antigas (recriadas linkadas à nova
     // classe). Espécie, origem, métodos, talentos e defeitos são mantidos.
     if ( this._levelup ) {
+      // HBs legadas do fallback foram criadas com o _id do COMPÊNDIO e sem a flag
+      // hbItem — sem removê-las, recriar a mesma HB colide o _id (keepId: true).
+      const hbIdsCompendio = new Set((await this._getBasicAbilities()).map(h => h.id));
       const del = this.actor.items.filter(i =>
         (i.type === "class" && HunterCharacterCreation._norm(i.name) === "sem categoria")
         || i.getFlag("hunter-system", "hbItem")
+        || hbIdsCompendio.has(i.id)
       ).map(i => i.id);
       if ( del.length ) await this.actor.deleteEmbeddedDocuments("Item", del);
     }
 
     // Marca todo item concedido pela criação (para poder removê-lo no nível 2).
+    // O _id do compêndio SEMPRE cai fora — com keepId: true ele colidiria se o
+    // ator já tivesse (ou voltasse a ter) o mesmo item; só classe/HB linkadas
+    // precisam manter o id (gerado fresco pelo randomID).
     const tag = obj => {
       obj.flags ??= {};
       obj.flags["hunter-system"] = { ...(obj.flags["hunter-system"] ?? {}), creationItem: true };
+      delete obj._id;
       return obj;
     };
     const toCreate = [];
@@ -2110,6 +2303,17 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
         obj._id = classId;
         obj.system ??= {};
         obj.system.levels = this._levelup ? Math.max(curLevel, 1) : 1;
+        // HP: a criação NÃO roda o flow do advancement de Pontos de Vida, então preenche o
+        // `value` por nível à mão — senão getAdjustedTotal soma 0 e hp.max trava em 0.
+        // Nível 1 = máximo do dado; demais = média (padrão do dnd5e para a classe original).
+        // system.advancement é uma coleção keyed por _id (AdvancementCollectionField), não um array.
+        const hpAdv = Object.values(obj.system.advancement ?? {}).find(a => a?.type === "HitPoints");
+        if ( hpAdv ) {
+          hpAdv.value = { ...(hpAdv.value ?? {}) };
+          for ( let l = 1; l <= (obj.system.levels || 1); l++ ) {
+            if ( hpAdv.value[l] == null ) hpAdv.value[l] = (l === 1) ? "max" : "avg";
+          }
+        } else console.warn("[HunterCreation] HP: classe sem advancement de Pontos de Vida — hp.max ficará 0.", obj.name);
         // Atributo Principal escolhido → usado no cálculo de técnicas.
         const primKey = this._creation.primaryAbility || this._catPrimary?.[catKey]?.[0];
         if ( primKey && CONFIG.DND5E.abilities[primKey] ) {
@@ -2119,7 +2323,7 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
         }
         // Linka as Habilidades Básicas ao advancement da classe (conta como adquirido).
         try {
-          const byLevel = await this._hbByLevel(prevBasic);
+          const byLevel = await this._hbByLevel();
           const link = await this._linkHBToClass(obj, classId, byLevel);
           if ( link.found ) { toCreate.push(...link.items); hbLinked = true; }
         } catch ( err ) { console.error("HunterCreation | falha ao linkar HB ao advancement:", err); }
@@ -2130,6 +2334,7 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     // Talentos (espécie + liberados por defeitos), defeitos e métodos de combate.
     const featUuids = new Set();
     const bioKindByUuid = new Map();   // uuid → "talento"/"defeito": marca p/ aparecer no seletor da Biografia
+    const metodoUuids = new Set();     // métodos de combate → seção "Métodos de Combate" da ficha
     const allTalents = await this._getTalents();
     for ( const id of [...(this._creation.talents ?? []), ...(this._creation.customTalents ?? []),
                        ...(this._creation.semTalent ? [this._creation.semTalent] : [])] ) {
@@ -2137,7 +2342,7 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       if ( t?.uuid ) { featUuids.add(t.uuid); bioKindByUuid.set(t.uuid, "talento"); }
     }
     const defeitos = await this._getDefeitos();
-    const flatDef = [...defeitos[1], ...defeitos[3], ...defeitos[5]];
+    const flatDef = defeitos.flatMap(g => g.items);
     for ( const id of (this._creation.defeitos ?? []) ) {
       const d = flatDef.find(x => x.id === id);
       if ( d?.uuid ) { featUuids.add(d.uuid); bioKindByUuid.set(d.uuid, "defeito"); }
@@ -2147,17 +2352,22 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       const flatM = cm.flatMap(g => g.items);
       for ( const id of this._creation.combatMethods ) {
         const m = flatM.find(x => x.id === id);
-        if ( m?.uuid ) featUuids.add(m.uuid);
+        if ( m?.uuid ) { featUuids.add(m.uuid); metodoUuids.add(m.uuid); }
       }
     }
-    // Fallback: se a classe não tiver advancement de HB, concede as HB como itens soltos.
+    // Fallback: se a classe não tiver advancement de HB, concede as HB como itens
+    // soltos — com a flag hbItem (o nível 2 limpa e recria) e SEM o _id do compêndio.
     if ( !hbLinked ) {
       const allHB = await this._getBasicAbilities();
-      const hbIds = [...(this._creation.hbFree ?? [])];
-      if ( !this._levelup && this._creation.hbRestricted ) hbIds.push(this._creation.hbRestricted);
-      for ( const id of hbIds ) {
+      for ( const id of (this._creation.hbFree ?? []) ) {
         const hb = allHB.find(x => x.id === id);
-        if ( hb?.uuid ) featUuids.add(hb.uuid);
+        if ( !hb?.uuid ) continue;
+        const doc = await fromUuid(hb.uuid);
+        if ( !doc ) continue;
+        const o = tag(doc.toObject());
+        foundry.utils.setProperty(o, "flags.hunter-system.hbItem", true);
+        foundry.utils.setProperty(o, "flags.hunter-system.featureSection", "jj-basic");
+        toCreate.push(o);
       }
     }
     for ( const uuid of featUuids ) {
@@ -2167,6 +2377,11 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
         const o = tag(doc.toObject());
         const kind = bioKindByUuid.get(uuid);   // marca talento/defeito p/ o seletor da Biografia
         if ( kind ) foundry.utils.setProperty(o, "flags.hunter-system.bioKind", kind);
+        // a ficha agrupa sozinha: método/talento/defeito caem na seção certa
+        const secao = metodoUuids.has(uuid) ? "jj-methods"
+          : kind === "talento" ? "jj-talents"
+          : kind === "defeito" ? "jj-flaws" : null;
+        if ( secao ) foundry.utils.setProperty(o, "flags.hunter-system.featureSection", secao);
         toCreate.push(o);
       } catch { /* ignore */ }
     }
@@ -2174,6 +2389,12 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     // keepId: true preserva os _id da classe e dos itens de HB (necessário para a
     // linkagem do advancement, que referencia esses IDs em value.added/advancementOrigin).
     if ( toCreate.length ) await this.actor.createEmbeddedDocuments("Item", toCreate, { keepId: true });
+    // Vida cheia ao concluir: a criação não roda o flow que preenche hp.value. Só corrige o
+    // estado quebrado (Vida ≤ 0); não mexe em quem já tem Vida positiva.
+    const hpMax = this.actor.system.attributes.hp.max;
+    if ( Number.isFinite(hpMax) && (hpMax > 0) && !(this.actor.system.attributes.hp.value > 0) ) {
+      await this.actor.update({ "system.attributes.hp.value": hpMax });
+    }
     ui.notifications.info(`${this.actor.name}: ${this._levelup ? "categoria definida" : "criação concluída"}.`);
     await this.close();
     this.actor.sheet?.render(true);

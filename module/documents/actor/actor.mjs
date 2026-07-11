@@ -2462,10 +2462,11 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
       rolls.push(roll);
       const recovered = Math.max(0, roll.total);
       const newTotal = Math.min(this.system.energy.total + recovered, max);
+      // isEnergySystem: a recuperação já posta as rolagens no chat — sem card de "alterou manualmente"
       await this.update({
         "system.energy.total": newTotal,
         "system.energyDice.value": this.system.energyDice.value - 1
-      });
+      }, { isEnergySystem: true });
       diceRolled++;
     }
 
@@ -3417,7 +3418,7 @@ async _preUpdate(changed, options, user) {
 
     // Avisar no chat quando PA Gerada for alterada manualmente
     const novaGerada = foundry.utils.getProperty(changed, "system.energy.generated");
-    if ( Number.isFinite(novaGerada) && !options.isEnergySystem && this.type === "character" ) {
+    if ( Number.isFinite(novaGerada) && !options.isEnergySystem && !options.isRest && this.type === "character" ) {
       const antiga = this.system.energy.generated;
       if ( novaGerada !== antiga ) {
         const delta = novaGerada - antiga;
@@ -3427,6 +3428,28 @@ async _preUpdate(changed, options, user) {
           content: `⚡ <b>${this.name}</b> alterou a PA Gerada manualmente: ${antiga} → ${novaGerada} (${sinal})`
         });
       }
+    }
+
+    // Avisar no chat quando a AURA TOTAL for alterada manualmente (custos de técnica,
+    // descanso e dados de energia passam com isEnergySystem/isRest e não avisam)
+    const novoTotal = foundry.utils.getProperty(changed, "system.energy.total");
+    if ( Number.isFinite(novoTotal) && !options.isEnergySystem && !options.isRest && this.type === "character" ) {
+      const antigo = this.system.energy.total;
+      if ( novoTotal !== antigo ) {
+        const delta = novoTotal - antigo;
+        const sinal = delta > 0 ? `+${delta}` : `${delta}`;
+        ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: this }),
+          content: `🌀 <b>${this.name}</b> alterou a Aura Total manualmente: ${antigo} → ${novoTotal} (${sinal})`
+        });
+      }
+    }
+
+    // Mudança de dinheiro: guarda o ANTES nas options — o log do Narrador (que roda no
+    // updateActor, já com o doc atualizado) precisa dele pra registrar de → para.
+    if ( (this.type === "character") && foundry.utils.getProperty(changed, "system.currency") ) {
+      foundry.utils.setProperty(options, "hunterSystem.moedasAntes",
+        foundry.utils.deepClone(this.system.currency ?? {}));
     }
   }
 

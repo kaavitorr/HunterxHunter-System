@@ -410,6 +410,16 @@ export function registerSystemSettings() {
     onChange: value => { CONFIG.time.roundTime = Math.max(0, Number(value) || 6); }
   });
 
+  // Marca se o reparo único de Vida (advancement de Pontos de Vida dos personagens criados
+  // antes do fix) já rodou. Ver dnd5e.mjs → _repairCharacterHP / game.hunterRepairHP.
+  game.settings.register("hunter-system", "hpAdvancementRepairDone", {
+    name: "HP Advancement Repair Done",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: false
+  });
+
   // Combat Settings
   game.settings.registerMenu("hunter-system", "combatConfiguration", {
     name: "SETTINGS.DND5E.COMBAT.Name",

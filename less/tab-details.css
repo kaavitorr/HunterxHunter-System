@@ -133,6 +133,19 @@
   padding: 7px 10px 5px;
   border: none;
   margin: 0;
+  position: relative;
+}
+
+/* Divisória horizontal entre cabeçalho e botão — mesma da Agressivo/Defensivo. */
+.jj-expdef-header::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #24456e 25%, #24456e 75%, transparent);
+  pointer-events: none;
 }
 
 .jj-expdef-header i {
@@ -151,7 +164,7 @@
 
 /* ── Wrapper do botão ── */
 .jj-expdef-btn-wrap {
-  padding: 0 8px 8px;
+  padding: 6px 8px 8px;   /* respiro no topo pra a divisória do cabeçalho aparecer */
 }
 
 /* ── Botão base (Foco) ── */
@@ -260,9 +273,9 @@ filigree-box.jj-foco-agressivo-box {
 
 /* ── Foco Combo Box (Agressivo + Defensivo numa única filigree) ── */
 filigree-box.jj-foco-combo-box {
-  --filigree-background-color: #130a1a;
-  --filigree-border-color: #4a3050;
-  --filigree-drop-shadow: drop-shadow(0 0 4px rgba(150, 100, 170, 0.22));
+  --filigree-background-color: #0a1622;
+  --filigree-border-color: #1a3a68;
+  --filigree-drop-shadow: drop-shadow(0 0 4px rgba(60, 120, 210, 0.3));
   display: block;
   position: relative;
   width: 100%;
@@ -289,7 +302,7 @@ filigree-box.jj-foco-combo-box {
   right: 12%;
   bottom: 0;
   height: 1px;
-  background: linear-gradient(to right, transparent, #3a2840 25%, #3a2840 75%, transparent);
+  background: linear-gradient(to right, transparent, #24456e 25%, #24456e 75%, transparent);
   pointer-events: none;
 }
 
@@ -365,7 +378,7 @@ filigree-box.jj-foco-combo-box {
 
 .jj-foco-combo-divider {
   width: 1px;
-  background: linear-gradient(to bottom, transparent, #3a2840 25%, #3a2840 75%, transparent);
+  background: linear-gradient(to bottom, transparent, #24456e 25%, #24456e 75%, transparent);
   margin: 0 4px;
   align-self: stretch;
 }

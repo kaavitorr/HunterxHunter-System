@@ -205,7 +205,9 @@
 }
 
 .dnd5e2 section.currency input.jj-yen-input {
-  width: 160px !important;
+  /* centenas de milhões cabem: 999.999.999.999 */
+  width: 230px !important;
+  min-width: 230px !important;
   font-size: 13px !important;
 }
 

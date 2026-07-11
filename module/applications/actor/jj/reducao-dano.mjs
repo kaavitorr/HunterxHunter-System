@@ -17,7 +17,9 @@ const FLAG = "reducaoDano";
 // ── Intercepta o uso da atividade de tipo "reduction" ───────────────────────────
 Hooks.on("dnd5e.preUseActivity", (activity) => {
   if ( activity?.type !== "reduction" ) return;
-  activateUpkeep(activity); // ativa Custo Constante/Concentração antes do veto
+  activateUpkeep(activity); // ativa Custo Constante/Concentração/Redução Constante antes do veto
+  // Redução Constante: a ativação É o upkeep (registrado acima) — sem diálogo de escudo.
+  if ( activity.reduction?.constant ) return false;
   _ativarReducao(activity);
   return false; // cancela o comportamento nativo — tratamos tudo aqui
 });

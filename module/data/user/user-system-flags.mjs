@@ -28,6 +28,15 @@ export default class UserSystemFlags extends foundry.abstract.DataModel {
         left: new NumberField({ integer: true, min: 0 }),
         top: new NumberField({ integer: true, min: 0 })
       }, { required: false }),
+      // HUD do Narrador (Recursos dos Jogadores). Toda chave NOVA de flag de
+      // usuário TEM que ser declarada aqui, ou o DataModel a descarta em silêncio.
+      gmResHudOpen: new BooleanField({ required: false }),
+      gmResHudMin: new BooleanField({ required: false }),
+      gmResHudPos: new SchemaField({
+        left: new NumberField({ integer: true, min: 0 }),
+        top: new NumberField({ integer: true, min: 0 })
+      }, { required: false }),
+      gmResHudHidden: new SetField(new StringField(), { required: false }),
       sheetPrefs: new MappingField(new SchemaField({
         width: new NumberField({ integer: true, positive: true }),
         height: new NumberField({ integer: true, positive: true }),
