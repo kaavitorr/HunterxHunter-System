@@ -15,8 +15,10 @@ import { ensureHatsuPack } from "../../data/item/hatsu-template.mjs";
 
 // ── Módulos JJ (port progressivo do jujutsu-system) ──
 import "./jj/reducao-dano.mjs";
-import "./jj/constant-cost.mjs";
+import { getActorUpkeeps } from "./jj/constant-cost.mjs";
 import { renderSacrificeHud } from "./jj/combat-sacrifice-hud.mjs";
+import "./jj/gm-resource-hud.mjs";   // HUD do Narrador — mesmo caminho de carga dos outros widgets jj
+import { reducaoDoGigante } from "./jj/categoria-aprimorador.mjs";   // regras automáticas do Aprimorador (nv 3/6)
 import "./jj/heal-limit.mjs";
 import { chooseJJScale, applyScaleChoice, promptJJScale } from "./jj/jj-scale.mjs";
 import { resetHealLimitsByTechnique } from "./jj/heal-limit.mjs";
@@ -558,6 +560,7 @@ context.skills = skillsSorted;
       { columns, id: "jj-origin",  label: "Classe Hunter",       order: 4000, groups: { origin: "jj-origin"  }, items: [] },
       { columns, id: "jj-combat",  label: "Categoria",   order: 5000, groups: { origin: "jj-combat"  }, items: [] },
       { columns, id: "jj-path",    label: "Caminho",             order: 6000, groups: { origin: "jj-path"    }, items: [] },
+      { columns, id: "jj-methods", label: "Métodos de Combate",  order: 6500, groups: { origin: "jj-methods" }, items: [] },
       { columns, id: "jj-basic",   label: "Habilidades Básicas", order: 7000, groups: { origin: "jj-basic"   }, items: [] },
       { columns, id: "jj-talents", label: "Talentos",            order: 8000, groups: { origin: "jj-talents" }, items: [] },
       { columns, id: "jj-flaws",   label: "Defeitos",            order: 9000, groups: { origin: "jj-flaws"   }, items: [] },
@@ -1072,7 +1075,7 @@ context.primaryCategoryColor = this._getPrimaryNenCategory()?.color ?? "#828892"
     const group = item.parent.items.get(originId);
     // Verificar se o item tem seção customizada Jujutsu
     const jjSection = item.getFlag("hunter-system", "featureSection");
-    if ( jjSection && ["jj-origin", "jj-combat", "jj-path", "jj-basic", "jj-talents", "jj-flaws"].includes(jjSection) ) {
+    if ( jjSection && ["jj-origin", "jj-combat", "jj-path", "jj-methods", "jj-basic", "jj-talents", "jj-flaws"].includes(jjSection) ) {
       ctx.groups.origin = jjSection;
     } else {
       ctx.groups.origin = "other";
@@ -4659,6 +4662,32 @@ async function _applyLayeredDamageToActor(actor, amount, { soVerdadeiro = false,
     partes.push(`Redução de Dano reduziu <strong>${reducao}</strong>`);
   }
 
+  // 0.55. Resistência do Gigante (Caminho do Aprimorador Físico, nv 6+) — redução
+  // fixa que vale para TODO dano, inclusive Verdadeiro (só a Armadura é ignorada).
+  if ( restante > 0 ) {
+    const gigante = Math.min(reducaoDoGigante(actor), restante);
+    if ( gigante > 0 ) {
+      restante -= gigante;
+      partes.push(`Resistência do Gigante reduziu <strong>${gigante}</strong>`);
+    }
+  }
+
+  // 0.6. Redução Constante (upkeeps type "reduction") — rola a fórmula A CADA golpe,
+  // silenciosa (sem dado 3D), dobrada na mensagem de dano consolidada abaixo.
+  for ( const up of getActorUpkeeps(actor) ) {
+    if ( up.type !== "reduction" || restante <= 0 ) continue;
+    let rolled = 0;
+    try {
+      const r = await new Roll(up.formula || "0", actor.getRollData()).evaluate();
+      rolled = r.total;
+    } catch { rolled = 0; }
+    if ( rolled > 0 ) {
+      const reducao = Math.min(rolled, restante);
+      restante = Math.max(0, restante - reducao);
+      partes.push(`Redução Constante reduziu <strong>${reducao}</strong> (${up.formula})`);
+    }
+  }
+
   // 0.75. Pontos de Armadura — resistência 2:1, exceto Verdadeiro (force) que passa direto.
   const armorAtual = actor.system?.armorPoints?.value ?? 0;
   if ( armorAtual > 0 && restante > 0 && !soVerdadeiro ) {
@@ -4691,11 +4720,23 @@ async function _applyLayeredDamageToActor(actor, amount, { soVerdadeiro = false,
 
   if ( !foundry.utils.isEmpty(updates) ) await actor.update(updates);
   if ( partes.length ) {
-    ChatMessage.create({
+    _postDamageChat({
       speaker: ChatMessage.getSpeaker({ actor }),
       content: `🛡️ <strong>${actor.name}</strong> (${amount} de dano): ${partes.join("; ")}.`
     });
   }
+  // Vigor Ilimitado (Aprimorador): crítico sofrido
+  Hooks.callAll("hunterDamageApplied", actor, { crit: !!cardMeta?.crit });
+}
+
+/**
+ * Posta uma mensagem de dano/Vitalidade respeitando o modo de rolagem escolhido
+ * no chat (Público / Privado do GM / Cego / Self) — deixa o narrador esconder dos
+ * jogadores o dano aplicado, a redução rolada e os PV/Vitalidade restantes.
+ */
+function _postDamageChat(data) {
+  ChatMessage.applyRollMode(data, game.settings.get("core", "rollMode"));
+  return ChatMessage.create(data);
 }
 
 /* ============================================================
@@ -4773,10 +4814,14 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
   const meta = await _promptPVE(actor, cardMeta);
   if ( meta === null ) return; // cancelado
 
+  // Vigor Ilimitado (Aprimorador): crítico sofrido — antes dos retornos cedo
+  // (Vitalidade em 0 ainda conta como "sofreu um acerto crítico").
+  Hooks.callAll("hunterDamageApplied", actor, { crit: !!meta.crit });
+
   // Morte instantânea: acerto natural 20 com aura.
   if ( meta.nat20 && meta.aura ) {
     await actor.update({ "system.attributes.hp.value": 0, "system.attributes.pve.value": 0 });
-    ChatMessage.create({
+    _postDamageChat({
       speaker: ChatMessage.getSpeaker({ actor }),
       content: `💀 <strong>${actor.name}</strong> — acerto <strong>natural 20 com aura</strong>: morte instantânea.`
     });
@@ -4790,7 +4835,7 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
 
   const pve = actor.system.attributes.pve;
   if ( (pve.value ?? 0) <= 0 && (pve.temp ?? 0) <= 0 ) {
-    ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `🌀 <strong>${actor.name}</strong>: Vitalidade já está em 0.` });
+    _postDamageChat({ speaker: ChatMessage.getSpeaker({ actor }), content: `🌀 <strong>${actor.name}</strong>: Vitalidade já está em 0.` });
     return;
   }
 
@@ -4821,7 +4866,7 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
   // Regra a ser refeita depois; `realLost` e PVE_HP_RATIO ficam disponíveis pra isso.
 
   await actor.update(updates);
-  ChatMessage.create({
+  _postDamageChat({
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `🌀 <strong>${actor.name}</strong> (Vitalidade): ${partes.join("; ")}.`
   });
@@ -5193,6 +5238,9 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
           }
           const critBonus = Number(card.dataset.critBonus ?? 0);
           el.textContent = _applyModifier(base, "crit", critBonus);
+          // Vigor Ilimitado (Aprimorador): crítico marcado depois do dano rolado
+          const spkAtor = game.actors.get(message.speaker?.actor);
+          if ( spkAtor ) Hooks.callAll("hunterDamageRolled", spkAtor, { card, mainRoll: null, crit: true });
         } else if ( mod === "kokusen" ) {
           // Black Flash: NÃO rola dados, apenas multiplica o base por 2,5
           card.dataset.critBonus = "";
@@ -5428,6 +5476,13 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
     // Tipos de dano (para detectar "Verdadeiro" — dano força — na aplicação)
     const allTypes = damageParts.flatMap(p => p.types ?? []);
     card.dataset.damageTypes = allTypes.join(",");
+
+    // Vigor Ilimitado (Aprimorador): crítico já marcado ou dado principal no máximo
+    Hooks.callAll("hunterDamageRolled", actor, {
+      card,
+      mainRoll: resolvedRolls[0]?.roll ?? null,
+      crit: !!card.querySelector('.jj-mod-check input[data-mod="crit"]:checked')
+    });
 
     // Label do tipo de dano (todos juntos ou primeiro)
     const dmgLabel = rolls.map(r => r.label).join(" + ");
@@ -5975,6 +6030,12 @@ function _buildBreakdown(roll) {
           const totalEl = footer.querySelector("#jj-extra-total");
           if ( totalEl ) totalEl.textContent = total;
         }
+        // Vigor Ilimitado (Aprimorador): crítico já marcado ou dado principal no máximo
+        Hooks.callAll("hunterDamageRolled", actor, {
+          card,
+          mainRoll: resolved[0]?.roll ?? null,
+          crit: !!card.querySelector('.jj-mod-check input[data-mod="crit"]:checked')
+        });
       } else {
         _showHealFooter(card, total);
       }
@@ -6085,6 +6146,9 @@ function _buildBreakdown(roll) {
             const totalDmg = dmgRolls.reduce((s, { r }) => s + r.total, 0)
                           + (estagioRoll?.total ?? 0)
                           + (escalaRoll?.total ?? 0);
+
+            // Vigor Ilimitado (Aprimorador): dado principal no máximo (dano de save não crita)
+            Hooks.callAll("hunterDamageRolled", actor, { card: dmgFooter, mainRoll: dmgRolls[0]?.r ?? null, crit: false });
 
             const dmgPanel = document.createElement("div");
             dmgPanel.className = "jj-panels";
@@ -6929,7 +6993,7 @@ async function _aplicarExplosaoDefensiva(tokens, danoFinal) {
         danoRestante  = Math.max(0, danoRestante - reducao);
         await actor.unsetFlag("hunter-system", "explosaoDefensivaPendente");
         ui.notifications.info(`🛡️ Explosão Defensiva: ${reducao} de dano reduzido para ${actor.name}!`);
-        ChatMessage.create({
+        _postDamageChat({
           speaker: ChatMessage.getSpeaker({ actor }),
           content: `🛡️ <strong>${actor.name}</strong> reduziu <strong>${reducao}</strong> de dano com Explosão Defensiva!`
         });
@@ -7062,13 +7126,13 @@ export function setupNenWheels(root) {
 function _unhideFeatureSections(element) {
   const featuresTab = element.querySelector('[data-tab="features"]');
   if ( !featuresTab ) return;
-  ["jj-origin", "jj-combat", "jj-path", "jj-basic", "jj-talents", "jj-flaws"].forEach(id => {
+  ["jj-origin", "jj-combat", "jj-path", "jj-methods", "jj-basic", "jj-talents", "jj-flaws"].forEach(id => {
     const section = featuresTab.querySelector(`[data-group-origin="${id}"]`);
     if ( section ) section.removeAttribute("hidden");
   });
 }
 
-const JJ_FEATURE_SECTIONS = new Set(["jj-origin", "jj-combat", "jj-path", "jj-basic", "jj-talents", "jj-flaws"]);
+const JJ_FEATURE_SECTIONS = new Set(["jj-origin", "jj-combat", "jj-path", "jj-methods", "jj-basic", "jj-talents", "jj-flaws"]);
 
 /**
  * Configura listeners de drop nas seções customizadas de habilidades.
@@ -7219,7 +7283,7 @@ function _registerSeiOlhosTurnHook(actor) {
     const newHp = Math.max(0, (actor.system.attributes.hp.value ?? 0) - dmg);
     await actor.update({ "system.attributes.hp.value": newHp });
 
-    ChatMessage.create({
+    _postDamageChat({
       speaker: ChatMessage.getSpeaker({ actor }),
       content: `<div style="font-family:var(--dnd5e-font-roboto,sans-serif);padding:6px 10px;background:#0a0a18;border:1px solid #2a1a4a;border-radius:4px;">
         <strong style="color:#9060d0">⬡ Seis Olhos — Poder Completo</strong><br>

@@ -28,6 +28,18 @@ function _activity(actor, info, activityId) {
  * @returns {{active:boolean, value:number, pool:string, type:("constant"|"concentration"|"duration"|null)}}
  */
 export function resolveSustained(activity) {
+  // Redução Constante: sustentada por si só (independe de ter Custo Constante).
+  // Drena o Custo Constante se houver; carrega a fórmula para a pipeline de dano.
+  if ( activity?.type === "reduction" && activity.reduction?.constant ) {
+    const cc = activity.getConstantUpkeep?.() ?? {};
+    return {
+      active: true,
+      value: cc.active ? cc.value : 0,
+      pool: cc.pool ?? "generated",
+      type: "reduction",
+      formula: (activity.reduction?.formula ?? "").trim() || "0"
+    };
+  }
   const up = activity?.getConstantUpkeep?.();
   if ( up?.active ) return up; // type: "constant" | "concentration"
   // Duração não-instantânea (na atividade OU no item/feitiço) → técnica ativa, sem custo.
@@ -49,7 +61,7 @@ export function getActorUpkeeps(actor) {
     const up = resolveSustained(act);
     if ( !up?.active ) continue;
     out.push({ activityId, itemId: info.itemId, label: info.label ?? act.item.name,
-               value: up.value, pool: up.pool, type: up.type });
+               value: up.value, pool: up.pool, type: up.type, formula: up.formula });
   }
   return out;
 }
@@ -87,6 +99,7 @@ export async function activateUpkeep(activity) {
 
   const detalhe = up.type === "concentration" ? "<b>Concentração</b> 🧠"
     : up.type === "duration" ? "<b>Técnica Ativa</b> (duração)"
+    : up.type === "reduction" ? `<b>Redução Constante</b> 🛡️ — <b>${up.formula}</b> por golpe${up.value > 0 ? ` (<b>${up.value} PA/turno</b>, ${up.pool === "total" ? "Total" : "Gerada"})` : ""}`
     : `<b>Custo Constante</b> — <b>${up.value} PA/turno</b> (${up.pool === "total" ? "Total" : "Gerada"})`;
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
@@ -116,7 +129,9 @@ Hooks.on("combatTurnChange", async (combat, prior, current) => {
 
   for ( const [activityId, info] of Object.entries(flag) ) {
     const act = _activity(actor, info, activityId);
-    const up = act?.getConstantUpkeep?.();
+    // resolveSustained (não getConstantUpkeep) para não purgar upkeeps sem custo
+    // por turno — Redução Constante e Duração drenam 0 e permanecem ativos.
+    const up = resolveSustained(act);
     const label = info.label ?? act?.item?.name ?? "técnica";
     if ( !up?.active ) { updates[`flags.${SCOPE}.${FLAG}.-=${activityId}`] = null; continue; }
     if ( up.pool === "total" ) {

@@ -1,7 +1,7 @@
 import FormulaField from "../fields/formula-field.mjs";
 import BaseActivityData from "./base-activity.mjs";
 
-const { SchemaField } = foundry.data.fields;
+const { BooleanField, SchemaField } = foundry.data.fields;
 
 /**
  * Data model da atividade de Redução de Dano.
@@ -18,7 +18,10 @@ export default class ReductionActivityData extends BaseActivityData {
     return {
       ...super.defineSchema(),
       reduction: new SchemaField({
-        formula: new FormulaField({ label: "Fórmula de Redução" })
+        formula: new FormulaField({ label: "Fórmula de Redução" }),
+        // Redução Constante: técnica sustentada que reduz TODO dano sofrido pela
+        // fórmula acima, rolada a cada golpe (aparece no HUD de combate; desliga lá).
+        constant: new BooleanField({ label: "Redução Constante" })
       })
     };
   }

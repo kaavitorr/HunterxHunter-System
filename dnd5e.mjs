@@ -813,6 +813,60 @@ function hunterMaybeCreationOnOpen(actor) {
 }
 Hooks.on("renderCharacterActorSheet", app => hunterMaybeCreationOnOpen(app.actor ?? app.document));
 
+/* -------------------------------------------- */
+
+// Reparo de Vida: personagens criados antes do fix ficaram com o advancement de Pontos de
+// Vida vazio → hp.max = 0. Preenche o `value` por nível (nível 1 = máximo, demais = média)
+// SÓ onde falta (preserva rolagens existentes) e enche a Vida se estiver quebrada (≤ 0).
+// Idempotente. Roda uma vez (só GM) e fica exposto em game.hunterRepairHP() para reexecução.
+async function _repairCharacterHP(actor) {
+  if ( actor?.type !== "character" ) return false;
+  let changed = false;
+  for ( const cls of actor.items.filter(i => i.type === "class") ) {
+    // system.advancement é uma coleção keyed por _id; usa o getter e atualiza pelo id.
+    const hpAdv = cls.advancement?.byType?.HitPoints?.[0];
+    if ( !hpAdv ) continue;
+    const value = { ...(hpAdv.value ?? {}) };
+    let touched = false;
+    for ( let l = 1; l <= (cls.system?.levels || 1); l++ ) {
+      if ( value[l] == null ) { value[l] = (l === 1) ? "max" : "avg"; touched = true; }
+    }
+    if ( touched ) { await cls.update({ [`system.advancement.${hpAdv.id}.value`]: value }); changed = true; }
+  }
+  if ( changed ) {
+    const hpMax = actor.system.attributes.hp.max;
+    if ( Number.isFinite(hpMax) && (hpMax > 0) && !(actor.system.attributes.hp.value > 0) ) {
+      await actor.update({ "system.attributes.hp.value": hpMax });
+    }
+  }
+  return changed;
+}
+
+Hooks.once("ready", async () => {
+  // Gatilho manual (qualquer hora): game.hunterRepairHP()
+  game.hunterRepairHP = async () => {
+    let n = 0;
+    for ( const a of game.actors ) {
+      try { if ( await _repairCharacterHP(a) ) n++; } catch ( e ) { console.error("Hunter | reparo de Vida:", a?.name, e); }
+    }
+    ui.notifications.info(`Reparo de Vida: ${n} personagem(ns) restaurado(s).`);
+    return n;
+  };
+  // Execução automática única (só o GM escreve).
+  if ( !game.user.isGM ) return;
+  let done = true;
+  try { done = game.settings.get("hunter-system", "hpAdvancementRepairDone"); } catch { return; }
+  if ( done ) return;
+  let n = 0, errored = false;
+  for ( const a of game.actors ) {
+    try { if ( await _repairCharacterHP(a) ) n++; }
+    catch ( e ) { errored = true; console.error("Hunter | reparo de Vida:", a?.name, e); }
+  }
+  // Só marca como concluído num passe sem erros — assim uma falha tenta de novo no próximo load.
+  if ( !errored ) { try { await game.settings.set("hunter-system", "hpAdvancementRepairDone", true); } catch {} }
+  if ( n ) ui.notifications.info(`Reparo de Vida: ${n} personagem(ns) com a Vida restaurada.`);
+});
+
 // A barra de Vida/Vitalidade do token que reflete a pool ativa (aura on → Vida, off →
 // Vitalidade) é resolvida em TokenDocument5e.getBarAttribute (module/documents/token.mjs) —
 // robusto por render, sem depender de hooks de troca do atributo salvo.

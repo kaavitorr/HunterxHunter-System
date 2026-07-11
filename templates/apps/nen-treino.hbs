@@ -1,0 +1,72 @@
+{{!-- Painel do Narrador: escolhe o princípio, convoca os jogadores, acompanha e conclui. --}}
+<div class="hj-tr">
+
+  <header class="hj-tr__topo">
+    <h1>O DESPERTAR DO NEN</h1>
+    <p>Escolha o princípio, convoque os discípulos — o desafio abre na tela de cada um.</p>
+  </header>
+
+  <nav class="hj-tr__fases">
+    {{#each fases}}
+    <button type="button" class="hj-tr__fase {{#if ativa}}is-ativa{{/if}}" data-action="treinoFase" data-fase="{{key}}">
+      <i class="{{icone}}" inert></i>
+      <b>{{label}}</b>
+      <small>{{dias}} dias</small>
+    </button>
+    {{/each}}
+  </nav>
+
+  <div class="hj-tr__corpo">
+
+    <section class="hj-tr__sobre">
+      <h2>{{fase.titulo}}</h2>
+      <p>{{fase.resumo}}</p>
+      <p class="hj-tr__regra"><i class="fa-solid fa-scale-balanced" inert></i> {{fase.regra}}</p>
+    </section>
+
+    {{#if sessao}}
+    <section class="hj-tr__pool">
+      <b>TREINO DE {{sessao.fase}} EM ANDAMENTO</b>
+      <span>{{sessao.respondidos}}/{{sessao.n}} responderam · PN da turma: <b>{{sessao.total}}</b> ÷ {{sessao.n}} = <b>+{{sessao.cada}} PN pra cada</b></span>
+    </section>
+    {{/if}}
+
+    <section class="hj-tr__lista">
+      <h3>PARTICIPANTES</h3>
+      {{#each cacadores}}
+      <label class="hj-tr__pessoa {{#unless online}}is-off{{/unless}}">
+        <input type="checkbox" data-tr-part="{{id}}" {{#if participa}}checked{{/if}} {{#if @root.emAndamento}}disabled{{/if}}>
+        <img src="{{img}}" alt="">
+        <span class="hj-tr__nome">{{nome}} {{#unless online}}<em>(offline)</em>{{/unless}}</span>
+        {{#if resultado}}
+        <span class="hj-tr__res {{#if resultado.dominio}}is-dominio{{else}}is-falha{{/if}}">
+          {{resultado.rotulo}}{{#if resultado.detalhe}} · {{resultado.detalhe}}{{/if}}
+        </span>
+        {{else if @root.emAndamento}}
+        <span class="hj-tr__res is-jogando"><i class="fa-solid fa-spinner fa-spin" inert></i> treinando…</span>
+        {{/if}}
+      </label>
+      {{else}}
+      <p class="hj-tr__vazio">Nenhum caçador com dono jogador foi encontrado.</p>
+      {{/each}}
+    </section>
+
+  </div>
+
+  <footer class="hj-tr__acoes">
+    {{#if emAndamento}}
+      <button type="button" class="hj-tr__btn is-concluir" data-action="treinoConcluir">
+        <i class="fa-solid fa-flag-checkered" inert></i> CONCLUIR E RECOMPENSAR
+      </button>
+      <button type="button" class="hj-tr__btn is-cancelar" data-action="treinoCancelar">CANCELAR</button>
+    {{else}}
+      <button type="button" class="hj-tr__btn is-iniciar" data-action="treinoIniciar">
+        <i class="fa-solid fa-bolt" inert></i> INICIAR TREINO DE {{fase.label}}
+      </button>
+      <button type="button" class="hj-tr__btn is-testar" data-action="treinoTestar" title="Abre o desafio só pra você, sem valer nada">
+        <i class="fa-solid fa-vial" inert></i> TESTAR EU MESMO
+      </button>
+    {{/if}}
+  </footer>
+
+</div>

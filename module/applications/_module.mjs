@@ -13,6 +13,8 @@ export * as item from "./item/_module.mjs";
 export * as journal from "./journal/_module.mjs";
 export * as regionBehavior from "./region-behavior/_module.mjs";
 export * as sessionLog from "./session-log/_module.mjs";
+import "./actor/jj/gm-resource-hud.mjs";   // HUD do Narrador — nativo (carga garantida pelo barrel)
+export * as nenTraining from "./nen-training/_module.mjs";
 export * as settings from "./settings/_module.mjs";
 export * as shared from "./shared/_module.mjs";
 

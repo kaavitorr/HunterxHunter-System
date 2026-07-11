@@ -1,0 +1,133 @@
+{{!-- A arena do jogador: briefing → desafio de habilidade → veredito. --}}
+<div class="hj-df hj-df--{{fase.key}}">
+
+  {{#if resultado}}
+    {{!-- ================= VEREDITO ================= --}}
+    <div class="hj-df__final {{#if resultado.dominio}}is-dominio{{else}}is-falha{{/if}}">
+      <div class="hj-df__final-selo"><i class="{{fase.icone}}" inert></i></div>
+      <h2>{{resultado.rotulo}}</h2>
+      {{#if resultado.detalhe}}<p class="hj-df__final-det">{{resultado.detalhe}}</p>{{/if}}
+      <p class="hj-df__final-aviso">O Narrador recebeu seu desempenho. A recompensa sai no fim do treino da turma.</p>
+      <button type="button" class="hj-df__btn" data-action="desafioFechar">FECHAR</button>
+    </div>
+
+  {{else if comecou}}
+    {{!-- ================= O DESAFIO ================= --}}
+
+    {{#if isTen}}
+    <div class="hj-df__arena" data-df-arena>
+      <div class="hj-df__hud">
+        <span>FALTAM <b data-ten-dist>27.0</b> m</span>
+        <span>VAZAMENTOS <b data-ten-surtos>0</b></span>
+      </div>
+      <div class="hj-ten__cena">
+        <div class="hj-ten__trilha">
+          <span class="hj-ten__runner" data-ten-runner>🚶</span>
+          <span class="hj-ten__pdn">🧘</span>
+        </div>
+        <div class="hj-ten__medidor">
+          <div class="hj-ten__zona" data-ten-zona></div>
+          <div class="hj-ten__agulha" data-ten-agulha></div>
+        </div>
+      </div>
+      <p class="hj-df__dica">Segure o <b>botão do mouse</b> na arena (ou <kbd>ESPAÇO</kbd>) pra erguer a aura; solte pra baixar. A <b>faixa dourada vagueia</b> — persiga ela: com a aura dentro seus pés andam, fora dela a aura vaza e você para.</p>
+    </div>
+    {{/if}}
+
+    {{#if isZetsu}}
+    <div class="hj-df__arena" data-df-arena>
+      <div class="hj-df__hud">
+        <span>RODADA <b data-zt-rodada>1</b>/3</span>
+        <span>FLAGRAS <b data-zt-flagras>0</b></span>
+      </div>
+      <div class="hj-zt__cena" data-zt-cena>
+        <div class="hj-zt__olho is-fechado" data-zt-olho>😌</div>
+        <div class="hj-zt__progresso"><div class="hj-zt__barra" data-zt-barra></div></div>
+      </div>
+      <p class="hj-df__dica">Segure o <b>mouse</b> (ou <kbd>ESPAÇO</kbd>) pra avançar na penumbra. Com o olho fechado 😌 é seguro; no franzido 😑 ainda dá pra arriscar — mas se ele abrir 👁️ com você em movimento, <b>te pega</b>. E o franzido fica <b>mais curto a cada rodada</b>.</p>
+    </div>
+    {{/if}}
+
+    {{#if isRen}}
+    <div class="hj-df__arena" data-df-arena>
+      <div class="hj-df__hud">
+        <span>BLOCO <b data-rn-bloco>1</b>/3</span>
+        <span>CERTAS <b data-rn-certas>0</b></span>
+        <span>RESTAM <b data-rn-t>12</b>s</span>
+      </div>
+      <div class="hj-rn__corpo">
+        <div class="hj-rn__caixa">
+          <div class="hj-rn__seta is-vazia" data-rn-seta>·</div>
+          <div class="hj-rn__tempo"><div class="hj-rn__tempo-b" data-rn-tempo></div></div>
+        </div>
+        <div class="hj-rn__fornalha">
+          <div class="hj-rn__linha is-alta"></div>
+          <div class="hj-rn__linha is-media"></div>
+          <div class="hj-rn__chama" data-rn-chama></div>
+        </div>
+      </div>
+      <p class="hj-df__dica">Quando uma seta acender na caixa, aperte a <b>mesma seta</b> (setas ou <kbd>WASD</kbd>) antes dela sumir. Acertou, a chama sobe; errou ou deixou passar, ela despenca — e as setas vêm <b>cada vez mais rápido</b>, até dentro do bloco.</p>
+    </div>
+    {{/if}}
+
+    {{#if isHatsu}}
+    <div class="hj-df__arena" data-df-arena>
+      <div class="hj-df__hud">
+        <span>SEU Nº <b>{{numero}}</b></span>
+        <span>APARIÇÕES <b data-ht-aparicoes>0</b>/10</span>
+        <span>ACERTOS <b data-ht-acertos>0</b></span>
+      </div>
+      <div class="hj-ht__palco">
+        <div class="hj-ht__copo" data-ht-copo>
+          <div class="hj-ht__vidro">
+            <div class="hj-ht__liquido" data-ht-liquido>
+              <span class="hj-ht__superficie"></span>
+              <span class="hj-ht__bolha b1"></span><span class="hj-ht__bolha b2"></span><span class="hj-ht__bolha b3"></span>
+              <span class="hj-ht__ninho" data-ht-impurezas></span>
+            </div>
+            <span class="hj-ht__gota g1"></span><span class="hj-ht__gota g2"></span><span class="hj-ht__gota g3"></span>
+            <span class="hj-ht__fogo" data-ht-fogo>🔥</span>
+            <span class="hj-ht__folha" data-ht-folha>🍃</span>
+          </div>
+        </div>
+        <div class="hj-ht__num" data-ht-num>·</div>
+      </div>
+      <div class="hj-ht__legenda">
+        {{#each numeros}}
+        <span class="hj-ht__cat {{#if marcado}}is-minha{{/if}}" style="--cor:{{cor}}"><b class="k">{{n}}</b> {{label}}</span>
+        {{/each}}
+      </div>
+      <p class="hj-df__dica">Os números pipocam <b>fora de ordem</b>. Clique na arena (ou <kbd>ESPAÇO</kbd>) <b>enquanto o SEU número está aceso</b> — cada acerto sintoniza a água com a sua categoria, e <b>cada clique acelera os números</b>. Clicar no errado apaga um acerto.</p>
+    </div>
+    {{/if}}
+
+  {{else}}
+    {{!-- ================= BRIEFING ================= --}}
+    <div class="hj-df__brief">
+      <div class="hj-df__selo"><i class="{{fase.icone}}" inert></i></div>
+      <h2>{{fase.titulo}}</h2>
+      <p>{{fase.resumo}}</p>
+      <p class="hj-df__regra">{{fase.regra}}</p>
+      {{#if isHatsu}}
+        <div class="hj-df__numeros">
+          {{#each numeros}}
+          <button type="button" class="hj-df__num {{#if marcado}}is-marcado{{/if}}" style="--cor:{{cor}}"
+                  data-action="desafioNumero" data-n="{{n}}" title="{{label}}">
+            <b>{{n}}</b>
+            <small>{{curto}}</small>
+          </button>
+          {{/each}}
+        </div>
+        {{#if sugestao}}
+        <p class="hj-df__num-dica">A água da sua ficha aponta o <b>{{sugestao.n}}</b> ({{sugestao.label}}) — mas a palavra final é da mesa.</p>
+        {{else}}
+        <p class="hj-df__num-dica">Sem categoria na ficha ainda — marque o número combinado com o Narrador.</p>
+        {{/if}}
+      {{/if}}
+      <button type="button" class="hj-df__btn is-comecar" data-action="desafioComecar">
+        <i class="fa-solid fa-bolt" inert></i> ESTOU PRONTO
+      </button>
+    </div>
+  {{/if}}
+
+</div>

@@ -31,6 +31,7 @@ const SACS = [
 
 let hudEl = null;
 let hudActorId = null;
+let dismissedActorId = null;   // ✕ fechou o painel deste ator: fica escondido até reinvocar
 
 /* -------------------------------------------- */
 /*  Estilos (injetados via JS — não dependem do system.json/restart) */
@@ -52,7 +53,14 @@ const CSS_TEXT = `
 }
 #jj-sacrifice-hud .jj-sac-header:active { cursor: grabbing; }
 #jj-sacrifice-hud .jj-sac-header i { font-size: 12px; opacity: .9; }
-#jj-sacrifice-hud .jj-sac-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+#jj-sacrifice-hud .jj-sac-title { flex: 1 1 auto; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+#jj-sacrifice-hud .jj-sac-close {
+  flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; padding: 0; border: none; border-radius: 4px;
+  background: none; color: #8a7a4a; font-size: 13px; cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+#jj-sacrifice-hud .jj-sac-close:hover { background: rgba(200,80,80,.22); color: #ff7676; }
 #jj-sacrifice-hud .jj-sac-body { display: flex; flex-direction: column; gap: 5px; }
 #jj-sacrifice-hud .jj-sac-btn {
   display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 9px;
@@ -92,6 +100,11 @@ const CSS_TEXT = `
 #jj-sacrifice-hud .jj-sac-upkeep.is-dur { border-color: #2f5a55; background: rgba(60,140,130,.16); color: #bfe6df; }
 #jj-sacrifice-hud .jj-sac-upkeep.is-dur i { color: #7fd3c6; }
 #jj-sacrifice-hud .jj-sac-upkeep.is-dur:hover { background: rgba(70,170,155,.26); border-color: #4a8a80; }
+/* Redução Constante — âmbar/escudo, mostra a fórmula rolada por golpe */
+#jj-sacrifice-hud .jj-sac-upkeep.is-red { border-color: #8a6a2a; background: rgba(180,130,40,.2); color: #f0dca8; }
+#jj-sacrifice-hud .jj-sac-upkeep.is-red i { color: #f0c460; }
+#jj-sacrifice-hud .jj-sac-upkeep.is-red .jj-sac-red { flex: 0 0 auto; font-weight: 700; font-size: 10px; color: #ffd97a; font-variant-numeric: tabular-nums; }
+#jj-sacrifice-hud .jj-sac-upkeep.is-red:hover { background: rgba(210,155,50,.3); border-color: #b0842f; }
 
 /* ── Recursos (custom) — cabeçalho no mesmo estilo de "Sacrifícios" ── */
 #jj-sacrifice-hud .jj-sac-resources { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
@@ -237,6 +250,20 @@ function upkeepHtml(actor) {
         <i class="fas fa-xmark jj-sac-x" inert></i>
       </button>`;
     }
+    if ( u.type === "reduction" ) {
+      const custo = u.value > 0
+        ? `<span class="jj-sac-cost">−${u.value} ${u.pool === "total" ? "Total" : "Gerada"}</span>`
+        : "";
+      return `
+      <button type="button" class="jj-sac-upkeep is-red" data-upkeep="${u.activityId}"
+              data-tooltip="Redução Constante (${u.formula} por golpe) — clique para desativar">
+        <i class="fas fa-shield-halved" inert></i>
+        <span class="jj-sac-lbl">${u.label}</span>
+        <span class="jj-sac-red">${u.formula}</span>
+        ${custo}
+        <i class="fas fa-xmark jj-sac-x" inert></i>
+      </button>`;
+    }
     const poolLbl = u.pool === "total" ? "Total" : "Gerada";
     return `
       <button type="button" class="jj-sac-upkeep" data-upkeep="${u.activityId}"
@@ -294,6 +321,9 @@ function innerHtml(actor) {
     <div class="jj-sac-header" data-drag-handle>
       <i class="fas fa-hand-fist" inert></i>
       <span class="jj-sac-title">Sacrifícios</span>
+      <button type="button" class="jj-sac-close" data-tooltip="Fechar o painel" aria-label="Fechar o painel">
+        <i class="fas fa-xmark" inert></i>
+      </button>
     </div>
     <div class="jj-sac-body">${bodyHtml(actor)}</div>`;
 }
@@ -308,6 +338,10 @@ function removeHud() {
 export function renderSacrificeHud() {
   const actor = getHudActor();
   if ( !actor ) { removeHud(); return; }
+
+  // fixar na ficha é um "mostrar" deliberado → cancela a dispensa pelo botão ✕
+  if ( game.user.getFlag(SCOPE, FLAG_PIN) === actor.id ) dismissedActorId = null;
+  if ( actor.id === dismissedActorId ) { removeHud(); return; }
 
   if ( hudEl && hudActorId === actor.id ) { refreshButtons(); return; }
   removeHud();
@@ -333,6 +367,25 @@ export function renderSacrificeHud() {
   document.body.appendChild(hudEl);
   attachButtonListeners(actor);
   makeDraggable();
+  attachCloseButton();
+}
+
+/** ✕ do cabeçalho: fecha o HUD sem precisar da ficha. Solta a fixação (se
+ *  houver) e DISPENSA o painel — some mesmo em combate, até ser reinvocado pela
+ *  ficha (botão de fixar) ou por um novo combate. */
+function onClose() {
+  if ( game.user.getFlag(SCOPE, FLAG_PIN) === hudActorId ) {
+    game.user.unsetFlag(SCOPE, FLAG_PIN).catch(() => {});
+  }
+  dismissedActorId = hudActorId;
+  removeHud();
+}
+
+function attachCloseButton() {
+  const btn = hudEl?.querySelector(".jj-sac-close");
+  if ( !btn ) return;
+  btn.addEventListener("pointerdown", e => e.stopPropagation());   // não inicia o arraste
+  btn.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); onClose(); });
 }
 
 function refreshButtons() {
@@ -578,7 +631,7 @@ Hooks.on("combatTurnChange", async (combat, prior, current) => {
   renderSacrificeHud();
 });
 
-Hooks.on("combatStart", () => renderSacrificeHud());
+Hooks.on("combatStart", () => { dismissedActorId = null; renderSacrificeHud(); });
 Hooks.on("updateCombat", () => renderSacrificeHud());
 Hooks.on("createCombatant", () => renderSacrificeHud());
 Hooks.on("deleteCombatant", () => renderSacrificeHud());

@@ -119,11 +119,13 @@ async function _autoHeal(actor, activity) {
   if ( lim.enabled ) await activity.update({ "healLimit.spent": Math.min(lim.max, lim.spent + curado) });
 
   const restante = lim.enabled ? Math.max(0, lim.max - Math.min(lim.max, lim.spent + curado)) : null;
-  ChatMessage.create({
+  const msg = {
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `💚 <b>${activity.item.name}</b> curou automaticamente <b>${curado}</b> no início do turno.`
       + (restante !== null ? ` (limite: ${restante} restante)` : "")
-  });
+  };
+  ChatMessage.applyRollMode(msg, game.settings.get("core", "rollMode"));   // respeita Público/Privado/Cego
+  ChatMessage.create(msg);
 }
 
 // No início do turno do dono, cura as técnicas ATIVAS com autoHeal marcado.
