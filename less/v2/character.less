@@ -1942,7 +1942,10 @@
   flex-wrap: wrap;
 }
 
-.bar {
+// Scoped to .mastery-bars — a bare ".bar" leaks flex-direction:column into the
+// dnd5e group-sheet member bars (.hp-bar.bar / .aura-bar.bar), stacking their
+// label/meter/value vertically and making each member card far too tall.
+.mastery-bars .bar {
   display: flex;
   flex-direction: column;
   gap: 3px;

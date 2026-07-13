@@ -338,6 +338,18 @@ function _configureCalendar() {
    */
   if ( Hooks.call("dnd5e.setupCalendar") === false ) return;
 
+  // Calendário Personalizado: injeta/atualiza a entrada "custom" na lista de
+  // calendários (montada a partir do setting `customCalendar`) antes de o mundo
+  // escolher qual usar — assim "Personalizado" aparece no seletor e, se estiver
+  // selecionado, o config construído vira o calendário do mundo.
+  {
+    const config = dataModels.calendar.buildCustomCalendarConfig(game.settings.get("hunter-system", "customCalendar"));
+    const entry = { value: "custom", label: "Personalizado", config };
+    const list = CONFIG.DND5E.calendar.calendars;
+    const idx = list.findIndex(c => c.value === "custom");
+    if ( idx >= 0 ) list[idx] = entry; else list.push(entry);
+  }
+
   const calendar = game.settings.get("hunter-system", "calendar");
   const calendarConfig = CONFIG.DND5E.calendar.calendars.find(c => c.value === calendar);
   if ( calendarConfig ) {

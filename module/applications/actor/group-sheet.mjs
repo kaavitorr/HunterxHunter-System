@@ -149,6 +149,10 @@ export default class GroupActorSheet extends MultiActorSheet {
       const section = context.sections[system.groupSection];
       if ( !section ) continue;
       const member = { id, type, img, name, system, uuid };
+      // Pontos de Aura (energia) — substitui os Dados de Vida (DV) na ficha de grupo.
+      const en = system.energy ?? {};
+      const amax = Number(en.max) || 0, aval = Number(en.total) || 0;
+      member.aura = { value: aval, max: amax, pct: amax > 0 ? Math.round(aval / amax * 100) : 0 };
       member.canView = actor.testUserPermission(game.user, "LIMITED");
       member.hiddenStats = !actor.testUserPermission(game.user, "OBSERVER");
       member.classes = member.hiddenStats ? [] : actor.itemTypes.class;

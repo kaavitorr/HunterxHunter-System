@@ -398,3 +398,14 @@
 .dnd5e2-journal:not(.journal-editor):not(.no-journal-skin) .journal-entry-page :is(h1, h2, h3, h4, h5, h6) {
   color: #f0d878 !important;
 }
+
+/* Calendário Personalizado — grade de nomes de meses/dias */
+.custom-calendar-config .cc-names-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 4px;
+  margin-top: 4px;
+}
+.custom-calendar-config .cc-names-grid input { width: 100%; }
+.custom-calendar-config fieldset { margin-bottom: 10px; }
+

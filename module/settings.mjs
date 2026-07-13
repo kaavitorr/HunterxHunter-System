@@ -2,6 +2,7 @@ import CompendiumBrowser from "./applications/compendium-browser.mjs";
 import CalendarMonthView from "./applications/calendar/calendar-month-view.mjs";
 import BastionSettingsConfig from "./applications/settings/bastion-settings.mjs";
 import CalendarSettingsConfig from "./applications/settings/calendar-settings.mjs";
+import CustomCalendarConfig from "./applications/settings/custom-calendar-settings.mjs";
 import CombatSettingsConfig from "./applications/settings/combat-settings.mjs";
 import CompendiumBrowserSettingsConfig from "./applications/settings/compendium-browser-settings.mjs";
 import ModuleArtSettingsConfig from "./applications/settings/module-art-settings.mjs";
@@ -9,6 +10,7 @@ import VariantRulesSettingsConfig from "./applications/settings/variant-rules-se
 import VisibilitySettingsConfig from "./applications/settings/visibility-settings.mjs";
 import BastionSetting from "./data/settings/bastion-setting.mjs";
 import { CalendarConfigSetting, CalendarPreferencesSetting } from "./data/settings/calendar-setting.mjs";
+import CustomCalendarSetting from "./data/settings/custom-calendar-setting.mjs";
 import PrimaryPartySetting from "./data/settings/primary-party-setting.mjs";
 import TransformationSetting from "./data/settings/transformation-setting.mjs";
 import * as LEGACY from "./config-legacy.mjs";
@@ -322,6 +324,24 @@ export function registerSystemSettings() {
     hint: "DND5E.CALENDAR.Configuration.Hint",
     icon: "fas fa-calendar-days",
     type: CalendarSettingsConfig
+  });
+
+  // Calendário Personalizado: define meses/ano, dias/mês, horas/dia, dias/semana
+  // e nomes — o calendário do mundo "custom" é montado a partir disto no init.
+  game.settings.registerMenu("hunter-system", "customCalendarConfiguration", {
+    name: "Calendário Personalizado",
+    label: "Configurar Calendário Personalizado",
+    hint: "Meses por ano, dias por mês, horas por dia e dias por semana, para mundos diferentes.",
+    icon: "fas fa-earth-americas",
+    type: CustomCalendarConfig
+  });
+
+  game.settings.register("hunter-system", "customCalendar", {
+    name: "Calendário Personalizado",
+    scope: "world",
+    config: false,
+    type: CustomCalendarSetting,
+    requiresReload: true
   });
 
   game.settings.register("hunter-system", "calendar", {

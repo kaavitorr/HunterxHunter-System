@@ -147,9 +147,11 @@ DND5E.defaultAbilities = {
 
 /**
  * Maximum ability score value allowed by default.
+ * A criação de personagem cap em 20 (HunterCharacterCreation.CREATION_MAX_ABILITY);
+ * o resto do sistema (ASI, edição da ficha) vai até aqui.
  * @type {number}
  */
-DND5E.maxAbilityScore = 20;
+DND5E.maxAbilityScore = 30;
 
 /* -------------------------------------------- */
 /*  Skills                                      */

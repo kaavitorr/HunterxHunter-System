@@ -593,6 +593,35 @@
   font-style: italic;
 }
 
+/* ── Layout em duas colunas (ficha do personagem) ─────────────
+   À esquerda as técnicas com Grau, à direita as Auxiliares. O molde
+   (item sheet) não recebe .hatsu-tecnicas-split e mantém o flex-wrap. */
+.hatsu-tecnicas-row.hatsu-tecnicas-split {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+.hatsu-tecnicas-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  align-items: start;
+}
+
+.hatsu-tecnicas-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* O chip ocupa no máximo a largura da coluna; o nome trunca se faltar espaço. */
+.hatsu-tecnicas-split .hatsu-tecnica-chip { max-width: 100%; }
+.hatsu-tecnicas-split .hatsu-tecnica-chip-name { min-width: 0; }
+.hatsu-tecnicas-split > .hatsu-tecnica-add-chip { align-self: flex-start; }
+
 .hatsu-tecnica-chip {
   display: inline-flex;
   align-items: center;

@@ -34,9 +34,10 @@
             </div>
             {{/if}}
             {{/with}}
-            {{#with system.attributes.hd}}
-            <div class="hd-bar bar">
-                <label>{{ localize "DND5E.HITDICE.Abbreviation" }}</label>
+            {{#with aura}}
+            {{#if max}}
+            <div class="hd-bar bar aura-bar">
+                <label>Aura</label>
                 <div class="meter hit-dice progress" role="meter" aria-valuemin="0"
                      aria-valuenow="{{ value }}" aria-valuemax="{{ max }}"
                      style="--bar-percentage: {{ pct }}%"></div>
@@ -48,6 +49,7 @@
                     {{/unless}}
                 </div>
             </div>
+            {{/if}}
             {{/with}}
             {{#if properties.length}}
             <ul class="pills">
