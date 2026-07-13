@@ -2976,6 +2976,12 @@ new foundry.applications.ux.ContextMenu.implementation(
       { id: "especialista", label: "Especialista", color: "#AAAAAA" }
     ];
 
+    // Graus de técnica (0 = Auxiliar, 1-9) — mesma escala já usada no item de spell (system.level).
+    const grauOptions = Array.fromRange(10).map(lvl => ({
+      value: lvl,
+      label: game.i18n.localize(CONFIG.DND5E.spellLevels?.[lvl] ?? String(lvl))
+    }));
+
     const allSpells = this.actor.items.filter(i => i.type === "spell");
     const slots = SLOTS.map(def => {
       const manifestacao = allSpells.find(s => s.getFlag("hunter-system", "hatsu.slot") === def.id) ?? null;
@@ -3009,23 +3015,40 @@ new foundry.applications.ux.ContextMenu.implementation(
         ? "Faltam: " + unmet.map(r => `${r.categoryLabel} Nv${r.level} (atual: ${r.currentLevel})`).join("; ")
         : "";
 
-      const _spellLite = (s, isBlocked = false) => s ? {
-        id: s.id,
-        name: s.name,
-        img: s.img,
-        subtitle: s.system?.school ? CONFIG.DND5E.spellSchools?.[s.system.school]?.label : "",
-        blocked: isBlocked,
-        grau: s.system?.level ?? 0
-      } : null;
+      const _spellLite = (s, isBlocked = false) => {
+        if ( !s ) return null;
+        const grau = s.system?.level ?? 0;
+        return {
+          id: s.id,
+          name: s.name,
+          img: s.img,
+          subtitle: s.system?.school ? CONFIG.DND5E.spellSchools?.[s.system.school]?.label : "",
+          blocked: isBlocked,
+          grau,
+          // Opções de Grau com "selected" já resolvido, para o <select> do chip não
+          // depender de contexto pai dentro do #each (bug conhecido de Handlebars aqui).
+          grauChoices: grauOptions.map(g => ({ value: g.value, label: g.label, selected: g.value === grau }))
+        };
+      };
 
       const reqsCols = requirements.length <= 1 ? 1
                      : requirements.length <= 4 ? 2
                      : 3;
 
+      const tecnicasLite = tecnicas.map(t => _spellLite(t, blocked));
+      for ( const t of tecnicasLite ) t.isVersatil = isVersatil;
+      // Duas colunas dentro da manifestação: técnicas com Grau (>=1) à esquerda,
+      // Auxiliares (grau 0) à direita.
+      const tecnicasGrau = tecnicasLite.filter(t => (t.grau ?? 0) >= 1);
+      const tecnicasAux  = tecnicasLite.filter(t => (t.grau ?? 0) === 0);
+
       return {
         ...def,
         manifestacao: _spellLite(manifestacao, blocked),
-        tecnicas: tecnicas.map(t => _spellLite(t, blocked)),
+        tecnicas: tecnicasLite,
+        tecnicasGrau,
+        tecnicasAux,
+        hasTecnicas: tecnicasLite.length > 0,
         requirements,
         reqsCols,
         canAddReq: !!manifestacao && requirements.length < 6,
@@ -3097,12 +3120,6 @@ new foundry.applications.ux.ContextMenu.implementation(
     });
 
     const tierLabels = { none: "—", otimo: "Ótimo", excelente: "Excelente", genial: "Genial", ultimato: "Ultimato" };
-
-    // Graus de técnica (0 = Auxiliar, 1-9) — mesma escala já usada no item de spell (system.level).
-    const grauOptions = Array.fromRange(10).map(lvl => ({
-      value: lvl,
-      label: game.i18n.localize(CONFIG.DND5E.spellLevels?.[lvl] ?? String(lvl))
-    }));
 
     context.hatsu = {
       slots,
@@ -5790,6 +5807,10 @@ function _buildBreakdown(roll) {
     const actor = item.actor;
     const type  = activity.type;
 
+    // Custo de ativação (PA) — acumulado no laço de consumo para exibir no card.
+    let paAtivacao = 0;
+    let poolLabel  = null;
+
     // Consumir PA configurado
     if ( actor ) {
       const targets = activity.consumption?.targets ?? [];
@@ -5819,6 +5840,8 @@ function _buildBreakdown(roll) {
           return;
         }
         await actor.update({ [campo]: atual - custo }, { isEnergySystem: true });
+        paAtivacao += custo;
+        poolLabel   = (poolLabel === null || poolLabel === label) ? label : "PA";
       }
     }
 
@@ -5841,6 +5864,10 @@ function _buildBreakdown(roll) {
       btnIcon:     typeConfig.btnIcon,
       btnColor:    typeConfig.btnColor,
       hasApply:    type === "damage",
+      paAtivacao,
+      poolLabel:   poolLabel ?? "PA",
+      // Mostra o custo se houve gasto de ativação OU se a técnica pode escalar (Escala de Energia).
+      showCost:    paAtivacao > 0 || !!(activity.jjScale?.formula ?? "").trim(),
     };
 
     const content = _renderExtraCardHTML(cardData);
@@ -5882,6 +5909,15 @@ function _buildBreakdown(roll) {
     <button type="button" class="jj-apply-btn" data-action="jj-extra-apply">Aplicar</button>
   </div>` : "";
 
+    // Linha de custo — começa com a ativação e é atualizada ao gastar Escala de Energia.
+    const costHTML = data.showCost ? `
+  <div class="jj-cost-line" data-pa-total="${data.paAtivacao ?? 0}">
+    <i class="fas fa-bolt" inert></i>
+    <span class="jj-cost-label">Custo</span>
+    <strong class="jj-cost-val">${data.paAtivacao ?? 0}</strong>
+    <span class="jj-cost-pool">${data.poolLabel ?? "PA"}</span>
+  </div>` : "";
+
     return `<div class="jujutsu-card jj-extra-card"
      data-item-id="${data.itemId}"
      data-actor-id="${data.actorId ?? ""}"
@@ -5894,6 +5930,7 @@ function _buildBreakdown(roll) {
     <span class="jj-top-sub">${data.typeLabel}</span>
   </div>
   ${data.hasDescription ? `<div class="jj-description">${data.description}</div>` : ""}
+  ${costHTML}
   <div class="jj-roll-btns" style="grid-template-columns: 1fr;">
     <button type="button" class="jj-btn jj-extra-btn" data-action="jj-extra-roll"
             style="background: color-mix(in srgb, ${data.btnColor} 20%, #0e0e18); color: ${data.btnColor};">
@@ -5953,6 +5990,18 @@ function _buildBreakdown(roll) {
     return aplicado;
   }
 
+  // Soma PA gasto (ex.: Escala de Energia) ao "Custo" exibido no card. Efêmero,
+  // como os demais resultados de rolagem deste card (não persiste após reload).
+  function _bumpCardCost(card, pa) {
+    if ( !pa || pa <= 0 ) return;
+    const line = card?.querySelector(".jj-cost-line");
+    if ( !line ) return;
+    const novo = (Number(line.dataset.paTotal) || 0) + pa;
+    line.dataset.paTotal = novo;
+    const el = line.querySelector(".jj-cost-val");
+    if ( el ) el.textContent = novo;
+  }
+
   // ── HANDLER PRINCIPAL ────────────────────────────────────────────────────────
   async function _handleExtraRoll(card, message) {
     const actorId    = card.dataset.actorId;
@@ -5976,6 +6025,7 @@ function _buildBreakdown(roll) {
       // Escala de Energia — deduz PA e devolve o bônus a somar (rolagem/flat)
       const escala = await promptJJScale({ actor, activity });
       if ( escala === null ) return; // cancelado
+      _bumpCardCost(card, escala?.paGasto);
       const escalaFormula = escala?.bonusFormula || "";
       const escalaRoll = escalaFormula ? await new Roll(escalaFormula, rollData).evaluate() : null;
       if ( escalaRoll ) game.dice3d?.showForRoll(escalaRoll, game.user, true);
@@ -6095,6 +6145,7 @@ function _buildBreakdown(roll) {
             // Escala de Energia — deduz PA e devolve o bônus a somar
             const escala = await promptJJScale({ actor, activity });
             if ( escala === null ) return; // cancelado
+            _bumpCardCost(card, escala?.paGasto);
             const escalaFormula = escala?.bonusFormula || "";
             const escalaRoll = escalaFormula ? await new Roll(escalaFormula, rollData).evaluate() : null;
 

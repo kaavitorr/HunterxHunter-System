@@ -251,7 +251,12 @@ export default class AbilityScoreImprovementFlow extends AdvancementFlow {
     const assignments = Object.keys(CONFIG.DND5E.abilities).reduce((obj, key) => {
       const value = formData.object[`abilities.${key}`];
       if ( (value === undefined) || this.advancement.configuration.locked.has(key) ) return obj;
-      const abilityMax = Math.max(abilities[key]?.max ?? 20, this.advancement.configuration.max ?? -Infinity);
+      // `abilities` vem de `_source`, onde `max` é null; cai para o teto do
+      // sistema (CONFIG.DND5E.maxAbilityScore) como o preparo faz, não 20 fixo.
+      const abilityMax = Math.max(
+        abilities[key]?.max ?? CONFIG.DND5E.maxAbilityScore,
+        this.advancement.configuration.max ?? -Infinity
+      );
       const current = abilities[key]?.value ?? 0;
       const initial = current - (this.advancement.value.assignments?.[key] ?? 0);
       if ( initial > abilityMax ) return obj;

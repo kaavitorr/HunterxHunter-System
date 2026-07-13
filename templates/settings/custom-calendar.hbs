@@ -1,0 +1,59 @@
+<div class="custom-calendar-body">
+
+    <p class="hint">Defina o calendário do seu mundo. Salvar recarrega o Foundry.
+        Para usar, selecione <strong>Personalizado</strong> na Configuração de Calendário.</p>
+
+    <fieldset>
+        <legend>Estrutura</legend>
+
+        <div class="form-group">
+            <label>Meses por ano</label>
+            <div class="form-fields">
+                <input type="number" min="1" step="1" data-count="monthsPerYear" value="{{ w.monthsPerYear }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Dias por mês</label>
+            <div class="form-fields">
+                <input type="number" min="1" step="1" data-count="daysPerMonth" value="{{ w.daysPerMonth }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Horas por dia</label>
+            <div class="form-fields">
+                <input type="number" min="1" step="1" data-count="hoursPerDay" value="{{ w.hoursPerDay }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Dias por semana</label>
+            <div class="form-fields">
+                <input type="number" min="1" step="1" data-count="daysPerWeek" value="{{ w.daysPerWeek }}">
+            </div>
+            <p class="hint">Usado para montar a grade do calendário mensal.</p>
+        </div>
+
+        <p class="hint">Ano = <strong>{{ daysPerYear }}</strong> dias ({{ w.monthsPerYear }} × {{ w.daysPerMonth }}).</p>
+    </fieldset>
+
+    <fieldset>
+        <legend>Nomes dos meses <span class="hint">(vazio = "Mês N")</span></legend>
+        <div class="cc-names-grid">
+            {{#each months}}
+            <input type="text" data-month="{{ i }}" value="{{ value }}" placeholder="{{ placeholder }}">
+            {{/each}}
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Nomes dos dias da semana <span class="hint">(vazio = "Dia N")</span></legend>
+        <div class="cc-names-grid">
+            {{#each weekdays}}
+            <input type="text" data-weekday="{{ i }}" value="{{ value }}" placeholder="{{ placeholder }}">
+            {{/each}}
+        </div>
+    </fieldset>
+
+</div>

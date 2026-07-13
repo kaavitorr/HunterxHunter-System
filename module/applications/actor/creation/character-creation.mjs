@@ -1099,15 +1099,17 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     const oUsed = HunterCharacterCreation.#bonusUsed(ob);
     const oTotal = HunterCharacterCreation.ORIGIN_BONUS_POINTS;
     context.originPoints = { total: oTotal, used: oUsed, left: oTotal - oUsed };
+    const CAP = HunterCharacterCreation.CREATION_MAX_ABILITY;
     context.currentAbilities = HunterCharacterCreation.ABILITY_KEYS.map(k => {
       const oAdd = Number(ob[k]) || 0;
+      const raw = this._baseAbility(k) + (Number(ab[k]) || 0) + oAdd;
       return {
         key: k,
         abbr: game.i18n.localize(CONFIG.DND5E.abilities[k]?.abbreviation ?? k).toUpperCase(),
         label: game.i18n.localize(CONFIG.DND5E.abilities[k]?.label ?? k),
-        value: this._baseAbility(k) + (Number(ab[k]) || 0) + oAdd,
+        value: Math.min(CAP, raw),
         originAdd: oAdd,
-        canInc: oUsed < oTotal,
+        canInc: (oUsed < oTotal) && (raw < CAP),
         canDec: oAdd > 0
       };
     });
@@ -1744,12 +1746,14 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
         rows: HunterCharacterCreation.ABILITY_KEYS.map(k => {
           const base = this._baseAbility(k);
           const add = Number(bonus[k]) || 0;
+          const raw = base + add;
+          const CAP = HunterCharacterCreation.CREATION_MAX_ABILITY;
           return {
             key: k,
             abbr: game.i18n.localize(CONFIG.DND5E.abilities[k]?.abbreviation ?? k).toUpperCase(),
             label: game.i18n.localize(CONFIG.DND5E.abilities[k]?.label ?? k),
-            base, add, value: base + add,
-            canInc: used < total,
+            base, add, value: Math.min(CAP, raw),
+            canInc: (used < total) && (raw < CAP),
             canDec: add > 0
           };
         })
@@ -2021,6 +2025,9 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
   /* -------------------------------------------- */
 
   /** Total de pontos de atributo que a espécie concede. */
+  /** Teto de atributo NA CRIAÇÃO (o resto do sistema vai a CONFIG.DND5E.maxAbilityScore). */
+  static CREATION_MAX_ABILITY = 20;
+
   static ABILITY_BONUS_POINTS = 2;
 
   static #bonusUsed(b) {
@@ -2032,6 +2039,9 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
     const key = target.dataset.ability;
     const b = this._creation.abilityBonus;
     if ( HunterCharacterCreation.#bonusUsed(b) >= HunterCharacterCreation.ABILITY_BONUS_POINTS ) return;
+    // Não deixa o atributo (base + espécie + origem) passar do teto da criação.
+    const total = this._baseAbility(key) + (Number(b[key]) || 0) + (Number(this._creation.originBonus?.[key]) || 0);
+    if ( total >= HunterCharacterCreation.CREATION_MAX_ABILITY ) return;
     b[key] = (Number(b[key]) || 0) + 1;
     this.render();
   }
@@ -2136,8 +2146,12 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
   static #onOriginBonusInc(event, target) {
     this._captureName();
     const b = this._creation.originBonus;
+    const key = target.dataset.ability;
     if ( HunterCharacterCreation.#bonusUsed(b) >= HunterCharacterCreation.ORIGIN_BONUS_POINTS ) return;
-    b[target.dataset.ability] = (Number(b[target.dataset.ability]) || 0) + 1;
+    // Não deixa o atributo (base + espécie + origem) passar do teto da criação.
+    const total = this._baseAbility(key) + (Number(this._creation.abilityBonus?.[key]) || 0) + (Number(b[key]) || 0);
+    if ( total >= HunterCharacterCreation.CREATION_MAX_ABILITY ) return;
+    b[key] = (Number(b[key]) || 0) + 1;
     this.render();
   }
 
@@ -2194,6 +2208,12 @@ export default class HunterCharacterCreation extends HandlebarsApplicationMixin(
       const path = `system.abilities.${key}.value`;
       const base = (path in updates) ? updates[path] : (this.actor.system.abilities?.[key]?.value ?? 8);
       updates[path] = base + amt;
+    }
+    // Teto da criação: nenhum atributo criado passa de 20 (o resto do sistema
+    // permite até maxAbilityScore). Backstop caso a UI deixe algo escapar.
+    for ( const key of HunterCharacterCreation.ABILITY_KEYS ) {
+      const path = `system.abilities.${key}.value`;
+      if ( path in updates ) updates[path] = Math.min(HunterCharacterCreation.CREATION_MAX_ABILITY, updates[path]);
     }
     // Proficiência em salvaguarda da origem.
     if ( this._creation.originSave ) updates[`system.abilities.${this._creation.originSave}.proficient`] = 1;

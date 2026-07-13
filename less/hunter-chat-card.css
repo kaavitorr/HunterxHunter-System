@@ -57,6 +57,30 @@
 
 .jj-description p { margin: 0; }
 
+/* ── CUSTO (PA gasto: ativação + Escala de Energia) ─── */
+.jj-cost-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-bottom: 1px solid #141420;
+}
+.jj-cost-line .fa-bolt { color: #e8c060; font-size: 10px; }
+.jj-cost-line .jj-cost-label {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #8a8298;
+}
+.jj-cost-line .jj-cost-val {
+  color: #f0d488;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.jj-cost-line .jj-cost-pool { font-size: 10px; color: #8a8298; }
+
 /* ── DADOS (ESTADOS) ────────────────────────────────── */
 .jj-die.discarded {
   opacity: 0.3;
