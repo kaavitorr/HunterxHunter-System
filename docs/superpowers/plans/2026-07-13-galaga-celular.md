@@ -70,8 +70,8 @@ let ok = 0, falhas = 0;
 function afirma(cond, msg) { if ( cond ) ok++; else { falhas++; console.error("FALHOU:", msg); } }
 /** RNG determinístico (LCG) — mesmo seed => mesma partida. */
 function lcg(seed = 42) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32); }
-/** Simula `ms` de jogo em passos de 16ms; aCadaTick(g) roda antes de cada passo. */
-function simular(g, ms, aCadaTick = null) { for ( let t = 0; t < ms; t += 16 ) { aCadaTick?.(g); g.passo(16); } }
+/** Simula `ms` de jogo em passos de 16ms; aCadaTick(g) roda antes de cada passo — retornar `false` para a simulação cedo. */
+function simular(g, ms, aCadaTick = null) { for ( let t = 0; t < ms; t += 16 ) { if ( aCadaTick?.(g) === false ) break; g.passo(16); } }
 
 /* ---------- Task 1: funções puras ---------- */
 {
@@ -240,7 +240,7 @@ Confirmar que os dois comandos acima estão verdes antes de seguir.
 ```js
 /* ---------- Task 2: ciclo de vida, nave, tiros ---------- */
 {
-  const g = new JogoGalaga({ rnd: lcg(1) });
+  const g = new JogoGalaga({ rnd: lcg(3) });
   afirma(g.fim === false, "começa sem fim");
   const p = g.placar;
   afirma(p.pontos === 0 && p.fase === 1 && p.vidas === 3 && p.dupla === false, "placar inicial 0/1/3/simples");
@@ -517,6 +517,7 @@ export default class JogoGalaga {
       this.#ultimo = agora;
       this.passo(dt);
       this.#desenha();
+      if ( this.#raf == null || this.#fim ) return;   // parar()/fim DURANTE o passo não pode rearmar o loop
       this.#raf = requestAnimationFrame(loop);
     };
     this.#raf = requestAnimationFrame(loop);
@@ -650,7 +651,7 @@ Dois comandos verdes. Nota: `caminhoMergulho` e `pontoBez` ficam sem uso até a 
 /* ---------- Task 3: inimigos, mergulhos, fases ---------- */
 {
   // entrada completa: 40 inimigos acabam em formação
-  const g = new JogoGalaga({ rnd: lcg(7) });
+  const g = new JogoGalaga({ rnd: lcg(15) });
   simular(g, 16000);
   afirma(g.depurar.emFormacao + g.depurar.mergulhando === g.depurar.inimigos && g.depurar.fila === 0,
     "após 16s a fila esvaziou e ninguém ficou preso entrando");
@@ -677,7 +678,8 @@ Dois comandos verdes. Nota: `caminhoMergulho` e `pontoBez` ficam sem uso até a 
   const g3 = new JogoGalaga({ rnd: lcg(7), faseInicial: 4 });
   afirma(g3.depurar.bonus === true, "fase 4 é bônus");
   let tiroInimigoNoBonus = false;
-  simular(g3, 30000, jg => { if ( jg.depurar.tirosInimigos > 0 ) tiroInimigoNoBonus = true; });
+  // só conta tiros ENQUANTO o bônus está ativo — a janela de 30s alcança a fase 5 (normal), que atira legitimamente
+  simular(g3, 30000, jg => { if ( jg.depurar.bonus && jg.depurar.tirosInimigos > 0 ) tiroInimigoNoBonus = true; });
   afirma(tiroInimigoNoBonus === false, "no bônus ninguém atira");
   afirma(g3.placar.fase === 5, "bônus termina e vira fase 5");
 }
@@ -847,11 +849,12 @@ Expected: FAIL — com os stubs, `emFormacao` fica 0 e a fase nunca avança.
 
   #passoFase() {
     if ( this.#fila.length || this.#inimigos.length ) return;
-    if ( this.#bonus && this.#bonusAbates >= 40 ) {
-      this.#ganharPontos(1000);
-      this.#aviso = { texto: "PERFEITO! +1000", ateT: this.#relogio + 1600 };
+    const perfeito = this.#bonus && this.#bonusAbates >= 40;
+    this.#novaFase(this.#fase + 1);            // seta o aviso "FASE n"…
+    if ( perfeito ) {
+      this.#ganharPontos(1000);                // …que pode virar "NAVE EXTRA!"…
+      this.#aviso = { texto: "PERFEITO! +1000", ateT: this.#relogio + 1600 };   // …mas o PERFEITO prevalece
     }
-    this.#novaFase(this.#fase + 1);
     this.#avisaPlacar();
   }
 ```
@@ -882,12 +885,13 @@ Dois comandos verdes.
 ```js
 /* ---------- Task 4: captura, resgate, nave dupla ---------- */
 {
-  const g = new JogoGalaga({ rnd: lcg(21) });
+  const g = new JogoGalaga({ rnd: lcg(9358) });
   // 1) deixar ser capturado: perseguir o feixe quando ele existir, sem atirar
+  // (o harness para a simulação quando o callback retorna false — sem isso a nave morre de outras causas antes/depois da captura)
   let capturou = false;
   simular(g, 90000, jg => {
     const d = jg.depurar;
-    if ( d.capturada ) { capturou = true; return; }
+    if ( d.capturada ) { capturou = true; if ( !d.naveViva ) return false; return; }
     const alvoX = d.feixe ? d.feixe.x : W / 2;
     jg.segurar("esq", d.naveX > alvoX + 2);
     jg.segurar("dir", d.naveX < alvoX - 2);
@@ -900,7 +904,7 @@ Dois comandos verdes.
   let resgatou = false;
   simular(g, 60000, jg => {
     const d = jg.depurar;
-    if ( d.dupla ) { resgatou = true; return; }
+    if ( d.dupla ) { resgatou = true; return false; }
     const alvoX = d.bossPresa ? d.bossPresa.x : (d.alvo?.x ?? W / 2);
     jg.segurar("esq", d.naveX > alvoX + 3);
     jg.segurar("dir", d.naveX < alvoX - 3);
@@ -958,6 +962,7 @@ Expected: FAIL — nunca captura (`#lancarFeixe` não existe, `#passoPresa` é s
     const boss = this.#inimigos.find(i => i.tipo === "boss" && i.modo === "formacao" && i.vidas === 2 && !i.presa);
     if ( !boss ) return;
     boss.modo = "descendoFeixe"; boss.t = 0;
+    boss.voltou = false;   // rearma o retorno — sem isso um boss que RECAPTURA trava no modo feixe
     boss.de = { x: boss.x, y: boss.y };
     boss.alvoFeixe = { x: 50 + this.#rnd() * (W - 100), y: 148 };
   }
