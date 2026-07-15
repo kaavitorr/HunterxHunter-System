@@ -1,0 +1,1029 @@
+folder: DVnVYS93cChe5onq
+name: Habilidades de Treinamento
+_id: tr3t07bsAOPkVrb6
+pages:
+  - sort: 100000
+    name: Aprimorador
+    type: text
+    _id: he1rAImcMI5jWHk4
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402509271
+      modifiedTime: 1777402509271
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.he1rAImcMI5jWHk4'
+  - sort: 200000
+    name: Robusto
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p><strong>Robusto ★</strong></p><p>Recebe vida adicional igual ao seu
+        nível de personagem, recebendo 1 PV adicional a cada nível
+        posterior.</p><hr><p><strong>Robusto ★★</strong></p><p>Recebe vida
+        adicional igual a 2 vezes seu nível de personagem, recebendo 2 PVs
+        adicionais a cada nível posterior.</p><hr><p><strong>Robusto
+        ★★★</strong></p><p>Recebe vida adicional igual a 3 vezes seu nível de
+        personagem, recebendo 3 PVs adicionais a cada nível posterior.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402514482
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.he1rAImcMI5jWHk4
+      exportSource: null
+    _id: s0Rq2BmzMI1Pbw2L
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.s0Rq2BmzMI1Pbw2L'
+  - sort: 300000
+    name: Ofensiva Aprimorada
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Seu dado de dano base se torna d12. Adicionalmente, você pode
+        adicionar 1 dado a mais no seu “Explosão Ofensiva” para cada 2 níveis
+        que tiver atingido no treinamento de aprimorador.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402565236
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.s0Rq2BmzMI1Pbw2L
+      exportSource: null
+    _id: a6Ou5E3jxIMYsZPt
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.a6Ou5E3jxIMYsZPt'
+  - sort: 400000
+    name: Resistência Aprimorada
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você recebe 3 Pontos de Armadura no Foco Defensivo para cada nível de
+        treinamento de aprimorador que você se encontra.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402585981
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.a6Ou5E3jxIMYsZPt
+      exportSource: null
+    _id: 3vPFbFcuDdpSvwKT
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.3vPFbFcuDdpSvwKT'
+  - sort: 500000
+    name: Corpo Aprimorado
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você se torna capaz de utilizar aura para aprimorar certos aspectos
+        do seu corpo para ajuda-lo em diversas situações, ao consumir 2 Pontos
+        de Aura, você pode ativar um dos seguintes
+        aprimoramentos:</p><ul><li><p><strong>Voz Aprimorada:</strong> Você pode
+        amplificar tanto sua voz que ela pode ser ouvida por até 3
+        km.</p></li><li><p><strong>Musculatura Aprimorada:</strong> Você
+        triplica sua capacidade de carga atual.</p></li><li><p><strong>Atributos
+        Aprimorados:</strong> Você pode receber 1d4 na sua próxima rolagem de
+        perícia, sem ser da perícia Nen.</p></li><li><p><strong>Regeneração
+        Aprimorada:</strong> Você pode rolar 1 dado de vida como se estivesse
+        realizando um descanso curto e recuperar o resultado em Pontos de Vida.
+        Você consome 1 dado para usar essa característica.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402608521
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.3vPFbFcuDdpSvwKT
+      exportSource: null
+    _id: C4COzedbI6qyJmXo
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.C4COzedbI6qyJmXo'
+  - sort: 600000
+    name: Emissor
+    type: text
+    _id: LIhSFJehQvXPtROs
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402639642
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.LIhSFJehQvXPtROs'
+  - sort: 700000
+    name: Agilidade Avançada
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p><strong>Agilidade Avançada ★</strong></p><p>Você recebe 1,5 metros de
+        deslocamento, até um máximo de 15 metros, e ignora reações geradas pelo
+        seu movimento como “Ataque de Oportunidade”.</p><hr><p><strong>Agilidade
+        Avançada ★★</strong></p><p>Você recebe 3 metros de deslocamento, até um
+        máximo de 15 metros, e ignora reações geradas pelo seu movimento —
+        inclusive aquelas que normalmente ignorariam esse tipo de
+        característica, como “Ataque de Oportunidade
+        Superior”.</p><hr><p><strong>Agilidade Avançada ★★★</strong></p><p>Você
+        recebe 6 metros de deslocamento, até um máximo de 18 metros, e ignora
+        terreno difícil, bem como reações geradas pelo seu movimento — inclusive
+        aquelas que normalmente ignorariam esse tipo de característica, como
+        “Ataque de Oportunidade Superior”.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402643449
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.LIhSFJehQvXPtROs
+      exportSource: null
+    _id: AqvfUbRRQzpVlHz1
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.AqvfUbRRQzpVlHz1'
+  - sort: 800000
+    name: Emissão Treinada
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você pode substituir cada uma de suas jogadas de ataque (Comuns) por
+        um ataque a distância de 3 metros. Você recebe 1,5 metros adicionais
+        para cada nível no treinamento de Emissor.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402665993
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.AqvfUbRRQzpVlHz1
+      exportSource: null
+    _id: miXywfeqLSk6hzI6
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.miXywfeqLSk6hzI6'
+  - sort: 900000
+    name: Reabsorção de Aura
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: "<p>Ao executar uma técnica que envolva a criação de lacaios ou constructos, você pode optar por consumir toda a sua aura máxima para tornar a duração “Especial”, fazendo com que a técnica permaneça ativa até ser desativada manualmente. Quando isso ocorrer, sua aura será restaurada normalmente.\_</p><p>Se a habilidade for cancelada manualmente, você recupera tanto a aura atual quanto a aura máxima utilizadas, desde que mais da metade dos lacaios ou constructos ainda estejam ativos. Caso a habilidade se encerre porque todos foram destruídos, você recupera apenas a aura máxima.\_</p><p>Como alternativa, caso não utilize lacaios ou constructos, você pode escolher absorver a aura de uma técnica sob o efeito do “Emissão de Aura” ao chegar no alcance de toque, recuperando metade da aura gasta na execução da técnica e adicionando a aura gerada.</p>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402683814
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.miXywfeqLSk6hzI6
+      exportSource: null
+    _id: 11yZVOrfieCSv8YC
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.11yZVOrfieCSv8YC'
+  - sort: 1000000
+    name: Atravessar Matéria
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Uma vez por descanso curto ou longo, você pode escolher executar uma
+        técnica que irá ignorar qualquer objeto ou estrutura em seu caminho, e
+        acertando seu alvo automaticamente se ele estiver surpreso ou realizando
+        uma jogada de ataque (de Técnica) de outra forma. Essa técnica pode ser
+        comum e neutra como uma técnica de princípio.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402701199
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.11yZVOrfieCSv8YC
+      exportSource: null
+    _id: TYMYMOCH2iZhs9NL
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.TYMYMOCH2iZhs9NL'
+  - sort: 1100000
+    name: Transmutador
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402723991
+      modifiedTime: 1777402757755
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.LIhSFJehQvXPtROs
+      exportSource: null
+    _id: tMoIx8EJAAW2rb6M
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.tMoIx8EJAAW2rb6M'
+  - sort: 1300000
+    name: Transformação Sutil
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você pode escolher mudar as propriedades da sua aura sutilmente de
+        forma que permita atravessar a defesa da criatura inimiga. Ao usar uma
+        ação bônus e 5 Pontos de Aura, você pode escolher ignorar a resistência
+        da criatura e qualquer efeito de aumento de CR que mude ela para
+        qualquer outra que não seja a base até o fim do turno.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402745764
+      modifiedTime: 1777402791799
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.AqvfUbRRQzpVlHz1
+      exportSource: null
+    _id: gA882swrqxLwqj1N
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.gA882swrqxLwqj1N'
+  - sort: 1200000
+    name: Aumentar Densidade
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Aumentar Densidade ★</p><p>Sua Classe de Resistência aumenta em +1,
+        até um máximo de 25. Esse efeito é sempre aplicado por
+        último.</p><hr><p>Aumentar Densidade ★★</p><p>Sua Classe de Resistência
+        aumenta em +2, até um máximo de 25. Esse efeito é sempre aplicado por
+        último.</p><hr><p>Aumentar Densidade ★★★</p><p>Sua Classe de Resistência
+        aumenta em +3, até um máximo de 30. Esse efeito é sempre aplicado por
+        último.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402756105
+      modifiedTime: 1777402770672
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.gA882swrqxLwqj1N
+      exportSource: null
+    _id: D784UnTjqTaJZOEh
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.D784UnTjqTaJZOEh'
+  - sort: 1250000
+    name: Aura Traiçoeira
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você pode mudar livremente seu dano entre Contundente, Cortante ou
+        Perfurante ao criar armas de aura enquanto mantém sua concentração.
+        Adicionalmente, você recebe +1 de dano no <em><strong>Jogo
+        Sujo</strong></em> ou <em><strong>Manto Elementa</strong></em>l para
+        cada 2 níveis no treinamento de transmutador. Caso você não seja um
+        transmutador, você passa a causar dano com a mesma regra do
+        <em><strong>Golpe Traiçoeiro</strong></em>, mas apenas o dano adquirido
+        por treinar esses níveis.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402782744
+      modifiedTime: 1777402800691
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.gA882swrqxLwqj1N
+      exportSource: null
+    _id: VLP7DaQoUH5Gfpu3
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.VLP7DaQoUH5Gfpu3'
+  - sort: 1300000
+    name: Perícia Transmutadora
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: "<p>Você pode escolher um elemento ligado ao seu Hatsu e uma condição causada por sua transmutação, ganhando resistência ao dano desse tipo e vantagem contra a condição. Alternativamente, pode optar por apenas um benefício, obtendo imunidade ao dano ou à condição.\_</p><p>Além disso, pode definir uma forma para sua aura — animal, demônio, objeto ou qualquer outra coisa imaginável. Sempre que atacar (Comum ou Técnica), pode gastar 3 PA para aumentar seu alcance de “Toque” em 3 metros até o fim do turno, fazendo sua aura assumir a forma definida.</p>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402807678
+      modifiedTime: 1777402815315
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.gA882swrqxLwqj1N
+      exportSource: null
+    _id: IT0QweKyExQmAJGc
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.IT0QweKyExQmAJGc'
+  - sort: 1400000
+    name: Conjurador
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402828732
+      modifiedTime: 1777402836735
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.tMoIx8EJAAW2rb6M
+      exportSource: null
+    _id: 8HdRcZg05SQJAYxT
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.8HdRcZg05SQJAYxT'
+  - sort: 1500000
+    name: Aura Adaptável
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p><strong>Aura Adaptável ★</strong></p><p>Você recebe 3 vezes o seu
+        Modificador de Espírito em Pontos de Vida
+        adicionais.</p><hr><p><strong>Aura Adaptável ★★</strong></p><p>Você
+        recebe 4 vezes o seu Modificador de Espírito em Pontos de Vida
+        adicionais.</p><hr><p><strong>Aura Adaptável ★★★</strong></p><p>Você
+        recebe 5 vezes o seu Modificador de Espírito em Pontos de Vida
+        adicionais.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402839657
+      modifiedTime: 1777402853280
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.D784UnTjqTaJZOEh
+      exportSource: null
+    _id: GMsFUhiFKbSnPsGJ
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.GMsFUhiFKbSnPsGJ'
+  - sort: 1500000
+    name: Foco de Conjurador
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: "<p>Você se torna capaz de conjurar itens da categoria “Pequeno”, seja como foco da sua habilidade ou como parte dela, caso não seja um conjurador. O tamanho dos itens que você pode conjurar aumenta em 1 a cada 2 níveis adquiridos no Treinamento de Conjurador.\_</p><p>Além disso, a cada 2 níveis nesse treinamento, você consome 1 PA a menos para ativar uma habilidade de conjuração (manifestação). Caso não se beneficie desse efeito pelo Aspecto Inato, você pode escolher uma única técnica para sempre usufruir dessa redução de custo.</p>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402867165
+      modifiedTime: 1777402876544
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.GMsFUhiFKbSnPsGJ
+      exportSource: null
+    _id: H7CY8R4LSHeE9D3a
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.H7CY8R4LSHeE9D3a'
+  - sort: 1500000
+    name: Liberação Conjuradora
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Ao usar um ou mais dados de conjurador para qualquer coisa, você pode
+        pegar o resultado dos 2 primeiros dados rolados nesse turno e gerar
+        Pontos de Aura igual ao resultado da rolagem. Qualquer resultado além
+        dos 2 primeiros dados rolados de uma única vez não conta para essa
+        característica.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402878901
+      modifiedTime: 1777402888179
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.H7CY8R4LSHeE9D3a
+      exportSource: null
+    _id: LzT1Zya0el1kuKRp
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.LzT1Zya0el1kuKRp'
+  - sort: 1500000
+    name: Mudando o Jogo
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Ao errar uma jogada de acerto (Comum ou de Técnica), você pode
+        escolher acertar o ataque no lugar. Você pode usar essa característica
+        um número de vezes igual ao seu bônus de proficiência. Você não pode
+        utilizar essa característica novamente até o início do próximo dia e
+        apenas após ter realizado um descanso longo.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402899083
+      modifiedTime: 1777402906285
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.LzT1Zya0el1kuKRp
+      exportSource: null
+    _id: 9GZp3e1EQqsKA3ah
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.9GZp3e1EQqsKA3ah'
+  - sort: 1600000
+    name: Manipulador
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402934413
+      modifiedTime: 1777402945368
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.8HdRcZg05SQJAYxT
+      exportSource: null
+    _id: AjfmN8WmEYVUB0bi
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.AjfmN8WmEYVUB0bi'
+  - sort: 1700000
+    name: Aura Controlada
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p><strong>Aura Controlada ★</strong></p><p>Sua capacidade de comandar a
+        aura faz com que ela sempre seja capaz de percorrer o corpo de seus
+        alvos causando a maior quantidade de malefícios possíveis. Até 3 vezes
+        por descanso longo, você pode rolar duas vezes um dado de dano de um
+        ataque ou técnica e escolher o maior resultado</p><hr><p><strong>Aura
+        Controlada ★★</strong></p><p>Sua capacidade de comandar a aura faz com
+        que ela sempre seja capaz de percorrer o corpo de seus alvos causando a
+        maior quantidade de malefícios possíveis. Até 5 vezes por descanso
+        longo, você pode rolar duas vezes um dado de dano de um ataque ou
+        técnica e escolher o maior resultado.</p><hr><p><strong>Aura Controlada
+        ★★★</strong></p><p>Sua capacidade de comandar a aura faz com que ela
+        sempre seja capaz de percorrer o corpo de seus alvos causando a maior
+        quantidade de malefícios possíveis. Toda vez que você fizer uma rolagem
+        de dano, você pode rolar uma segunda vez e escolher o maior
+        resultado.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402956444
+      modifiedTime: 1777402966595
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.GMsFUhiFKbSnPsGJ
+      exportSource: null
+    _id: Z5mDHhz0sVRHsA3B
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.Z5mDHhz0sVRHsA3B'
+  - sort: 1700000
+    name: Objeto Configurado
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você pode criar objetos simples capazes de armazenar comandos de Nen.
+        Os itens infundidos com sua aura dessa forma possuem 30 Pontos de Vida e
+        3 de CR para cada nível alcançado no Treinamento de Manipulador. Além
+        disso, você pode manter simultaneamente um item criado para cada nível
+        acima de 3 que alcançar no Treinamento de Manipulador.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777402973206
+      modifiedTime: 1777403007662
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.Z5mDHhz0sVRHsA3B
+      exportSource: null
+    _id: UIwMEh5O3pBITCIL
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.UIwMEh5O3pBITCIL'
+  - sort: 1700000
+    name: Criação de Ego
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: "<p>Qualquer criatura ou objeto que você manipule pode receber instruções adicionais de aura, permitindo que desenvolva uma forma de ego e seja capaz de se comunicar. Caso seja um lacaio comum, ele passa a ter a capacidade de falar como uma pessoa. Você pode manter apenas um objeto desse tipo por vez ou até três lacaios criados por sua habilidade.\_</p><p>Enquanto possuir uma existência dotada de ego, você pode atacar e utilizar técnicas através dela, gastando suas ações como se estivesse no local onde ela se encontra.</p>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777403032296
+      modifiedTime: 1777403038486
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.UIwMEh5O3pBITCIL
+      exportSource: null
+    _id: lcaWf7WK3I9lCm8q
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.lcaWf7WK3I9lCm8q'
+  - sort: 1700000
+    name: Comandos Avançados
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: "<p>Você pode escolher entre reduzir o custo de ativação de suas habilidades em 3 PA (mínimo de 1) ou o custo de suas técnicas em 1 PA. Além disso, qualquer objeto ou criatura sob seu controle continuará executando ações mesmo que você fique inconsciente, não exigindo controle direto.\_</p><p>Se o objeto não possuir Pontos de Vida e CR próprios, ele passa a ter 150 Pontos de Vida e 20 de CR.\_</p><p>Bestas de Nen sem ações, como Potclean, não se beneficiam desse efeito. No entanto, um objeto independente que tenha desenvolvido ego — como uma arma — passa a agir da mesma forma que um lacaio de combate comum.</p>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777403055288
+      modifiedTime: 1777403062881
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.lcaWf7WK3I9lCm8q
+      exportSource: null
+    _id: oXF8McpPaneyvSxT
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.oXF8McpPaneyvSxT'
+  - sort: 1800000
+    name: Especialista
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777403067363
+      modifiedTime: 1777403073998
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.AjfmN8WmEYVUB0bi
+      exportSource: null
+    _id: SIRH5LMptBtmLWAa
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.SIRH5LMptBtmLWAa'
+  - sort: 1900000
+    name: Ativação Eficiente
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você pode criar até 4 técnicas no total com efeitos de
+        especialização, caso não seja um especialista. Além disso, você pode
+        optar por reduzir o custo de ativação da sua habilidade em 3 PA (com
+        mínimo equivalente à metade do custo total) ou reduzir o custo de todas
+        as suas técnicas em 1 PA. Esse efeito pode ser aplicado individualmente
+        a cada manifestação. A redução de custo só se aplica a especialistas e
+        não se acumula com efeitos semelhantes.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777403077544
+      modifiedTime: 1777403095133
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.Z5mDHhz0sVRHsA3B
+      exportSource: null
+    _id: 2IhjDc0fKUOtdubM
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.2IhjDc0fKUOtdubM'
+  - sort: 1900000
+    name: Entendimento
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: "<p>Você possui extrema facilidade em treinar qualquer categoria que desejar. Assim, ao treinar qualquer categoria que não seja “Especialista” e cujo nível esteja abaixo do seu nível de treinamento de especialista, você consome apenas metade dos Pontos de Treinamento (arredondados para cima).\_</p><p>Além disso, ao atingir o 10º nível de treinamento em uma categoria, você pode receber uma segunda “habilidade de categoria”, além da habilidade de especialista.</p>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777403101762
+      modifiedTime: 1777403108028
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.2IhjDc0fKUOtdubM
+      exportSource: null
+    _id: EhzWEVQsCbJWY9wB
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.EhzWEVQsCbJWY9wB'
+  - sort: 1900000
+    name: Movimento Especializado
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>A movimentação de sua aura se tornou algo tão instintivo que você
+        pode move-la sem esforço. Até 3 vezes por descanso longo, ao usar a
+        forma alternativa do <em><strong>Movimento Empoderad</strong></em>o,
+        você pode escolher receber uma Ação de Poder no lugar da ação
+        bônus.</p><p>Caso você receba esse efeito sem possuir
+        <em><strong>Movimento Empoderado</strong></em>, você o recebe, mas sem a
+        modificação dessa habilidade.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777403113497
+      modifiedTime: 1777403121189
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.tr3t07bsAOPkVrb6.JournalEntryPage.EhzWEVQsCbJWY9wB
+      exportSource: null
+    _id: 9KQ2h5wAyBFZ1KrE
+    _key: '!journal.pages!tr3t07bsAOPkVrb6.9KQ2h5wAyBFZ1KrE'
+categories: []
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '14.360'
+  systemId: hunter-system
+  systemVersion: 1.0.0
+  createdTime: 1777402501113
+  modifiedTime: 1777402501113
+  lastModifiedBy: dnd5ebuilder0000
+  duplicateSource: null
+  exportSource: null
+_key: '!journal!tr3t07bsAOPkVrb6'

@@ -511,6 +511,15 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     let data;
     if ( this.system.getRollData ) data = this.system.getRollData({ deterministic });
     else data = {...super.getRollData()};
+    // Aliases PT-BR nas fórmulas: @abilities.esp = Espírito (int) e @abilities.pre = Presença (cha).
+    // IMPORTANTE: getRollData é cópia RASA — aliasar direto poluiria system.abilities e a ficha
+    // renderizaria esp/pre como atributos novos. Copiamos o mapa antes; os valores continuam
+    // sendo as mesmas referências de int/cha, então nunca divergem.
+    if ( data.abilities ) {
+      data.abilities = { ...data.abilities };
+      data.abilities.esp ??= data.abilities.int;
+      data.abilities.pre ??= data.abilities.cha;
+    }
     data.flags = {...this.flags};
     data.name = this.name;
     data.statuses = {};

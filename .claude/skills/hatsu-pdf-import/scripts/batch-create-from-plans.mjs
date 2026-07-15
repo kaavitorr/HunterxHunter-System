@@ -186,8 +186,28 @@ function buildActivity(id, t) {
   } else if (kind === "damage") {
     base.type = "damage";
     base.damage = { critical: { allow: false }, parts: partsFromPlan(t.damageParts) };
+  } else if (kind === "reduction") {
+    // Defensive damage-reduction shield. reductionConstant=false (default) is the one-shot
+    // shield rolled once per use; reductionConstant=true is a sustained per-hit reduction that
+    // stays active in the combat HUD and rolls fresh each hit (pair with constantCost for PA/turn).
+    base.type = "reduction";
+    base.reduction = { formula: t.reductionFormula || "1d8", constant: !!t.reductionConstant };
   } else {
     base.type = "utility";
+  }
+
+  // Condição no Alvo — only rendered/handled on attack/save/damage activities. Rides on the
+  // hit (attack), the failed damage save (save), or a direct button (damage). See
+  // module/systems/condicao-atividade.mjs. Replaces the old "secondary condition-save as an
+  // inline [[/save]] enricher" convention whenever the condition maps to a known jj-* status.
+  if (t.condicao && t.condicao.id && ["attack", "save", "damage"].includes(base.type)) {
+    base.condicao = {
+      id: t.condicao.id,
+      ability: t.condicao.ability || "con",
+      dc: t.condicao.dc || "",
+      semSalvaguarda: !!t.condicao.semSalvaguarda,
+      gatilho: t.condicao.gatilho || ""
+    };
   }
   return base;
 }

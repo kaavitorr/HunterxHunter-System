@@ -28,7 +28,7 @@
  *    apareçam como opções no dropdown "Attribute" do Consumption
  *
  *  • Substitui os labels técnicos por nomes amigáveis na UI
- *    ("⚡ Energia Gerada (PA)" e "🔮 Energia Total (PA)")
+ *    ("⚡ Aura Gerada (PA)" e "🔮 Aura Total (PA)")
  *
  *  • Valida PA disponível antes do uso e exibe aviso legível
  *    (o dnd5e também valida, mas a mensagem nativa mostra o path técnico)
@@ -79,8 +79,8 @@ function _injectLabels(app, html) {
 
   // Labels nos <option> dos selects de target
   root.querySelectorAll("option").forEach(opt => {
-    if ( opt.value === PATH_GERADA ) opt.textContent = "⚡ Energia Gerada (PA)";
-    if ( opt.value === PATH_TOTAL  ) opt.textContent = "🔮 Energia Total (PA)";
+    if ( opt.value === PATH_GERADA ) opt.textContent = "⚡ Aura Gerada (PA)";
+    if ( opt.value === PATH_TOTAL  ) opt.textContent = "🔮 Aura Total (PA)";
   });
 
   // Tooltip em inputs que mostram o path

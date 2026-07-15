@@ -1,0 +1,19 @@
+type: JournalEntry
+folder: null
+name: Info
+color: null
+sorting: a
+_id: DVnVYS93cChe5onq
+description: ''
+sort: 100000
+flags: {}
+_stats:
+  coreVersion: '14.360'
+  systemId: hunter-system
+  systemVersion: 1.0.0
+  createdTime: 1777382735841
+  modifiedTime: 1777384305575
+  lastModifiedBy: dnd5ebuilder0000
+  duplicateSource: null
+  exportSource: null
+_key: '!folders!DVnVYS93cChe5onq'

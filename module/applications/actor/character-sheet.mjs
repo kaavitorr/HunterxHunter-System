@@ -19,6 +19,8 @@ import { getActorUpkeeps } from "./jj/constant-cost.mjs";
 import { renderSacrificeHud } from "./jj/combat-sacrifice-hud.mjs";
 import "./jj/gm-resource-hud.mjs";   // HUD do Narrador — mesmo caminho de carga dos outros widgets jj
 import { reducaoDoGigante } from "./jj/categoria-aprimorador.mjs";   // regras automáticas do Aprimorador (nv 3/6)
+import "./jj/categoria-manipulador.mjs";                              // Aura Controlada (Manipulador nv 2/5/8) — hooks próprios
+import { condicaoDe, injetarBotaoCondicao, rolarSalvaguardaCondicao } from "../../systems/condicao-atividade.mjs"; // Condição no Alvo
 import "./jj/heal-limit.mjs";
 import { chooseJJScale, applyScaleChoice, promptJJScale } from "./jj/jj-scale.mjs";
 import { resetHealLimitsByTechnique } from "./jj/heal-limit.mjs";
@@ -2752,7 +2754,7 @@ new foundry.applications.ux.ContextMenu.implementation(
         flagId: "nen-agilidade",
         getRank: lvl => lvl >= 8 ? 3 : lvl >= 5 ? 2 : lvl >= 2 ? 1 : 0,
         getChanges: rank => {
-          const bonus = rank === 1 ? 5 : rank === 2 ? 10 : 20;
+          const bonus = rank === 1 ? 1.5 : rank === 2 ? 3 : 6;   // +1,5m / +3m / +6m (em metros)
           return [{ key: "system.attributes.movement.walk", mode: 2, value: String(bonus), priority: 20 }];
         }
       },
@@ -2772,7 +2774,8 @@ new foundry.applications.ux.ContextMenu.implementation(
         getRank: lvl => lvl >= 8 ? 3 : lvl >= 5 ? 2 : lvl >= 2 ? 1 : 0,
         getChanges: rank => {
           const mult = rank + 2; // 1→3, 2→4, 3→5
-          return [{ key: "system.attributes.hp.bonuses.overall", mode: 2, value: `${mult} * @abilities.wis.mod`, priority: 20 }];
+          // Espírito no hunter é a chave "int" (lang: AbilityInt = "Espirito"); wis é Sabedoria
+          return [{ key: "system.attributes.hp.bonuses.overall", mode: 2, value: `${mult} * @abilities.int.mod`, priority: 20 }];
         }
       }
     };
@@ -5231,7 +5234,8 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
     card.querySelector("[data-action='jj-apply-damage']")?.addEventListener("click", () => {
       const base = Number(card.dataset.totalDmg ?? 0);
       const activeMod = card.querySelector(".jj-mod-check input:checked")?.dataset.mod ?? null;
-      const final = _applyModifier(base, activeMod);
+      // critBonus precisa entrar aqui — sem ele o "Aplicar" ignorava os dados do crítico
+      const final = _applyModifier(base, activeMod, Number(card.dataset.critBonus ?? 0));
       _applyDamageToSelected(final, card);
     });
 
@@ -5323,10 +5327,15 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
     const roll = await new Roll(formula, actor.getRollData()).evaluate();
     // Mostrar resultado IMEDIATAMENTE, animar dados em paralelo
     if ( game.dice3d ) game.dice3d.showForRoll(roll, game.user, true); // sem await
-    const isCrit = roll.total >= (activity.attack?.critical?.threshold ?? 20);
 
-    const isNat20 = roll.dice[0]?.results[0]?.result === 20;
-    const isNat1  = roll.dice[0]?.results[0]?.result === 1;
+    // Crítico pelo dado NATURAL mantido (com kh/kl de vantagem/desvantagem, Die.total
+    // é o dado que ficou) contra o limiar da atividade — o getter criticalThreshold
+    // já considera o limiar do item também (padrão 20).
+    const natural    = roll.dice[0]?.total ?? null;
+    const limiarCrit = activity.criticalThreshold ?? 20;
+    const isCrit     = natural !== null && natural >= limiarCrit;
+    const isNat1     = natural === 1;
+    card.dataset.isCrit = isCrit ? "1" : "";
 
     // Renderizar no painel de acerto (Layout B)
     const atkPanel = card.querySelector("#jj-atk-panel");
@@ -5336,7 +5345,7 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
     if ( atkPanel ) {
       atkPanel.classList.add("visible");
       atkVal.textContent = roll.total;
-      atkVal.className = "jj-panel-val" + (isNat20 ? " nat20" : isNat1 ? " nat1" : "");
+      atkVal.className = "jj-panel-val" + (isCrit ? " nat20" : isNat1 ? " nat1" : "");
       const modeLabel = rollMode === "advantage" ? '<span class="jj-pa-badge" style="color:#50a050;border-color:#306030">Vantagem</span>' 
                       : rollMode === "disadvantage" ? '<span class="jj-pa-badge" style="color:#a05050;border-color:#603030">Desvantagem</span>'
                       : "";
@@ -5347,11 +5356,20 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
       if ( card.dataset.jjScaleBonus ) {
         atkBreak.innerHTML += `<span class="jj-pa-badge" style="color:#c0a0ff;border-color:#6040a0;">⚡ +${card.dataset.jjScaleBonus} (escala)</span>`;
       }
+      if ( isCrit ) {
+        atkBreak.innerHTML += `<span class="jj-pa-badge" style="color:#e07040;border-color:#804020">💥 CRÍTICO (${natural} ≥ ${limiarCrit})</span>`;
+      }
     }
 
     // Ativar o painel de dano (para mostrar o botão)
     const dmgPanel = card.querySelector("#jj-dmg-panel");
     if ( dmgPanel ) dmgPanel.classList.add("visible");
+
+    // Condição no alvo (Ataque): acertou → botão de salvaguarda da condição.
+    // crit/nat20 alimentam o gatilho configurado ("apenas em crítico"/"20 natural").
+    if ( condicaoDe(activity) ) {
+      await injetarBotaoCondicao({ card, activity, actor, crit: isCrit, nat20: natural === 20 });
+    }
 
     // Desabilitar botão de acerto após rolar
     const atkBtn = card.querySelector(".jj-attack-btn");
@@ -5488,16 +5506,25 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
       const diceOnly = jjScaleBonus.split("+").map(t => t.trim()).filter(t => /^\d*d\d+$/i.test(t)).join(" + ");
       if ( diceOnly ) critParts.push(diceOnly);
     }
+    // Dano Crítico Adicional da atividade (damage.critical.bonus) — entra junto
+    // dos dados re-rolados; resolvido com o rollData p/ aceitar @mod etc.
+    const bonusCritico = activity?.damage?.critical?.bonus;
+    if ( bonusCritico ) {
+      try { critParts.push(Roll.replaceFormulaData(String(bonusCritico), rollData)); }
+      catch(e) { console.warn("JujutsuLegacy | Bônus de crítico inválido:", bonusCritico, e); }
+    }
     card.dataset.critFormula = critParts.join(" + ");
 
     // Tipos de dano (para detectar "Verdadeiro" — dano força — na aplicação)
     const allTypes = damageParts.flatMap(p => p.types ?? []);
     card.dataset.damageTypes = allTypes.join(",");
 
-    // Vigor Ilimitado (Aprimorador): crítico já marcado ou dado principal no máximo
+    // Vigor Ilimitado (Aprimorador) e Aura Controlada (Manipulador): `rolls` traz
+    // TODAS as rolagens de dano (partes + PA + foco + estágio + escala).
     Hooks.callAll("hunterDamageRolled", actor, {
       card,
       mainRoll: resolvedRolls[0]?.roll ?? null,
+      rolls: [...resolvedRolls.map(r => r.roll), paRoll, focoRoll, estagioRoll, escalaRoll].filter(Boolean),
       crit: !!card.querySelector('.jj-mod-check input[data-mod="crit"]:checked')
     });
 
@@ -5534,6 +5561,25 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
       footer.classList.add("visible");
       const totalEl = footer.querySelector("#jj-total-display");
       if ( totalEl ) totalEl.textContent = totalDmg;
+    }
+
+    // Crítico automático: o acerto atingiu o limiar → marca o "Crit" e rola os
+    // dados extras (incluindo o Dano Crítico Adicional) sem precisar de clique.
+    if ( card.dataset.isCrit === "1" && !card.dataset.critBonus ) {
+      const critCb = card.querySelector('.jj-mod-check input[data-mod="crit"]');
+      if ( critCb ) {
+        critCb.checked = true;
+        critCb.setAttribute("checked", "checked");   // sobrevive ao outerHTML persistido
+      }
+      const critBonus = await _rollCritDice(card);
+      card.dataset.critBonus = critBonus;
+      if ( dmgBreak && critBonus > 0 ) {
+        dmgBreak.innerHTML += `<span class="jj-pa-badge" style="color:#e07040;border-color:#804020">💥 +${critBonus} crítico</span>`;
+      }
+      const totalEl = footer?.querySelector("#jj-total-display");
+      if ( totalEl ) totalEl.textContent = _applyModifier(totalDmg, "crit", critBonus);
+      // Vigor Ilimitado (Aprimorador): crítico confirmado automaticamente
+      Hooks.callAll("hunterDamageRolled", actor, { card, mainRoll: resolvedRolls[0]?.roll ?? null, crit: true });
     }
 
     // Desabilitar botão de dano após rolar
@@ -6086,6 +6132,8 @@ function _buildBreakdown(roll) {
           mainRoll: resolved[0]?.roll ?? null,
           crit: !!card.querySelector('.jj-mod-check input[data-mod="crit"]:checked')
         });
+        // Condição no alvo (Dano, sem salvaguarda de dano): salvaguarda direta
+        if ( condicaoDe(activity) ) await injetarBotaoCondicao({ card, activity, actor });
       } else {
         _showHealFooter(card, total);
       }
@@ -6119,6 +6167,12 @@ function _buildBreakdown(roll) {
         }
         if ( breakEl ) breakEl.innerHTML = _buildBreakdown(roll)
           + `<span class="jj-mod-pip"> vs CD ${dc} — ${success ? "✓ Sucesso" : "✗ Falha"}</span>`;
+
+        // Condição no alvo (Salvaguarda): falhou na salvaguarda de dano → emenda a
+        // salvaguarda da condição (atributo próprio) e aplica se falhar de novo.
+        if ( !success && condicaoDe(activity) ) {
+          await rolarSalvaguardaCondicao({ activity, actor, alvos: [targetActor], card });
+        }
       } else {
         if ( panel ) panel.classList.add("visible");
         if ( labelEl ) labelEl.textContent = `Salv. ${abilityLabel}`;
@@ -6397,8 +6451,8 @@ function _buildBreakdown(roll) {
     const root = html instanceof HTMLElement ? html : html?.[0];
     if ( !root ) return;
     root.querySelectorAll("option").forEach(opt => {
-      if ( opt.value === PATH_GERADA ) opt.textContent = "⚡ Energia Gerada (PA)";
-      if ( opt.value === PATH_TOTAL  ) opt.textContent = "🔮 Energia Total (PA)";
+      if ( opt.value === PATH_GERADA ) opt.textContent = "⚡ Aura Gerada (PA)";
+      if ( opt.value === PATH_TOTAL  ) opt.textContent = "🔮 Aura Total (PA)";
     });
   }
   Hooks.on("renderApplication",   _injectLabels);
@@ -6467,24 +6521,35 @@ export function _injectJJConditions(element, actor) {
     section.style.display = "none";
   });
 
-  // Evitar injeção duplicada
-  if ( effectsTab.querySelector(".jj-conditions-section") ) {
-    // Atualizar estado ativo das condições existentes
-    const activeStatuses = new Set(actor.statuses ?? []);
-    effectsTab.querySelectorAll(".jj-cond-item").forEach(item => {
-      item.classList.toggle("active", activeStatuses.has(item.dataset.condId));
-    });
-    return;
+  // Definições de condições customizadas salvas NA FICHA (flag) — não são efeitos.
+  const custom = actor.getFlag("hunter-system", "customConditions") ?? [];
+  const ehImg = ic => typeof ic === "string" && (ic.includes("/") || /\.(webp|png|jpe?g|svg|gif)$/i.test(ic));
+  const iconeHtml = ic => ehImg(ic)
+    ? `<img class="jj-cond-cimg" src="${ic}" alt="">`
+    : `<i class="${ic || "fas fa-circle-dot"}"></i>`;
+  const assinatura = custom.map(c => `${c.id}:${c.label}:${c.icon}`).join("|");
+
+  // Só reconstrói a grade se a lista de customizadas mudou; senão só sincroniza "active".
+  const existente = effectsTab.querySelector(".jj-conditions-section");
+  if ( existente ) {
+    if ( existente.dataset.customSig === assinatura ) {
+      const ativos = new Set(actor.statuses ?? []);
+      effectsTab.querySelectorAll(".jj-cond-item").forEach(item =>
+        item.classList.toggle("active", ativos.has(item.dataset.condId)));
+      return;
+    }
+    existente.remove();
   }
 
   const activeStatuses = new Set(actor.statuses ?? []);
 
   const section = document.createElement("div");
   section.className = "jj-conditions-section";
+  section.dataset.customSig = assinatura;
   section.innerHTML = `
     <div class="jj-cond-header">
       <span>Condições</span>
-      <button type="button" class="jj-cond-custom-btn" title="Condição customizada">
+      <button type="button" class="jj-cond-custom-btn" title="Criar condição customizada">
         <i class="fas fa-plus"></i>
       </button>
     </div>
@@ -6496,69 +6561,151 @@ export function _injectJJConditions(element, actor) {
           <i class="${cond.icon}"></i>
           <span>${cond.label}</span>
         </div>`).join("")}
+      ${custom.map(cond => `
+        <div class="jj-cond-item jj-cond-custom ${activeStatuses.has(cond.id) ? "active" : ""}"
+             data-cond-id="${cond.id}"
+             data-tooltip="${foundry.utils.escapeHTML(cond.desc || cond.label)}" data-tooltip-direction="UP">
+          ${iconeHtml(cond.icon)}
+          <span>${foundry.utils.escapeHTML(cond.label)}</span>
+          <i class="fas fa-pen-to-square jj-cond-edit" title="Editar / remover"></i>
+        </div>`).join("")}
     </div>`;
 
-  // Listeners de toggle
+  // Toggle aplicar/remover (built-in e customizada) — clique no lápis não aplica.
   section.querySelectorAll(".jj-cond-item").forEach(el => {
-    el.addEventListener("click", async () => {
+    el.addEventListener("click", async ev => {
+      if ( ev.target.closest(".jj-cond-edit") ) return;
       const condId = el.dataset.condId;
-      const isActive = el.classList.contains("active");
-      const cond = JJ_CONDITIONS.find(c => c.id === condId);
-      if ( !isActive ) {
-        await actor.createEmbeddedDocuments("ActiveEffect", [{
-          name:     cond.label,
-          icon:     "icons/svg/aura.svg",
-          statuses: [condId],
-          flags:    { "hunter-system": { isJujutsuCondition: true } }
-        }]);
-      } else {
+      if ( el.classList.contains("active") ) {
         const existing = actor.effects.find(e => e.statuses?.has(condId));
         if ( existing ) await existing.delete();
+        return;
       }
-      // Estado visual atualizado automaticamente pelo re-render
+      const builtin = JJ_CONDITIONS.find(c => c.id === condId);
+      const cc = custom.find(c => c.id === condId);
+      await actor.createEmbeddedDocuments("ActiveEffect", [{
+        name:        builtin?.label ?? cc?.label ?? "Condição",
+        icon:        (cc && cc.icon) || "icons/svg/aura.svg",
+        description: cc?.desc ?? "",
+        statuses:    [condId],
+        flags:       { "hunter-system": builtin ? { isJujutsuCondition: true } : { isCustomCondition: true } }
+      }]);
     });
   });
 
-  // Botão condição customizada
-  section.querySelector(".jj-cond-custom-btn").addEventListener("click", async () => {
-    const name = await foundry.applications.api.DialogV2.wait({
-      window: { title: "Condição Customizada" },
-      content: `<div style="padding:8px 0">
-        <label style="display:block;margin-bottom:6px;font-size:12px;color:#aaa">Nome:</label>
-        <input type="text" id="jj-custom-cond" placeholder="Ex: Marcado, Maldito..." style="width:100%">
-      </div>`,
-      buttons: [
-        {
-          label:   "Adicionar",
-          action:  "ok",
-          default: true,
-          callback: (event, button, dialog) => (dialog.element?.querySelector("#jj-custom-cond") ?? document.querySelector("#jj-custom-cond"))?.value?.trim() ?? null
-        },
-        {
-          label:    "Cancelar",
-          action:   "cancel",
-          callback: () => null
-        }
-      ],
-      rejectClose: false,
-      close: () => null
+  // Lápis das customizadas → editor (editar/remover)
+  section.querySelectorAll(".jj-cond-edit").forEach(el => {
+    el.addEventListener("click", async ev => {
+      ev.stopPropagation();
+      const id = el.closest(".jj-cond-item")?.dataset.condId;
+      const def = custom.find(c => c.id === id);
+      if ( def ) await _editarCondicaoCustom(actor, def);
     });
-    if ( !name ) return;
-    await actor.createEmbeddedDocuments("ActiveEffect", [{
-      name,
-      icon:     "icons/svg/aura.svg",
-      statuses: [`jj-custom-${name.toLowerCase().replace(/\s+/g, "-")}`],
-      flags:    { "hunter-system": { isCustomCondition: true } }
-    }]);
-    ui.notifications.info(`Condição "${name}" adicionada a ${actor.name}.`);
   });
+
+  // "+" → criar nova condição customizada
+  section.querySelector(".jj-cond-custom-btn")
+    .addEventListener("click", () => _editarCondicaoCustom(actor, null));
 
   effectsTab.appendChild(section);
 
-  // Aplicar tooltips de referência nos itens injetados dinamicamente
+  // Tooltips de referência (built-in)
   section.querySelectorAll("[data-reference-tooltip]").forEach(el => {
     el.dataset.tooltip = `\n      <section class="loading" data-uuid="${el.dataset.referenceTooltip}"><i class="fas fa-spinner fa-spin-pulse"></i></section>\n    `;
   });
+}
+
+/**
+ * Editor de condição customizada: nome + ícone (FilePicker) + descrição (ProseMirror).
+ * Persiste em `flags.hunter-system.customConditions` (array {id,label,icon,desc}) — fica
+ * salva na ficha e aparece como card na grade de Condições, sem virar efeito ativo.
+ * @param {Actor} actor
+ * @param {object|null} def   Definição existente (editar) ou null (criar).
+ */
+async function _editarCondicaoCustom(actor, def = null) {
+  const editando = !!def;
+  let icone = def?.icon || "icons/svg/aura.svg";
+
+  const content = `
+    <div class="jj-cc-form" style="display:flex;flex-direction:column;gap:10px;min-width:440px;padding:4px 2px">
+      <div>
+        <label style="display:block;margin-bottom:4px;font-size:12px;color:#c8a84b">Nome</label>
+        <input type="text" name="jj-cc-nome" value="${foundry.utils.escapeHTML(def?.label ?? "")}"
+               placeholder="Ex: Marcado, Maldito..." style="width:100%">
+      </div>
+      <div>
+        <label style="display:block;margin-bottom:4px;font-size:12px;color:#c8a84b">Ícone</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <img class="jj-cc-preview" src="${icone}" alt=""
+               style="width:38px;height:38px;object-fit:contain;background:#0d0d14;border:1px solid #333;border-radius:4px">
+          <button type="button" class="jj-cc-pick" style="flex:1"><i class="fas fa-image"></i> Escolher ícone…</button>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;margin-bottom:4px;font-size:12px;color:#c8a84b">Descrição</label>
+        <div class="jj-cc-desc-mount" style="min-height:180px"></div>
+      </div>
+    </div>`;
+
+  const buttons = [{
+    action: "ok", label: editando ? "Salvar" : "Criar", default: true, icon: "fas fa-check",
+    callback: (event, button, dialog) => {
+      const el = dialog.element;
+      return {
+        label: el.querySelector("[name='jj-cc-nome']")?.value?.trim() ?? "",
+        desc:  el.querySelector("prose-mirror[name='jj-cc-desc']")?.value ?? "",
+        icon:  icone
+      };
+    }
+  }];
+  if ( editando ) buttons.push({ action: "del", label: "Remover", icon: "fas fa-trash", callback: () => "DELETE" });
+  buttons.push({ action: "cancel", label: "Cancelar", callback: () => null });
+
+  const res = await foundry.applications.api.DialogV2.wait({
+    window: { title: editando ? "Editar Condição" : "Condição Customizada", icon: "fas fa-notes-medical" },
+    content,
+    buttons,
+    render: (event, dialog) => {
+      const el = dialog.element;
+      const editor = foundry.applications.elements.HTMLProseMirrorElement.create({
+        name: "jj-cc-desc", value: def?.desc ?? ""
+      });
+      el.querySelector(".jj-cc-desc-mount")?.replaceChildren(editor);
+      el.querySelector(".jj-cc-pick")?.addEventListener("click", () => {
+        new foundry.applications.apps.FilePicker.implementation({
+          type: "image", current: icone,
+          callback: path => { icone = path; const p = el.querySelector(".jj-cc-preview"); if ( p ) p.src = path; }
+        }).browse();
+      });
+    },
+    rejectClose: false
+  });
+
+  if ( res === null || res === undefined ) return;
+
+  const lista = foundry.utils.deepClone(actor.getFlag("hunter-system", "customConditions") ?? []);
+
+  if ( res === "DELETE" ) {
+    await actor.setFlag("hunter-system", "customConditions", lista.filter(c => c.id !== def.id));
+    const ativo = actor.effects.find(e => e.statuses?.has(def.id));
+    if ( ativo ) await ativo.delete();
+    ui.notifications.info(`Condição "${def.label}" removida.`);
+    return;
+  }
+
+  if ( !res.label ) { ui.notifications.warn("Dê um nome à condição."); return; }
+
+  if ( editando ) {
+    const i = lista.findIndex(c => c.id === def.id);
+    if ( i >= 0 ) lista[i] = { ...lista[i], ...res };
+    await actor.setFlag("hunter-system", "customConditions", lista);
+    const ativo = actor.effects.find(e => e.statuses?.has(def.id));
+    if ( ativo ) await ativo.update({ name: res.label, icon: res.icon, description: res.desc });
+  } else {
+    lista.push({ id: `jj-custom-${foundry.utils.randomID(8)}`, ...res });
+    await actor.setFlag("hunter-system", "customConditions", lista);
+    ui.notifications.info(`Condição "${res.label}" criada.`);
+  }
 }
 
 /* ============================================================
@@ -7113,10 +7260,18 @@ export function setupNenWheels(root) {
     const n = orbits.length;
     let lines = "";
     const R = 38; // raio em %
+    // Ângulos rasos (rodas de 3: caixas de baixo a 30°/150°) ficam a só 19% do centro
+    // na vertical e grudam no hub — clampamos o seno p/ um mínimo, afastando-as.
+    const MIN_SIN = 0.85;
+    // Roda de 4 gira 45° (formação em X): no losango as laterais ficam na altura do
+    // hub e, com 118px de largura, encostam nele; nos cantos há folga nas 2 direções.
+    const inicio = n === 4 ? -45 : -90;
     orbits.forEach((o, i) => {
-      const ang = (-90 + i * (360 / n)) * Math.PI / 180;
+      const ang = (inicio + i * (360 / n)) * Math.PI / 180;
+      const s = Math.sin(ang);
+      const sy = Math.abs(s) < 0.01 ? 0 : Math.sign(s) * Math.max(Math.abs(s), MIN_SIN);
       const x = 50 + R * Math.cos(ang);
-      const y = 50 + R * Math.sin(ang);
+      const y = 50 + R * sy;
       o.style.left = `${x.toFixed(2)}%`;
       o.style.top = `${y.toFixed(2)}%`;
       lines += `<line x1="50" y1="50" x2="${x.toFixed(2)}" y2="${y.toFixed(2)}" class="${o.classList.contains("is-unlocked") ? "on" : ""}"></line>`;

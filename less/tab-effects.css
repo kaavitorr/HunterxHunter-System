@@ -183,3 +183,42 @@
   border-color: #a02020;
   background: #220a0a;
 }
+
+/* Condição customizada — card na grade + lápis de editar/remover */
+.jj-cond-item.jj-cond-custom {
+  border-style: dashed;
+  border-color: #3a3450;
+  position: relative;
+  padding-right: 22px;
+}
+.jj-cond-item .jj-cond-cimg {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 120ms;
+}
+.jj-cond-item:hover .jj-cond-cimg { opacity: 1; }
+.jj-cond-edit {
+  position: absolute;
+  right: 6px;
+  font-size: 9px;
+  color: #4a4560;
+  opacity: 0;
+  transition: opacity 120ms, color 120ms;
+  cursor: pointer;
+}
+.jj-cond-item.jj-cond-custom:hover .jj-cond-edit { opacity: 1; }
+.jj-cond-edit:hover { color: #c8a84b; }
+
+/* Editor de condição customizada — ProseMirror com área editável usável */
+.jj-cc-form .jj-cc-desc-mount prose-mirror { display: flex; flex-direction: column; }
+.jj-cc-form .jj-cc-desc-mount prose-mirror .editor-content {
+  min-height: 160px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 4px 8px;
+  background: #0d0d14;
+}
+.jj-cc-form .jj-cc-desc-mount prose-mirror .editor-content .ProseMirror { min-height: 150px; }

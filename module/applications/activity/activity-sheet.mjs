@@ -58,7 +58,8 @@ export default class ActivitySheet extends PseudoDocumentSheet {
         "systems/hunter-system/templates/activity/parts/activity-effect-level-limit.hbs",
         "systems/hunter-system/templates/activity/parts/activity-effect-settings.hbs",
         "systems/hunter-system/templates/activity/parts/jj-scale.hbs",
-        "systems/hunter-system/templates/activity/parts/constant-cost.hbs"
+        "systems/hunter-system/templates/activity/parts/constant-cost.hbs",
+        "systems/hunter-system/templates/activity/parts/condicao.hbs"
       ]
     }
   };
@@ -267,6 +268,17 @@ export default class ActivitySheet extends PseudoDocumentSheet {
    */
   async _prepareEffectContext(context, options) {
     context.tab = context.tabs.effect;
+
+    // Condição no Alvo (parts/condicao.hbs): condições da aba de efeitos + customizadas
+    // encontradas nos atores do mundo, e a lista de salvaguardas.
+    if ( "condicao" in (this.activity.schema?.fields ?? {}) ) {
+      const { listaCondicoes } = await import("../../systems/condicao-atividade.mjs");
+      context.jjCond = {
+        condicoes: await listaCondicoes(),
+        salvaguardas: Object.entries(CONFIG.DND5E.abilities)
+          .map(([value, v]) => ({ value, label: game.i18n.localize(v.label) }))
+      };
+    }
 
     if ( context.activity.effects ) {
       const appliedEffects = new Set(context.activity.effects?.map(e => e._id) ?? []);

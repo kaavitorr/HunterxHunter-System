@@ -279,16 +279,22 @@ different (and possibly buggy) JS.
     name, parent: "m1"|"m2"|"m3"|"inata", grau: number,
     cost: number, activationType: string, descriptionValue: string,
     durationUnits, durationValue?, rangeUnits, rangeValue?, rangeLong?, rangeSpecial?,
-    mechanicKind: "utility"|"attack"|"save"|"heal"|"damage",   // "damage" was missing from the
-                                                                 // first version — always include it
+    mechanicKind: "utility"|"attack"|"save"|"heal"|"damage"|"reduction",  // "damage" was missing
+                                                                 // from the first version; "reduction"
+                                                                 // added 2026-07 — always include both
     damageParts?: [{number, denomination, types: [], customFormula?}],
     healParts?: [...same shape, types:["healing"|"temphp"|"maximum"]],
     saveAbility?, onSave?: "none"|"half",
+    reductionFormula?, reductionConstant?,     // for mechanicKind:"reduction" — see data-schema.md;
+                                                 // reductionConstant:true = sustained per-hit reduction
+    condicao?: { id, ability?, dc?, semSalvaguarda?, gatilho? },  // attack/save/damage only;
+                                                 // id is a jj-* status — PT→id table in data-schema.md
     areaType?, areaUnits?, areaSize?,          // target.template shape — see the enum-key table above
     jjScaleEnabled?, jjScaleFormula?, jjScaleCost?, jjScaleMaxPA?,
     constantCostEnabled?, constantCostValue?, constantCostPool?,
     criticalBonus?,
-    namedSubActivities?: [{ name, cost, activationType, mechanicKind, damageParts }]
+    namedSubActivities?: [{ name, cost, activationType, mechanicKind, damageParts,
+                            reductionFormula?, reductionConstant?, condicao? }]
   }],
   doubts: string[]   // be specific — name the técnica and exactly what's uncertain
 }

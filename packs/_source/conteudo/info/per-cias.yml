@@ -1,0 +1,784 @@
+folder: DVnVYS93cChe5onq
+name: Perícias
+_id: uKKV909xsw17EMmE
+pages:
+  - sort: 100000
+    name: Atletismo
+    type: text
+    _id: E0HyftT4a8L8izrn
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um <strong>Teste de Atributo de Força (Atletismo</strong>) abrange
+        situações desafiadoras que envolvem:</p><hr><ul><li><p>Superar um
+        penhasco íngreme, escalar paredes escorregadias ou agarrar-se a
+        superfícies instáveis.</p></li><li><p>Executar saltos longos ou
+        altos.</p></li><li><p>Nadar resistindo a correntes perigosas,
+        tempestades ou obstáculos como algas espessas.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386133994
+      modifiedTime: 1777386164944
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.E0HyftT4a8L8izrn'
+  - sort: 200000
+    name: Acrobacia
+    type: text
+    _id: TBVH56FoQArmMSBs
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Agilidade (Acrobacia) abrange uma tentativa de permanecer
+        de pé em uma situação complicada, como tentar correr sobre uma camada de
+        gelo, equilibrar-se na corda bamba ou ficar de pé no convés de um navio
+        que balança fortemente. O Narrador também pode pedir um Teste de
+        Agilidade (Acrobacia) para ver se você é capaz de realizar acrobacias,
+        como cambalhotas e saltos mortais.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386176309
+      modifiedTime: 1777386183722
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.TBVH56FoQArmMSBs'
+  - sort: 300000
+    name: Furtividade
+    type: text
+    _id: rOZ9n5PYFuEbF08g
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Agilidade (Furtividade) é realizado para tentar
+        esconder-se de inimigos, esgueirar-se por guardas, escapar sem ser
+        notado, ou aproximar-se de alguém sem ser visto ou ouvido.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386199826
+      modifiedTime: 1777386202197
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.rOZ9n5PYFuEbF08g'
+  - sort: 400000
+    name: Pilotagem
+    type: text
+    _id: JdqcNM9InigMmbKK
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Agilidade (Pilotagem) é realizado para tentar pilotar um
+        veículo qualquer, seja um que você possua ou não conhecimento total de
+        seu funcionamento.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386208797
+      modifiedTime: 1777386211536
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.JdqcNM9InigMmbKK'
+  - sort: 500000
+    name: Prestidigitação
+    type: text
+    _id: Fe5nQhWyR8vmTdLC
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Sempre que você tentar realizar um ato de Prestidigitação ou de
+        trapaça manual, como plantar alguma coisa em outra pessoa ou esconder um
+        objeto em sua roupa, você deve fazer um Teste de Agilidade
+        (Prestidigitação). O Narrador também pode pedir um Teste de Agilidade
+        (Prestidigitação) para determinar se você pode roubar uma bolsa de
+        moedas de outra pessoa ou pegar algo do bolso de outra pessoa.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386221995
+      modifiedTime: 1777386223950
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.Fe5nQhWyR8vmTdLC'
+  - sort: 600000
+    name: Ciência
+    type: text
+    _id: tWMttxGVytG2EL1R
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Sabedoria (Ciência) mede o conhecimento do usuário em
+        relação as leis da física, fórmulas matemáticas e composições químicas
+        das coisas.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386240774
+      modifiedTime: 1777386242680
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.tWMttxGVytG2EL1R'
+  - sort: 700000
+    name: História
+    type: text
+    _id: MjR2QOJE5LPKiN0F
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Sabedoria (História) mede o conhecimento sobre eventos
+        históricos, pessoas lendárias, reinos antigos, disputas passadas e
+        guerras recentes.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386251451
+      modifiedTime: 1777386253261
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.MjR2QOJE5LPKiN0F'
+  - sort: 800000
+    name: Investigação
+    type: text
+    _id: wLE08CcH5Zj8l1eS
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Quando você olha ao redor em busca de pistas e faz deduções com base
+        nesses indícios, você realiza um Teste de Sabedoria (Investigação). Você
+        pode deduzir a localização de um objeto escondido, discernir, a partir
+        da aparência de um ferimento, que tipo de arma o causou, ou determinar o
+        ponto mais fraco em um túnel que poderia causar o seu colapso.
+        Debruçar-se sobre pergaminhos antigos em busca de um fragmento escondido
+        de conhecimento também pode necessitar de um Teste de Sabedoria
+        (Investigação).</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386260521
+      modifiedTime: 1777422443037
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.wLE08CcH5Zj8l1eS'
+  - sort: 900000
+    name: Medicina
+    type: text
+    _id: x9lTMRKUfHR7g9qN
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Atributo de Sabedoria (Medicina) mede seus conhecimentos
+        médicos básicos e avançados, permitindo que você possa realizar
+        primeiros socorros, parar sangramentos ou apenas identificar um problema
+        em uma criatura.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386269137
+      modifiedTime: 1777386271590
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.x9lTMRKUfHR7g9qN'
+  - sort: 1000000
+    name: Natureza
+    type: text
+    _id: h9MaeejQSTgBF3BM
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Atributo de Sabedoria (Natureza) mede seu conhecimento
+        sobre terrenos, plantas, animais, clima e fenômenos naturais.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386278795
+      modifiedTime: 1777386280823
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.h9MaeejQSTgBF3BM'
+  - sort: 1100000
+    name: Sobrevivência
+    type: text
+    _id: ZKJhD4I3Pc75BNzF
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Sabedoria (Sobrevivência) é feito para seguir rastros,
+        caçar, orientar o grupo através de terras congeladas, identificar sinais
+        de bestas mágicas que vivem nas proximidades, prever o tempo, ou evitar
+        areia movediça e outros perigos naturais. Assim como medir seu
+        conhecimento sobre terreno, plantas, animais, clima e ciclos
+        naturais.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386290259
+      modifiedTime: 1777386292335
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.ZKJhD4I3Pc75BNzF'
+  - sort: 1200000
+    name: Tecnologia
+    type: text
+    _id: OLlGOXkPBQ5Izc5w
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Sabedoria (Tecnologia) serve para medir sua habilidade
+        com aparelhos tecnológicos desde celulares até armas avançadas ou busca
+        de informações na internet. Ele mede sua capacidade de entender a
+        linguagem empregada ou a forma de usar um aparelho e desempenhar sua
+        ação com o máximo de eficiência possível.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386299636
+      modifiedTime: 1777386301820
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.OLlGOXkPBQ5Izc5w'
+  - sort: 1300000
+    name: Nen
+    type: text
+    _id: mpq4YIaZuIwDQPiq
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>Um Teste de Atributo de Espírito (Nen) decide se você consegue sobrepujar os outros com seu Nen, resistir ao Nen de seus inimigos, ignorar efeitos de do Nen ou conseguir ativar usar novamente seu Nen após exaurir sua aura.</p><p class=\"MsoBodyText\">\_</p>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386314780
+      modifiedTime: 1777386317665
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.mpq4YIaZuIwDQPiq'
+  - sort: 1400000
+    name: Intuição
+    type: text
+    _id: dJF7x8aruBfT84cz
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Espírito (Intuição) decide se você pode determinar as
+        verdadeiras intenções de uma criatura, perceber uma mentira ou prever o
+        próximo movimento de alguém.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386322902
+      modifiedTime: 1777386325105
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.dJF7x8aruBfT84cz'
+  - sort: 1500000
+    name: Percepção
+    type: text
+    _id: elJZJXFWk7t0nf31
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Espírito (Percepção) permite observar, ouvir ou detectar
+        a presença de alguma coisa de outra forma. A Percepção mede a
+        consciência geral do que está acontecendo ao seu redor e a acuidade de
+        seus sentidos. Por exemplo, você pode tentar sentir a presença de
+        pessoas através de uma porta fechada. Ou você pode sentir coisas que são
+        obscurecidas ou que normalmente passariam despercebidas, desde uma
+        emboscada em uma estrada, bandidos escondidos nas sombras de um beco ou
+        uma porta secreta fechada somente com a luz de velas.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386331104
+      modifiedTime: 1777386333257
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.elJZJXFWk7t0nf31'
+  - sort: 1600000
+    name: Sobrenatural
+    type: text
+    _id: 04XZdF0Ntc60wj12
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Espírito (Sobrenatural) decide se você consegue entender
+        os poderes providos de Nen ou criaturas mágicas, realizar façanhas com
+        seu Ren ou identificar esses poderes.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386338942
+      modifiedTime: 1777386340796
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.04XZdF0Ntc60wj12'
+  - sort: 1700000
+    name: Sorte
+    type: text
+    _id: mcIlW9Xizd3l3rtD
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Espírito (Sorte) pode ser realizado para qualquer
+        acontecimento que o Narrador entenda que a aleatoriedade é a maior
+        grandeza em jogo. Decide se você vai ser acertado por destroços que caem
+        do céu, se você escolheu abrir o baú certo dentre os que possuíam
+        explosivos ou se você acerta o inimigo que usa ilusões.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386346696
+      modifiedTime: 1777386349265
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.mcIlW9Xizd3l3rtD'
+  - sort: 1800000
+    name: Atuação
+    type: text
+    _id: cHdibPaupb34dyk4
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Espírito (Sorte) pode ser realizado para qualquer
+        acontecimento que o Narrador entenda que a aleatoriedade é a maior
+        grandeza em jogo. Decide se você vai ser acertado por destroços que caem
+        do céu, se você escolheu abrir o baú certo dentre os que possuíam
+        explosivos ou se você acerta o inimigo que usa ilusões.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386358925
+      modifiedTime: 1777386360914
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.cHdibPaupb34dyk4'
+  - sort: 1900000
+    name: Enganação
+    type: text
+    _id: 6eg3JWjY8xs6DMC6
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="TextoPadro">Um Teste de Presença (Enganação) determina se você
+        pode esconder a verdade de forma convincente, verbalmente ou através de
+        suas ações. Esse engano pode abranger tudo, como iludir os outros
+        através de uma mentira cheia de ambiguidade. Situações típicas incluem
+        tentar ludibriar um policial, iludir um comerciante, ganhar dinheiro
+        através de jogos de azar, usar um disfarce, amenizar as suspeitas de
+        alguém com falsas garantias ou manter uma cara séria ao contar uma
+        mentira descarada.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386368826
+      modifiedTime: 1777386372230
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.6eg3JWjY8xs6DMC6'
+  - sort: 2000000
+    name: Intimidação
+    type: text
+    _id: 70xBRlUnlGDapKy6
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Ao tentar influenciar alguém através de ameaças abertas, ações hostis
+        ou violência física, o Narrador pode pedir a realização de um Teste de
+        Presença (Intimidação). Exemplos incluem tentar arrancar informações de
+        um prisioneiro, convencer bandidos da montanha a recuar de um
+        confronto.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386377460
+      modifiedTime: 1777386381897
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.70xBRlUnlGDapKy6'
+  - sort: 2100000
+    name: Persuasão
+    type: text
+    _id: vmdCFLdaRG729Yg9
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Quando você tenta influenciar alguém ou um grupo de pessoas com tato,
+        delicadeza ou boa índole, o Narrador pode pedir para você fazer de um
+        Teste de Presença (Persuasão). Normalmente, você usa a Persuasão quando
+        está agindo de boa-fé, para promover amizades, fazer pedidos cordiais ou
+        exibir a etiqueta apropriada. Exemplos de persuadir os outros incluem
+        convencer um mordomo a deixar seu grupo a ver o rei, negociar a paz
+        entre duas tribos em conflito ou inspirar uma multidão de pessoas da
+        cidade.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386390085
+      modifiedTime: 1777386391999
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.vmdCFLdaRG729Yg9'
+  - sort: 2200000
+    name: Provocação
+    type: text
+    _id: xLVLvUH9S8hfD1rY
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Um Teste de Presença (Provocação) é feito quando você tenta coagir
+        uma pessoa ou animal a reagir de acordo com sua vontade, seja de forma
+        agressiva ou para agir de forma descuidada. Exemplos incluem fazer
+        piadas ofensivas para enfurecer um animal ou chamar uma criatura de
+        covarde.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777386403087
+      modifiedTime: 1777386405409
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!uKKV909xsw17EMmE.xLVLvUH9S8hfD1rY'
+categories: []
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '14.360'
+  systemId: hunter-system
+  systemVersion: 1.0.0
+  createdTime: 1777384314751
+  modifiedTime: 1777384314751
+  lastModifiedBy: dnd5ebuilder0000
+  duplicateSource: null
+  exportSource: null
+_key: '!journal!uKKV909xsw17EMmE'

@@ -83,9 +83,23 @@ export default class BaseActivityData extends foundry.abstract.DataModel {
         value: new FormulaField({ deterministic: true, label: "Custo Constante (PA/turno)" }),
         pool: new StringField({
           initial: "generated", label: "Pool",
-          choices: { generated: "Energia Gerada", total: "Energia Total" }
+          choices: { generated: "Aura Gerada", total: "Aura Total" }
         }),
         concentration: new BooleanField({ label: "Concentração" })
+      }),
+      // Condição no alvo (Ataque/Salvaguarda/Dano): id da condição (statuses da aba
+      // de efeitos), salvaguarda que o alvo rola e CD opcional — vazia usa a CD da
+      // própria atividade (Salvaguarda) ou a CD de técnica do conjurador.
+      condicao: new SchemaField({
+        id: new StringField({ label: "Condição" }),
+        ability: new StringField({ initial: "con", label: "Salvaguarda da Condição" }),
+        dc: new FormulaField({ deterministic: true, label: "CD da Condição" }),
+        // Condicionais: aplicar direto (sem salvaguarda) e gatilho de disparo no Ataque
+        semSalvaguarda: new BooleanField({ label: "Pular Salvaguarda" }),
+        gatilho: new StringField({
+          initial: "", blank: true, label: "Gatilho",
+          choices: { crit: "Apenas em crítico", nat20: "Apenas em 20 natural" }
+        })
       }),
       duration: new DurationField({
         concentration: new BooleanField(),

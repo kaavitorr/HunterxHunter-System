@@ -28,12 +28,16 @@ in the summary for the user to check.
     roll or a save (e.g. triggered by the *target's* own action, like Kill Yourself's "caso a
     criatura o ataque, ela sofre 4d8...") → `type: "damage"`.
 
-  In all three shapes: if the técnica *also* has a saving throw for a **condition** (separate
-  from whether the damage itself lands), that condition-save is **not** a second Activity — it
-  becomes an inline roll enricher in the description: `[[/save <code> dc=@attributes.spell.dc]]`
-  (ability codes in data-schema.md). This applies whether the damage itself came from an attack
-  roll, a save, or was unconditional — the condition-save is always secondary and always an
-  enricher, never its own Activity.
+  In all three shapes: if the técnica *also* imposes a **condition** on the target (separate from
+  whether the damage itself lands), use the structured **`condicao`** field on that same activity
+  (attack/save/damage all render it) — set `condicao.id` to the matching `jj-*` status,
+  `condicao.ability` to the resisting save, and `semSalvaguarda`/`gatilho` as the text dictates
+  (full field docs + PT→`jj-` id table in data-schema.md). This is the current convention (the
+  field was added 2026-07). Fall back to an inline enricher `[[/save <code>
+  dc=@attributes.spell.dc]]` ONLY when the condition has no matching `jj-*` status id, or when a
+  *second* condition needs to ride on the same activity (the `condicao` field holds just one).
+  The condition-save is still never its own separate Activity — it rides on the damage/attack via
+  `condicao`, whether the damage came from an attack roll, a save, or was unconditional.
 
   If the text never states an explicit damage type (Cortante/Contundente/Perfurante/
   Psíquico/Verdadeiro/etc.) for a damage part, don't guess one — leave it and call it out
@@ -100,17 +104,31 @@ to force it into `attack`/`save`.
   **This DOES have a real schema**: `type: "reduction"` Activity
   (`module/documents/activity/reduction.mjs`, `module/data/activity/reduction-data.mjs`,
   `module/applications/actor/jj/reducao-dano.mjs`), with `system.reduction.formula` (a
-  FormulaField, e.g. `"6d8"`). An earlier version of this doc wrongly said no schema existed for
-  *any* "reduction" wording, conflating this case with the dice-trade case above — that was a
-  real bug (2026-07-02): a batch-import run created ~7 técnicas whose entire effect IS this
-  shield (Diamond Defense, Defesa de Aura, Shield Orbit, Rule: Shield, Signature Card, Escudo
-  del Brazo, Complete Defense) with `type: "utility"` and no formula recorded, silently losing
-  the mechanic. Use `type: "reduction"` whenever the técnica's own effect literally creates this
-  shield; keep using `utility`/text for a técnica that only *references* reduction without
-  creating its own (ignores an enemy's, doubles damage against one, boosts a *different* named
-  técnica's reduction, etc. — read carefully, most PDF mentions of "redução de dano" are this
-  kind, not a shield of their own). The same `jjScale` scaling field used for damage/healing
-  also applies here for "pode gastar N PA para reduzir mais XdY, até um máximo de ZdY" wording.
+  FormulaField, e.g. `"6d8"`) and `system.reduction.constant` (a boolean, see next bullet). An
+  earlier version of this doc wrongly said no schema existed for *any* "reduction" wording,
+  conflating this case with the dice-trade case above — that was a real bug (2026-07-02): a
+  batch-import run created ~7 técnicas whose entire effect IS this shield (Diamond Defense,
+  Defesa de Aura, Shield Orbit, Rule: Shield, Signature Card, Escudo del Brazo, Complete Defense)
+  with `type: "utility"` and no formula recorded, silently losing the mechanic. Use
+  `type: "reduction"` whenever the técnica's own effect literally creates this shield; keep using
+  `utility`/text for a técnica that only *references* reduction without creating its own (ignores
+  an enemy's, doubles damage against one, boosts a *different* named técnica's reduction, etc. —
+  read carefully, most PDF mentions of "redução de dano" are this kind, not a shield of their
+  own). The same `jjScale` scaling field used for damage/healing also applies here for "pode
+  gastar N PA para reduzir mais XdY, até um máximo de ZdY" wording.
+
+  - **One-shot shield vs. Redução Constante** (`reduction.constant`, added by the user 2026-07):
+    default `constant:false` is a **one-shot** shield — rolled once when used, absorbs like a pool
+    of armor points and depletes as hits land (the reaction case: "reduz Xd8 de dano até o início
+    do próximo turno"). Set `constant:true` when the técnica instead **stays active over a
+    duration and reduces every hit** — a sustained toggle that re-rolls the formula fresh on each
+    incoming hit and never depletes ("enquanto ativa/até o fim da duração, reduz Xd8 de cada dano
+    sofrido"). The `constant:true` técnica appears in the combat HUD and is turned off there; pair
+    it with `constantCost` if the PDF says it drains PA per turn while active. Signal to
+    distinguish: a *reaction that absorbs one instance* → one-shot; a *sustained buff that applies
+    to all damage for as long as it's up* → constant. (This is the mechanism the deferred **Star
+    Shield** was waiting on — "a cada dano recebido rola xd8 e reduz automaticamente" is exactly
+    `constant:true`; it can be configured now.)
 
   **When one técnica describes several named modes/effects (only some of which may be this
   shield)** — e.g. Aura Flow: "Portal" / "Escudo" / "Construtos" (only "Escudo" reduces damage),
