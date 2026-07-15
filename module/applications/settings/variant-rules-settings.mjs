@@ -21,9 +21,6 @@ export default class VariantRulesSettingsConfig extends BaseSettingsConfig {
     encumbrance: {
       template: "systems/hunter-system/templates/settings/base-config.hbs"
     },
-    abilities: {
-      template: "systems/hunter-system/templates/settings/base-config.hbs"
-    },
     footer: {
       template: "templates/generic/form-footer.hbs"
     }
@@ -53,13 +50,8 @@ export default class VariantRulesSettingsConfig extends BaseSettingsConfig {
         ];
         context.legend = game.i18n.localize("DND5E.Encumbrance");
         break;
-      case "abilities":
-        context.fields = [
-          this.createSettingField("honorScore"),
-          this.createSettingField("sanityScore")
-        ];
-        context.legend = game.i18n.localize("DND5E.Abilities");
-        break;
+      // Honra/Sanidade removidos da UI — os settings honorScore/sanityScore seguem
+      // registrados (desligados) para o código do dnd5e que os lê continuar íntegro.
     }
     return context;
   }

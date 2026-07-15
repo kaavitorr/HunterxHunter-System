@@ -1,0 +1,1243 @@
+name: Condições
+_id: ZI4IYTRv7YQVnMpf
+pages:
+  - sort: 100000
+    name: Atordoado
+    type: text
+    _id: bR1Lz7cbCZST2Auk
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura atordoada está
+        <strong>incapacitada</strong> (veja a condição).</p></li><li><p
+        class="MsoBodyText">A criatura não pode utilizar ações de poder para
+        atacar;</p></li><li><p class="MsoBodyText">Ela não pode se mover e
+        somente pode falar hesitantemente.</p></li><li><p class="MsoBodyText">A
+        criatura falha automaticamente em Salvaguardas de Força ou
+        Agilidade.</p></li><li><p class="MsoBodyText">Jogadas de ataque contra a
+        criatura possuem vantagem.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777382735845
+      modifiedTime: 1777476444922
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.bR1Lz7cbCZST2Auk'
+  - sort: 0
+    name: Agarrado
+    type: text
+    _id: mlfBihj1WTMnp8tt
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">O deslocamento de uma criatura
+        agarrada se torna 0, e ela não pode se beneficiar de qualquer bônus em
+        seu deslocamento.</p></li><li><p class="MsoBodyText">A condição encerra
+        caso a criatura que a agarrou fique incapacitada (veja a condição) ou
+        solte a criatura agarrada.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777382898995
+      modifiedTime: 1777476422833
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.mlfBihj1WTMnp8tt'
+  - sort: 50000
+    name: Alucinado
+    type: text
+    _id: g0jKKMfi2ShUJ3lm
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">A criatura sofrendo de alucinações,
+        ataca qualquer outra criatura que esteja próxima, independentemente se é
+        inimigo ou não.</p></li><li><p class="MsoBodyText">A criatura tem seu
+        Nível de Desafio (caso possua) diminuído em 2.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777382940696
+      modifiedTime: 1777476429696
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.g0jKKMfi2ShUJ3lm'
+  - sort: 75000
+    name: Amedrontado
+    type: text
+    _id: 8AbcrNaNNfIbQs4G
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura amedrontada sofre
+        desvantagem em Testes de Atributo e jogadas de ataque enquanto a fonte
+        do seu medo estiver em sua linha de visão.</p></li><li><p
+        class="MsoBodyText">A criatura não pode se mover voluntariamente para
+        uma posição que a faça terminar o turno mais próxima da sua fonte de
+        medo do que sua posição inicial.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777382962941
+      modifiedTime: 1777476435223
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.8AbcrNaNNfIbQs4G'
+  - sort: 87500
+    name: Apaixonado
+    type: text
+    _id: vImaFZEzGlr0WdJm
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura apaixonada é tomada por
+        amor ou grande admiração por outra criatura, sentindo-se menos propenso
+        a causar danos a ela.</p></li><li><p class="MsoBodyText">Os seguintes
+        sintomas podem ou não ocorrer: coração acelerado, agitação, ciúmes leves
+        ou a ponto de matar e vontade de estar com o alvo da
+        paixão/admiração.</p></li><li><p class="MsoBodyText">Uma criatura
+        apaixonada não pode atacar quem o apaixonou ou tê-lo como alvo de
+        habilidades ou efeitos nocivos. Quem o apaixonou possui vantagem em
+        Testes de Atributo feitos para interagir socialmente com a
+        criatura.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777382980316
+      modifiedTime: 1777476439980
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.vImaFZEzGlr0WdJm'
+  - sort: 198829
+    name: Aura Esgotada
+    type: text
+    _id: S9EiUtSjRVrJqAK8
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p>Uma criatura com energia esgotada não pode utilizar
+        nenhuma habilidade ou técnica.</p></li><li><p>Uma criatura com energia
+        esgotada está letárgica (veja a condição).</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777382991388
+      modifiedTime: 1777476477648
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.S9EiUtSjRVrJqAK8'
+  - sort: 150000
+    name: Bêbado
+    type: text
+    _id: wceHJV6dZP4KzaAW
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura em estado de embriaguez
+        se comporta de forma visivelmente diferente de seu
+        habitual.</p></li><li><p class="MsoBodyText">A criatura recebe
+        desvantagem em Salvaguardas e Habilidade de Agilidade e em qualquer
+        outro teste que o Narrador interpretar que seja
+        comprometido.</p></li><li><p class="MsoBodyText">A condição se encerra
+        quando a criatura passar em uma Salvaguarda de Constituição ou em
+        situações que o Narrador acreditar serem efetivas, por exemplo, tomar
+        café forte, ser jogado em água fria, assistir a uma cena
+        forte.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777382999789
+      modifiedTime: 1777476449541
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.wceHJV6dZP4KzaAW'
+  - sort: 175000
+    name: Caído
+    type: text
+    _id: SjtAEH0zyJb5VRfv
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">A única opção de movimento que uma
+        criatura caída tem é rastejar, a menos que ela se levante, encerrando
+        assim a condição.</p></li><li><p class="MsoBodyText">A criatura sofre
+        desvantagem nas jogadas de ataque.</p></li><li><p
+        class="MsoBodyText">Uma jogada de ataque contra a criatura possui
+        vantagem se o atacante estiver a 1,5 metro dela. De qualquer outra forma
+        a jogada sofre desvantagem.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383004636
+      modifiedTime: 1777476455561
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.SjtAEH0zyJb5VRfv'
+  - sort: 187500
+    name: Cego
+    type: text
+    _id: P1ziScgbUVuhsVPz
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura cega falha
+        automaticamente em qualquer Teste de Atributo que requeira o uso da
+        visão.</p></li><li><p class="MsoBodyText">Jogadas de ataque contra a
+        criatura possuem vantagem, e os ataques da criatura sofrem
+        desvantagem.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383031527
+      modifiedTime: 1777476459818
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.P1ziScgbUVuhsVPz'
+  - sort: 193750
+    name: Congelado
+    type: text
+    _id: a6IWy4W4n2D8Z8Ze
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura congelada está
+        envolvida, juntamente com todos os objetos que estiver vestindo ou
+        carregando, por gelo.</p></li><li><p class="MsoBodyText">A criatura está
+        incapacitada (veja a condição), não pode se mover ou falar, e não tem
+        ciência de seus arredores.</p></li><li><p class="MsoBodyText">A criatura
+        não pode utilizar ações de poder;</p></li><li><p class="MsoBodyText">A
+        criatura deve passar em uma Salvaguarda de Constituição para não sofrer
+        a condição “hipotérmico”.</p></li><li><p class="MsoBodyText">Jogadas de
+        ataque contra a criatura possuem vantagem.</p></li><li><p
+        class="MsoBodyText">A criatura falha automaticamente em Salvaguardas de
+        Constituição e Agilidade.</p></li><li><p class="MsoBodyText">A criatura
+        tem resistência a todos os tipos de dano.</p></li><li><p
+        class="MsoBodyText">Seu peso é multiplicado por cinco.</p></li><li><p
+        class="MsoBodyText">A criatura é imune a veneno e doenças, embora um
+        veneno ou doença previamente presente em seu sistema seja apenas
+        suspenso, não neutralizado.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383037138
+      modifiedTime: 1777476463732
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.a6IWy4W4n2D8Z8Ze'
+  - sort: 196875
+    name: Desidratado
+    type: text
+    _id: TJU7w36NnMHjnxfD
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura desidratada tem seu
+        deslocamento reduzido pela metade. A criatura sofre 1 nível de exaustão
+        a cada 1 hora.</p></li><li><p class="MsoBodyText">A criatura, no turno
+        dela, pode usar ou uma ação ou uma ação bônus, mas não ambas. A condição
+        se encerra logo após a ingestão de, no mínimo, 500 ml de
+        água.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383044952
+      modifiedTime: 1777476467898
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.TJU7w36NnMHjnxfD'
+  - sort: 198438
+    name: Empoderado
+    type: text
+    _id: AFNLlT5TrbqmkfbV
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p>Os danos de jogadas de ataque corpo-a-corpo de uma
+        criatura empoderada se tornam 1d12 (prevalecendo o maior, caso
+        possua).</p></li><li><p>Os Pontos de Energia Amaldiçoada de jogadas de
+        ataque de técnicas mal sucedidas não são descontados de criaturas
+        empoderadas.O deslocamento de criaturas empoderadas não pode ser
+        reduzido por terreno difícil.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383051601
+      modifiedTime: 1777476473238
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.AFNLlT5TrbqmkfbV'
+  - sort: 199219
+    name: Estremecido
+    type: text
+    _id: sSPiyuksW97O34QI
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoListParagraph">Uma criatura estremecida sofre
+        desvantagem em jogadas de ataque (comuns e de técnicas).</p></li><li><p
+        class="MsoListParagraph">A criatura estremecida não pode usar técnicas
+        ou características que requeiram concentração e falha automaticamente em
+        salvaguardas para manter sua concentração.</p></li><li><p
+        class="MsoListParagraph">Cada 1,5 metro de deslocamento da criatura
+        estremecida custa 1,5 metro adicional.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383064636
+      modifiedTime: 1777476485575
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.sSPiyuksW97O34QI'
+  - sort: 199024
+    name: Enfeitiçado
+    type: text
+    _id: 24HWsBJxkRfUj0It
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura enfeitiçada não pode
+        atacar quem a enfeitiçou ou tê-lo como alvo de habilidades ou efeitos
+        nocivos.</p></li><li><p class="MsoBodyText">Quem o enfeitiçou possui
+        vantagem em Testes de Atributo feitos para interagir socialmente com a
+        criatura.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383079691
+      modifiedTime: 1777476481804
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.24HWsBJxkRfUj0It'
+  - sort: 299219
+    name: Exausto
+    type: text
+    _id: jUQ0Ojn7NsJcygkg
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p>Uma criatura exausta recebe -2 em rolagens no
+        d20;</p></li><li><p>Uma criatura exausta perde 1,5 metros de
+        deslocamento;</p></li><li><p>Se utilizado como redutor de “Efeito
+        Colateral”, você só reduz 2 PA por nível de
+        exaustão;</p></li><li><p>Exaustão por condição pode ser aplicada até 3
+        vezes através feitiços, técnicas e habilidades, não podendo superar esse
+        valor. Se ela tiver com acúmulos de exaustão normal, a soma não irá
+        superar 5 através dessa condição.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383086256
+      modifiedTime: 1777476489441
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.jUQ0Ojn7NsJcygkg'
+  - sort: 399219
+    name: Evenenado
+    type: text
+    _id: 64NP2kxSF8mfti6U
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura envenenada sofre
+        desvantagem em jogadas de ataque e Testes de Atributo.</p></li><li><p
+        class="MsoBodyText">Para venenos comuns, após um dia de descanso, a
+        criatura se cura e pode fazer uma Salvaguarda de Constituição CD 15. Se
+        passar, pelas próximas 24 horas, ganha vantagem em Salvaguardas contra o
+        veneno que a afetou.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383101296
+      modifiedTime: 1777476493316
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.64NP2kxSF8mfti6U'
+  - sort: 499219
+    name: Enfurecido
+    type: text
+    _id: IUGCnR8QkoGA6ctr
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura enfurecida tenta atacar
+        a todo custo a fonte da sua fúria e recebe desvantagem em suas jogadas
+        de ataque. A criatura ataca qualquer outra criatura, amigável ou não,
+        que esteja próxima e tente impedir, de qualquer forma, seu combate
+        contra quem a enfureceu.</p></li><li><p class="MsoBodyText">Os danos de
+        ataques corpo-a-corpo contra quem a enfureceu aumentam em 1d4, enquanto
+        a fúria persistir.</p></li><li><p class="MsoBodyText">A fúria se mantém
+        por 1 minuto. Ela termina prematuramente se a criatura cair inconsciente
+        ou se seu turno acabar e a criatura não tiver atacado nenhuma criatura
+        desde seu último turno ou não tiver sofrido dano nesse
+        período.</p></li><li><p class="MsoBodyText">Uma criatura amigável pode
+        gastar uma ação para fazer um Teste de Atributo de Sabedoria (Persuasão)
+        CD 13 para acalmar a criatura enfurecida, com desvantagem enquanto a
+        fonte da fúria estiver em sua linha de visão.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383105604
+      modifiedTime: 1777476498569
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.IUGCnR8QkoGA6ctr'
+  - sort: 599219
+    name: Impedido
+    type: text
+    _id: TY0bMiK70ov78CLz
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">O deslocamento de uma criatura
+        impedida se torna 0, e ela não pode se beneficiar de qualquer bônus em
+        seu deslocamento.</p></li><li><p class="MsoBodyText">Jogadas de ataque
+        contra a criatura possuem vantagem, e os ataques da criatura sofrem
+        desvantagem.</p></li><li><p class="MsoBodyText">A criatura sofre
+        desvantagem em Salvaguardas de Agilidade.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383109543
+      modifiedTime: 1777476503265
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.TY0bMiK70ov78CLz'
+  - sort: 699219
+    name: Incapacitado
+    type: text
+    _id: fiVKmMfElwun0dCb
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<hr><ul><li><p>\_Uma criatura incapacitada não pode realizar ações ou reações.</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383113579
+      modifiedTime: 1777476508194
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.fiVKmMfElwun0dCb'
+  - sort: 799219
+    name: Inconsciente
+    type: text
+    _id: k2u92af7x9UErMYA
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoListParagraph">Uma criatura inconsciente está
+        <strong>incapacitada (veja a condição)</strong>.</p></li><li><p
+        class="MsoListParagraph">A criatura não pode realizar nenhum tipo de
+        ação ou inação;</p></li><li><p class="MsoListParagraph">A criatura não
+        pode usar princípios que gastem Energia Amaldiçoada;</p></li><li><p
+        class="MsoListParagraph">Ela não pode se mover ou falar e não tem
+        ciência de seus arredores;</p></li><li><p class="MsoListParagraph">A
+        criatura larga tudo que estiver segurando e fica caída.</p></li><li><p
+        class="MsoListParagraph">A criatura falha automaticamente em
+        Salvaguardas de Força ou Agilidade.</p></li><li><p
+        class="MsoListParagraph">Jogadas de ataque contra a criatura possuem
+        vantagem.</p></li><li><p class="MsoListParagraph">Qualquer ataque que
+        atinja a criatura é um acerto crítico, se o atacante estiver a 1,5 metro
+        dela.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383118211
+      modifiedTime: 1777476512343
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.k2u92af7x9UErMYA'
+  - sort: 899219
+    name: Invisível
+    type: text
+    _id: X9PdPvCaP6CZH6ez
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura invisível é impossível
+        de ser vista sem a ajuda de técnicas ou sentidos especiais. Para o
+        propósito de se esconder, a criatura é considerada em área de escuridão
+        densa.</p></li><li><p class="MsoBodyText">A localização da criatura pode
+        ser detectada por qualquer barulho que ela faça ou rastros que ela
+        deixe.</p></li><li><p class="MsoBodyText">Jogadas de ataque contra a
+        criatura sofrem desvantagem, e os ataques da criatura possuem
+        vantagem.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383122931
+      modifiedTime: 1777476516308
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.X9PdPvCaP6CZH6ez'
+  - sort: 999219
+    name: Hipotérmico
+    type: text
+    _id: m27RYswlWudR9DFt
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura hipotérmica sofre
+        desvantagem em Salvaguardas de Agilidade, Testes de Atributo e jogadas
+        de ataque.</p></li><li><p class="MsoBodyText">A condição se estende até
+        que seja tratada de forma adequada com um Teste de Atributo de Sabedoria
+        (Medicina) CD 10 ou um Teste de Atributo de Sabedoria (Sobrevivência) CD
+        17.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383127480
+      modifiedTime: 1777476521947
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.m27RYswlWudR9DFt'
+  - sort: 1099219
+    name: Letárgico
+    type: text
+    _id: j0tOdlX3KHl6WS8S
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura letárgica tem seu
+        deslocamento reduzido pela metade.</p></li><li><p class="MsoBodyText">Os
+        danos de ataques feitos pela criatura são reduzidos pela metade, exceto
+        de ataques feitos por armas de fogo.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383132093
+      modifiedTime: 1777476526058
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.j0tOdlX3KHl6WS8S'
+  - sort: 1199219
+    name: Mudo
+    type: text
+    _id: vVo8o6aHW1JzkFz3
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">A criatura falha automaticamente em
+        testes para se comunicar pela fala e não pode emitir sons pela
+        boca.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383135699
+      modifiedTime: 1777476530390
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.vVo8o6aHW1JzkFz3'
+  - sort: 1299219
+    name: Paralisado
+    type: text
+    _id: 4fMgcIkU1a0dZ2lt
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura paralisada está
+        incapacitada (veja a condição);</p></li><li><p class="MsoBodyText">Uma
+        criatura paralisada não pode utilizar ações bônus;</p></li><li><p
+        class="MsoBodyText">Uma criatura paralisada não pode utilizar Ações de
+        Poder para atacar;</p></li><li><p class="MsoBodyText">Ela não pode se
+        mover ou falar.</p></li><li><p class="MsoBodyText">A criatura falha
+        automaticamente em Salvaguarda de Força e Agilidade.</p></li><li><p
+        class="MsoBodyText">Jogadas de ataque contra a criatura possuem
+        vantagem.</p></li><li><p class="MsoBodyText">Qualquer ataque que atinja
+        a criatura é um acerto crítico, se o atacante estiver a 1,5 metro
+        dela.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383140390
+      modifiedTime: 1777476537246
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.4fMgcIkU1a0dZ2lt'
+  - sort: 1399219
+    name: Pesado
+    type: text
+    _id: CJYCKRZPwzMmZbK1
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura pesada tem seu
+        deslocamento reduzido pela metade.</p></li><li><p class="MsoBodyText">A
+        criatura sofre desvantagem em suas jogadas de ataque
+        corpo-a-corpo.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383143921
+      modifiedTime: 1777476660618
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.CJYCKRZPwzMmZbK1'
+  - sort: 1499219
+    name: Petrificado
+    type: text
+    _id: IvoYeweAcCAK4FOp
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura petrificada está incapaz
+        de se mover e suas funções corporais estão pausadas, ela tem a
+        superfície do corpo, podendo até ter os músculos, preenchidos com um
+        material sólido (geralmente pedra). Seu peso é multiplicado por dez, e
+        ela para de envelhecer.</p></li><li><p class="MsoBodyText">A criatura
+        está incapacitada (veja a condição), não pode se mover ou falar, e não
+        tem ciência de seus arredores ou realizar ações;</p></li><li><p
+        class="MsoBodyText">Jogadas de ataque contra a criatura possuem
+        vantagem.</p></li><li><p class="MsoBodyText">A criatura falha
+        automaticamente em Salvaguardas de Força e Agilidade. A criatura tem
+        resistência a todos os tipos de dano.</p></li><li><p
+        class="MsoBodyText">A criatura é imune a veneno e doenças, embora um
+        veneno ou doença previamente presente em seu sistema seja apenas
+        suspenso, não neutralizado.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383149900
+      modifiedTime: 1777476664848
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.IvoYeweAcCAK4FOp'
+  - sort: 1524219
+    name: Queimado
+    type: text
+    _id: zsCYJFxtE28qaQim
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura queimada sofre dano
+        contínuo de 1d6 de dano de Fogo (que não pode ser reduzido ou
+        transferidos para Pontos de Vida temporários) na primeira ação ou
+        movimento que realizar durante o turno dela;</p></li><li><p
+        class="MsoBodyText">Durante esse período, a criatura não pode usar
+        técnicas ou características que requeiram concentração e falha
+        automaticamente em Testes de Concentração;</p></li><li><p
+        class="MsoBodyText">A criatura recebe a condição “Queimadura” que se
+        mantém mesmo após ela remover a condição.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383153753
+      modifiedTime: 1777476669445
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.zsCYJFxtE28qaQim'
+  - sort: 1549219
+    name: Queimadura
+    type: text
+    _id: yPXw8c6JzyUX6Fik
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">A criatura tem desvantagem em Testes
+        de Concentração até que seja tratada de forma adequada com um Teste de
+        Sabedoria (Medicina) CD 13 ou um Teste de Atributo de Sabedoria
+        (Sobrevivência) CD 17.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383159782
+      modifiedTime: 1777476674009
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.yPXw8c6JzyUX6Fik'
+  - sort: 1799219
+    name: Sangramento
+    type: text
+    _id: imw5GzpBqNMPuBIN
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p>Uma criatura sangrando sofre dano contínuo de 1d6 de dano
+        Cortante (que não pode ser reduzido ou transferidos para Pontos de Vida
+        temporários) na primeira vez que realizar uma ação ou se movimente no
+        turno;</p></li><li><p>A criatura pode acumular até 3 vezes essa
+        condição, recebendo 1d6 a mais a cada acúmulo;</p></li><li><p>O
+        sangramento persiste até que seja tratado de forma adequada com uma
+        Teste de Atributo de Intelecto (Medicina) CD 12 ou um Teste de Atributo
+        de Sabedoria (Sobrevivência) CD 16, encerrando a condição
+        completamente.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383164166
+      modifiedTime: 1777476679038
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.imw5GzpBqNMPuBIN'
+  - sort: 1899219
+    name: Sonolento
+    type: text
+    _id: rpsUvEOS6Veec4GO
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">A criatura não pode usar Ações Bônus
+        ou Reações;</p></li><li><p class="MsoBodyText">A criatura recebe
+        desvantagem em Salvaguardas de Agilidade e Sabedoria;</p></li><li><p
+        class="MsoBodyText">A criatura sonolenta, independentemente das
+        habilidades, não poderá realizar mais de um ataque corpo-a-corpo (Comuns
+        e/ou de Técnicas) durante o turno dela.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383168202
+      modifiedTime: 1777476684058
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.rpsUvEOS6Veec4GO'
+  - sort: 1999219
+    name: Sufocado
+    type: text
+    _id: 7xTHnHgiQvrBUde7
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">A criatura não consegue formular
+        palavras entendíveis.</p></li><li><p class="MsoBodyText">A criatura
+        recebe desvantagem em Salvaguarda de Agilidade, podendo permanecer neste
+        estado por um número de turnos igual 1 + o seu modificador de
+        Constituição (mínimo de 1 turno), após isso deve fazer um Teste de
+        Constituição CD 10, para não desmaiar, no início de cada turno, em cada
+        um dos turnos seguintes é aumentado +2 ao Teste.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383172067
+      modifiedTime: 1777476688711
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.7xTHnHgiQvrBUde7'
+  - sort: 2099219
+    name: Surdo
+    type: text
+    _id: V1qYSFa9hf5Max5Z
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <hr><ul><li><p class="MsoBodyText">Uma criatura surda falha
+        automaticamente em qualquer Teste de Atributo que requeira o uso da
+        audição.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777383174970
+      modifiedTime: 1777476694866
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ZI4IYTRv7YQVnMpf.V1qYSFa9hf5Max5Z'
+folder: DVnVYS93cChe5onq
+categories: []
+sort: 100000
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '14.360'
+  systemId: hunter-system
+  systemVersion: 1.0.0
+  createdTime: 1777382735845
+  modifiedTime: 1777382735845
+  lastModifiedBy: dnd5ebuilder0000
+  duplicateSource: JournalEntry.ZI4IYTRv7YQVnMpf
+  exportSource: null
+_key: '!journal!ZI4IYTRv7YQVnMpf'

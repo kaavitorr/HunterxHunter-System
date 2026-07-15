@@ -187,7 +187,15 @@ export default class CharacterData extends CreatureTemplate {
             required: true, nullable: false, integer: true, initial: 0,
             label: "JUJUTSU.Energy.BonusFlat"
           })
-        }, { label: "JUJUTSU.Energy.Generation" })
+        }, { label: "JUJUTSU.Energy.Generation" }),
+        restrictions: new SchemaField({
+          quarter: new BooleanField({ required: true, initial: false, label: "JUJUTSU.Energy.RestrictionQuarter" }),
+          half: new BooleanField({ required: true, initial: false, label: "JUJUTSU.Energy.RestrictionHalf" }),
+          flat: new NumberField({
+            required: true, nullable: false, integer: true, min: 0, initial: 0,
+            label: "JUJUTSU.Energy.RestrictionFlat"
+          })
+        }, { label: "JUJUTSU.Energy.Restrictions" })
       }, { label: "JUJUTSU.Energy.Label" }),
       curseResources: new SchemaField({
         cursePoints: new NumberField({
@@ -462,7 +470,14 @@ export default class CharacterData extends CreatureTemplate {
     const bonusLevel = simplifyBonus(this.energy.bonuses?.level, rollData) * level;
     const bonusTemp = this.energy.bonuses?.temp ?? 0;
     const intensiveBonus = (this.energy.intensiveTraining?.maxEnergy ?? 0) * 5;
-    this.energy.max = (level * 20) + bonusOverall + bonusLevel + bonusTemp + intensiveBonus;
+    let energyMax = (level * 20) + bonusOverall + bonusLevel + bonusTemp + intensiveBonus;
+    // Restrições permanentes de aura em DEGRAUS: perde 5 a cada 20 COMPLETADOS (1/4)
+    // ou 5 a cada 10 COMPLETADOS (metade). Ganhos parciais (ex.: +5 do Treinamento
+    // Intenso) ficam inteiros até fechar o degrau. A perda fixa sai por último.
+    const restr = this.energy.restrictions ?? {};
+    if ( restr.quarter ) energyMax -= Math.floor(energyMax / 20) * 5;
+    if ( restr.half ) energyMax -= Math.floor(energyMax / 10) * 5;
+    this.energy.max = Math.max(0, energyMax - (restr.flat ?? 0));
 
     // Acúmulo de Energia disponível a partir do nível 5
     if ( level >= 5 ) this.energyAbilities.accumulation.enabled = true;
@@ -491,6 +506,22 @@ export default class CharacterData extends CreatureTemplate {
     this.masterySorcerer = mastery.sorcerer;
     this.masteryDie = mastery.die;
     this.masteryEvolution = mastery.evolution;
+
+    // Perito em Fuga (Habilidade Básica): concede 15m de deslocamento e ergue o TETO.
+    // Sozinho, o máximo é 15. Se OUTRA fonte também der deslocamento com limite ≥15m
+    // (no sistema: Agilidade Avançada do Emissor, limite ≥15 em todos os ranks), o teto
+    // passa a 21 — e o deslocamento cresce a partir dos 15 com o bônus dessa fonte, sem
+    // estourar 21. Ex.: 15 + 1,5 = 16,5 · 15 + 3 = 18 · 15 + 6 = 21. Cláusula condicional
+    // que Active Effect não expressa (o valor colide com outros efeitos), resolvida aqui,
+    // após os efeitos aplicarem — este cálculo é a palavra final do deslocamento.
+    const temPeritoFuga = this.parent?.items?.some(i => /perito\s+em\s+fuga/i.test(i.name ?? ""));
+    if ( temPeritoFuga ) {
+      const lvl = this.nenCategories?.emissor?.level ?? 0;
+      const rank = lvl >= 8 ? 3 : lvl >= 5 ? 2 : lvl >= 2 ? 1 : 0;   // Agilidade Avançada ★/★★/★★★
+      const bonusAgilidade = rank === 1 ? 1.5 : rank === 2 ? 3 : rank === 3 ? 6 : 0;
+      const teto = bonusAgilidade > 0 ? 21 : 15;                     // outra fonte (limite ≥15) → teto 21
+      this.attributes.movement.walk = Math.min(15 + bonusAgilidade, teto);
+    }
   }
 
   /* -------------------------------------------- */

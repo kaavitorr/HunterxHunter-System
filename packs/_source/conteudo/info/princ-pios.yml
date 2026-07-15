@@ -1,0 +1,1482 @@
+folder: DVnVYS93cChe5onq
+name: Princípios
+_id: NTLmGaxbRETZzwYX
+pages:
+  - sort: 100000
+    name: Ten
+    type: text
+    _id: B31kjVBwgkCWsfXz
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>O primeiro princípio é o de\_Ten (纏\_envoltura), que é utilizado para diminuir (ou mesmo evitar) a perda gradual de aura pela qual todo ser vivo passa, mantendo a circulação da aura dentro e ao redor do corpo. Uma vez mantida, a aura age como uma segunda pele, servindo de proteção contra os mais básicos golpes que utilizam o Nen (Aura). Essa camada de aura produz uma sensação parecida com a de um fluido viscoso, emanando um constante e confortável calor. A maestria do princípio da envoltura pode ser atingida pelo uso de meditação, e reduz drasticamente os efeitos do envelhecimento no corpo do usuário, mantendo-o apto mesmo em idade avançada.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> Aprendendo o Ten.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso a técnica “Ten – Defesa Sólida”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Enquanto sua aura estiver ativa, você não sofre dano dobrado de ataques com Ren.</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389547203
+      modifiedTime: 1777389607239
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.B31kjVBwgkCWsfXz'
+  - sort: 200000
+    name: Defesa de Aura
+    type: text
+    _id: XBIoo4Xvi3i15IRh
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você reduz todo dano sem aura pela
+        metade.</p><ul><li><p><strong>Requisito:</strong> Ten, 3 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389619539
+      modifiedTime: 1777389632911
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.XBIoo4Xvi3i15IRh'
+  - sort: 200000
+    name: Movimentação Rápida
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Quando você estiver fora de combate, você pode
+        dobrar seu deslocamento padrão e pode utilizar disparada por quanto
+        tempo quiser sem receber nenhum nível de exaustão. Esse efeito consome 1
+        PA na sua ativação e 1 PA adicional a cada 5
+        minutos.</p><ul><li><p><strong>Requisito:</strong> Ten, Estágio Perito,
+        6 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389637495
+      modifiedTime: 1777389660571
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.XBIoo4Xvi3i15IRh
+      exportSource: null
+    _id: VQsD5uqmj05cF69D
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.VQsD5uqmj05cF69D'
+  - sort: 300000
+    name: Defesa Elevada
+    type: text
+    _id: 7QdlIOprxGZpVhrn
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Antes de reduzir o dano pela metade, você reduz o dano sofrido em 15
+        Pontos de Dano.</p><ul><li><p><strong>Requisito:</strong> Defesa de
+        Aura, 6 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389668846
+      modifiedTime: 1777389680994
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.7QdlIOprxGZpVhrn'
+  - sort: 400000
+    name: Zetsu
+    type: text
+    _id: axXvXFEDtbEAk2zG
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>O segundo princípio é o de\_Zetsu (絕\_corte), que é utilizado para suprimir o fluxo externo da aura do indivíduo, ocultando sua presença de outros usuários da Nen. O fluxo para porque os nós de aura são fechados por meio de manipulação da Nen, aliviando a fadiga do usuário e deixando-o completamente desprotegido contra ataques de Nen como efeitos colaterais. A técnica é muito utilizada por assassinos profissionais e Hunters de lista negra, por tornar possível a aproximação e posterior captura ou eliminação de um usuário de Nen.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> Conhecendo o Zetsu.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso a técnica “Zetsu – Anular Presença”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Você se torna capaz de cortar totalmente o fluxo de aura, permitindo que você possa usar Furtividade contra criaturas que possam ver aura.</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389688704
+      modifiedTime: 1777389702167
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.axXvXFEDtbEAk2zG'
+  - sort: 500000
+    name: Supressão de Aura
+    type: text
+    _id: 1WhcKsywuRe6rRrZ
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Enquanto em Zetsu, você recebe +5 em Testes de Atributo de Agilidade
+        (Furtividade).</p><ul><li><p><strong>Requisito:</strong> 3 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389713745
+      modifiedTime: 1777389725662
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.1WhcKsywuRe6rRrZ'
+  - sort: 500000
+    name: Recuperação Acelerada
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Enquanto em Zetsu, você pode realizar descansos
+        curtos e longos na metade do tempo
+        padrão.</p><ul><li><p><strong>Requisito:</strong> 6 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389728705
+      modifiedTime: 1777390038130
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.1WhcKsywuRe6rRrZ
+      exportSource: null
+    _id: elwPQxF9MatFBD8w
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.elwPQxF9MatFBD8w'
+  - sort: 500000
+    name: Mestre de Zetsu
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Você recebe proficiência em Testes de Atributo de
+        Furtividade. Caso já possua, você recebe
+        maestria.</p><ul><li><p><strong>Requisito:</strong> Supressão de Aura,
+        Estágio Mestre, 10 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389749783
+      modifiedTime: 1777389767851
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.elwPQxF9MatFBD8w
+      exportSource: null
+    _id: WAJeQl7F7ZntqeCr
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.WAJeQl7F7ZntqeCr'
+  - sort: 600000
+    name: Ren
+    type: text
+    _id: dDA3JlaAxNcwh9q4
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>O terceiro princípio é o de\_Ren\_(練 prática). Utilizando-se do primeiro princípio, o usuário não precisa se preocupar com a perda natural de aura do corpo, podendo manifestar uma quantidade grande de energia a seu redor. A prática se foca em expandir e intensificar a aura o máximo possível aumentando a força e durabilidade do corpo do usuário, sendo muito utilizado para técnicas ofensivas. Desta forma, pode-se dizer que envoltura e prática, apesar de baseados um no outro, são princípios opostos.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> Dominando o Ren.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso as técnicas “Ren – Explosão de Aura” e “Ren – Parede de Aura”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Você passa a causar o dobro de dano em criaturas que não possuam aura ou estejam com “Zetsu” ativo.</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389775296
+      modifiedTime: 1777390032643
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.dDA3JlaAxNcwh9q4'
+  - sort: 700000
+    name: Explosão Ofensiva
+    type: text
+    _id: lsZAEHuvcDNXDNW1
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Você pode adicionar até um número de d4 no seu
+        próximo ataque ou dados de dano de sua técnica até um valor igual ao seu
+        bônus de proficiência. Você consome 1 PA para cada dado aumentado.</p><p
+        class="MsoNormal">Esse efeito pode ser utilizado em técnicas e
+        habilidades de cura, mas você gasta 2 PA para cada
+        dado.</p><ul><li><p><strong>Requisito:</strong> 3 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389803193
+      modifiedTime: 1777389811519
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.lsZAEHuvcDNXDNW1'
+  - sort: 700000
+    name: Explosão Defensiva
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Você pode gastar 1 PA para reduzir 1d4 de dano
+        sofrido ou 2 dados de redução a sua próxima técnica redução, até um
+        máximo igual o valor da sua aura disponível na rodada. A versão de 2
+        dados de redução desse efeito não funciona em técnicas similares ao
+        Transferência Rápida, que reduz o dano de cada um de seus ataques em um
+        valor de d8 fixo.</p><ul><li><p><strong>Requisito</strong>: 3 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389813652
+      modifiedTime: 1777389826383
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.lsZAEHuvcDNXDNW1
+      exportSource: null
+    _id: qnmlbd0KIkiHcjXA
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.qnmlbd0KIkiHcjXA'
+  - sort: 700000
+    name: Ultimo Recurso
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Até 3 vezes por descanso longo, ao sofrer dano
+        crítico de uma jogada de ataque (Comum), você pode escolher sofrer o
+        dano normal. Adicionalmente, uma quantidade de vezes quaisquer, ao
+        sofrer dano crítico de uma técnica, você pode escolher gastar 6 Pontos
+        de Aura para sofrer o dano
+        normal.</p><ul><li><p><strong>Requisito:</strong> Explosão Defensiva,
+        Estágio Perito, 6 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389828727
+      modifiedTime: 1777389843318
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.qnmlbd0KIkiHcjXA
+      exportSource: null
+    _id: bIKcB3ifBGoUXdqy
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.bIKcB3ifBGoUXdqy'
+  - sort: 800000
+    name: Hatsu
+    type: text
+    _id: g4ekIubZUuTZrb2D
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>O quarto e último dos princípios fundamentais é o do Hatsu\_(發 Liberação), que consiste na transmissão ou projeção da aura do indivíduo, geralmente utilizado antes de uma técnica avançada. A liberação de Nen varia muito de acordo com a aura e estados físico e mental do usuário, criando uma capacidade sobrenatural e técnicas pessoais únicas. A liberação reflete o caráter e vontade do usuário no exterior, contanto que este pratique a Nen por si próprio, e não somente copie as habilidades de outros.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> Alcançando o Hatsu.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso as técnicas “Hatsu – Sede de Sangue”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Nenhuma</p><p class=\"MsoNormal\"></p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389849127
+      modifiedTime: 1777390023901
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.g4ekIubZUuTZrb2D'
+  - sort: 900000
+    name: Aura Assassina
+    type: text
+    _id: d3zR2XlDvuh8CwMz
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você pode usar uma ação de poder para realizar uma jogada de ataque
+        contra uma criatura que não possa utilizar aura, você consome 2 Pontos
+        de Aura e remove 4 Pontos de Vitalidade (PVE)
+        dela.</p><ul><li><p><strong>Requisito:</strong> 3 Ponto de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389871948
+      modifiedTime: 1777389887878
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.d3zR2XlDvuh8CwMz'
+  - sort: 900000
+    name: Despertar Aura
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Você pode tocar uma criatura usando sua ação para
+        enviar sua aura para dentro do corpo dela e abrir seus nós de aura,
+        despertando a capacidade dela de utilizar aura. Para isso, você deve
+        realizar um Teste de Atributo de Espírito (Nen) CD 16. Em caso de falha,
+        ela recebe o dobro do dano do “Aura
+        Assassina”.</p><ul><li><p><strong>Requisito:</strong> 6 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389891722
+      modifiedTime: 1777390016151
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.d3zR2XlDvuh8CwMz
+      exportSource: null
+    _id: 4V5U5LAnXTHSK7Uo
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.4V5U5LAnXTHSK7Uo'
+  - sort: 900000
+    name: Habilidade Especial
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Desde que você possua Aura Assassina ou Despertar
+        Aura, você pode pegar essa habilidade e liberar acesso ao seu Hatsu de
+        acordo com o Manual
+        Shingen-Ryu.</p><ul><li><p><strong>Requisito:</strong> 3 Pontos de
+        Nen.</p></li></ul><table><tbody><tr><td><p><span
+        style="font-size:large"><strong>APRENDENDO UM
+        HATSU</strong></span></p><p class="Default">Para aprender um Hatsu com
+        sucesso, você deve primeiro treinar o básico para que sua habilidade
+        seja possível. Para isso, você deve treinar pelo menos o Nível 1 de
+        Treinamento de Categoria de cada uma das categorias que sua primeira
+        habilidade irá utilizar, de acordo com o Capítulo 6.9.</p><p
+        class="Default">Se você deseja criar uma habilidade que possui um efeito
+        com um requisito de nível avançado (6 ou maior) de treinamento, você
+        pode ignorar esse requisito para sua primeira habilidade desde que esse
+        efeito seja de sua categoria.</p><p>A partir da sua segunda manifestação
+        de habilidade, você deve cumprir todos os requisitos de Nível de
+        Treinamento de Categoria para todos os efeitos que desejar adicionar,
+        mesmo que seja um que exista na sua primeira
+        manifestação.</p></td></tr></tbody></table>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389907836
+      modifiedTime: 1777390011838
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.4V5U5LAnXTHSK7Uo
+      exportSource: null
+    _id: jJyINc1pObzIzdIx
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.jJyINc1pObzIzdIx'
+  - sort: 1000000
+    name: Gyo
+    type: text
+    _id: tKUzIPAxkmVdRG7C
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>A técnica Gyo\_(凝\_coagulação) ou \"congelamento\" é uma\_aplicação avançada\_do\_conceito da prática, que consiste na concentração da aura em uma parte específica do corpo. Esta técnica pode aumentar dramaticamente a habilidade e força da parte do corpo escolhida, mas deixa o resto do corpo desprotegido contra ataques de Nen. A técnica é mais comumente utilizada nos olhos, permitindo a um usuário novato enxergar a aura de outras pessoas e objetos escondidos com o uso da Nen. É implícito que usuários experientes podem realizar a técnica nos olhos instintivamente, sem precisar de preparação.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> Ren, 3 Pontos de Nen.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso as técnicas “Detectar Aura”, “Salto Concentrado”, “Investida Focada”, “Sentidos Aprimorados”, “Gyo – Foco Rápido”, “Gyo - Golpe Devastador” e “Gyo – Foco Destruidor”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Nenhuma</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389961766
+      modifiedTime: 1777390006876
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.tKUzIPAxkmVdRG7C'
+  - sort: 1100000
+    name: Ponto Fraco
+    type: text
+    _id: ygkT8BcKxrb6W1iB
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você pode utilizar uma ação bônus e 2 PA para realizar um Teste de
+        Atributo de Espírito (Nen) com CD igual a 10 + ND da criatura para
+        tentar encontrar um ponto fraco em seu corpo, se houver um. Caso
+        contrário, você recebe duas informações entre ND, CR, PV atual,
+        Resistências e Vulnerabilidades (à escolha do narrador). Caso uma
+        criatura não possua vulnerabilidade, essa opção não pode ser escolhida.
+        Você pode utilizar essa habilidade uma vez por criatura a cada descanso
+        longo.</p><ul><li><p><strong>Requisito:</strong> Gyo, 3 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777389983007
+      modifiedTime: 1777389997677
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.ygkT8BcKxrb6W1iB'
+  - sort: 1100000
+    name: Foco Agressivo
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Suas jogadas de ataque (Comuns) recebem 1d4 de dano
+        adicional.</p><ul><li><p><strong>Requisito:</strong> Explosão Ofensiva,
+        Estágio Perito, 6 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390043379
+      modifiedTime: 1777390393529
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.ygkT8BcKxrb6W1iB
+      exportSource: null
+    _id: 7NlxD1VceHNVLqu0
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.7NlxD1VceHNVLqu0'
+  - sort: 1100000
+    name: Foco Defensivo
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Você envolve seu corpo com uma camada extra de
+        aura, criando 20 Pontos de Armadura. Esses pontos funcionam da mesma
+        forma que os Pontos de Vida Temporários, com as seguintes
+        diferenças:</p><ul><li><p><em>Podem coexistir com PV
+        temporários;</em></p></li><li><p><em>Sempre são consumidos antes dos PV
+        temporários;</em></p></li><li><p><em>Duram apenas até o fim do
+        encontro.</em></p></li></ul><p class="MsoNormal">Outras características
+        e técnicas que afetem ou interajam com Pontos de Vida temporários terão
+        os mesmos efeitos com os Pontos de Armadura. Enquanto estiver com esses
+        Pontos de Armadura ativos, você adquire resistência a todos os tipos de
+        dano. Os Pontos de Armadura são totalmente restaurados após 10 minutos
+        de descanso sem utilizar aura. Você não pode utilizar Foco Agressivo e
+        Defensivo ao mesmo tempo.</p><ul><li><p><strong>Requisito:</strong>
+        Explosão Defensiva, Estágio Perito, 6 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390068422
+      modifiedTime: 1777390094254
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.7NlxD1VceHNVLqu0
+      exportSource: null
+    _id: 5q2sTRGdGk3w8erf
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.5q2sTRGdGk3w8erf'
+  - sort: 1100000
+    name: Análise Superior
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Quando uma criatura utilizar uma característica
+        qualquer e você estiver com seu “Detectar Aura” ativo, você pode
+        realizar um Teste de Atributo de Espírito (Nen) com CD igual o ND da
+        criatura para saber exatamente o que a característica
+        faz.</p><ul><li><p><strong>Requisito:</strong> Ponto Fraco, Estágio
+        Mestre, 10 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390097475
+      modifiedTime: 1777390121116
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.5q2sTRGdGk3w8erf
+      exportSource: null
+    _id: YFrNnBf3wn7Xtu9F
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.YFrNnBf3wn7Xtu9F'
+  - sort: 1100000
+    name: Shu
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p class=\"MsoNormal\">Shu\_(周 envolver), é uma aplicação avançada de\_Ten\_e\_Ren.\_Shu\_permite o usuário de Nen a envolver um objeto com sua própria aura, fazendo ela tornar-se um tipo de extensão de seu próprio corpo, tornando o objeto mais forte. Em outras palavras, como\_Ten, permite que o usuário controle e envolva seu próprio corpo com sua aura, permitirá também envolver um objeto que estiver tocando; e como\_Ren\_permite aumentar a força e resistência do corpo do usuário, usando se\_Ren\_no objeto o tornaria mais forte e resistente.\_</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> Ten e Hatsu, Estágio Perito, 3 Pontos de Nen.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso as técnicas “Shu – Revestimento”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Nenhum</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390134787
+      modifiedTime: 1777390164899
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.YFrNnBf3wn7Xtu9F
+      exportSource: null
+    _id: hP0lVBbd9a5aveNP
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.hP0lVBbd9a5aveNP'
+  - sort: 1200000
+    name: Envolver Objeto
+    type: text
+    _id: KFRBt9Qs9pux4FJR
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você pode envolver objetos com sua aura para desencadear um número de
+        efeitos, desde aumentar sua defesa até aprimorar seu dano. Você pode
+        aplicar dois dos seguintes efeitos em um objeto
+        envolvido:</p><ul><li><p>A Classe de Resistência do Objeto se torna
+        igual a sua;</p></li><li><p>O objeto passa a dar o dobro de dano em
+        objetos e estruturas;</p></li><li><p>O objeto recebe 50 Pontos de
+        Armadura de acordo com as regras do Foco Defensivo;</p></li><li><p>O
+        dano base do objeto se torna 1d10 e você pode arremessa-lo no alcance do
+        seu Emissão Treinada.</p><hr></li><li><p><strong>Requisito:</strong> 3
+        Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390178876
+      modifiedTime: 1777390211459
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.KFRBt9Qs9pux4FJR'
+  - sort: 1200000
+    name: Escrita de Nen
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Ao colocar Aura na ponta dos dedos, você pode
+        escrever algo em uma superfície. Pode ser utilizado em conjunto com In
+        para tornar a escrita invisível por até 2
+        horas.</p><ul><li><p><strong>Requisito:</strong> Estágio Perito, Shu,
+        In, 3 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390213852
+      modifiedTime: 1777390233230
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.KFRBt9Qs9pux4FJR
+      exportSource: null
+    _id: NIE24eRBWMfZAfvK
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.NIE24eRBWMfZAfvK'
+  - sort: 1300000
+    name: In
+    type: text
+    _id: fAkJ48umoWpTUtfO
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>A técnica In (隱 esconder) é a aplicação avançada de\_Zetsu. Pode-se esconder literalmente toda a presença de aura do indivíduo com essa técnica. Mas o principal uso dessa técnica é usá-la em seu\_Hatsu\_para torná-la invisível aos seus inimigos. No entanto, ela pode ser contra-atacada usando-se\_Gyo\_ou\_En.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> Zetsu, Estágio Perito, 3 Pontos de Nen.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso as técnicas “In - Ocultação Completa”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Nenhuma</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390239374
+      modifiedTime: 1777390250070
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.fAkJ48umoWpTUtfO'
+  - sort: 1400000
+    name: Ocultação
+    type: text
+    _id: o1W5rSuj3beI8aaO
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Suas jogadas de ataque (Comuns e de Técnica) passam a receber + 3 de
+        acerto.</p><ul><li><p><strong>Requisito:</strong> Estágio Perito, 6
+        Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390257135
+      modifiedTime: 1777390267187
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.o1W5rSuj3beI8aaO'
+  - sort: 1400000
+    name: Mestre de In
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Você sempre está com o “Ocultação Completa” ativo
+        fora de combate sem consumir Pontos de
+        Aura.</p><ul><li><p><strong>Requisito:</strong> Ocultação, Estágio
+        Mestre, 10 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390270543
+      modifiedTime: 1777390382660
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.o1W5rSuj3beI8aaO
+      exportSource: null
+    _id: aqzzs67p474TmiWR
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.aqzzs67p474TmiWR'
+  - sort: 1500000
+    name: En
+    type: text
+    _id: 0JfFZMXVsuGW6vV6
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>A técnica En (圓 círculo) é a aplicação avançada de\_Ten\_e\_Ren. O usuário expande sua aura através do\_Ren, criando um campo de aura mais extenso. Usando-se então\_Ten, o usuário da forma ao campo de aura, normalmente num círculo. Qualquer coisa que aparecer ou se mexer dentro desse campo de aura será imediatamente sentido pelo usuário.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> Ten e Ren, Estágio Perito, 3 Pontos de Nen.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso as técnicas “En – Sentido Verdadeiro”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Você pode utilizar sua ação de poder para realizar um Teste de Atributo de Espírito (Percepção) com vantagem, para tentar perceber todas as criaturas escondidas dentro de uma área, recebendo percepção as cegas em um alcance de 3 metros de raio ao seu redor. Essa habilidade consome 2 Pontos de Aura em sua ativação e no início de cada um de seus turnos. Você é imune a condição “Surpreso” contra ataques dentro da área do seu En.</p></li><li><p class=\"MsoNormal\"><strong>Sobrecarga:</strong> Enquanto estiver com o En ativo, você tem desvantagem em Testes de Percepção se o número de criaturas dentro da área for superior ao seu atributo de Espírito. Se o número de criaturas for superior a 30, você recebe -1 para cada criatura acima dessas 30 iniciais.</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390290448
+      modifiedTime: 1777390308149
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.0JfFZMXVsuGW6vV6'
+  - sort: 1600000
+    name: Sensitivo
+    type: text
+    _id: HXJzPSeSOjeSiwdT
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Ao ser alvo de uma jogada de ataque dentro ou fora da área do seu En,
+        você pode escolher ser atingido automaticamente para ver a direção exata
+        em que o ataque veio, recebendo vantagem e + 10 em Testes de Percepção
+        para encontrar a criatura que o
+        atacou.</p><ul><li><p><strong>Requisito:</strong> En, 3 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390315256
+      modifiedTime: 1777390376528
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.HXJzPSeSOjeSiwdT'
+  - sort: 1600000
+    name: Aprimorar Sentidos
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Você recebe + 2 no Teste de Atributo de Espírito
+        (Percepção) da ativação do seu En. Essa habilidade pode ser adquirida
+        diversas vezes, aumentando em +2 a cada vez que você a
+        comprar.</p><ul><li><p><strong>Requisito:</strong> En, 3 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390329328
+      modifiedTime: 1777390372085
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.HXJzPSeSOjeSiwdT
+      exportSource: null
+    _id: KunfCiUJvA0Tp5Tf
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.KunfCiUJvA0Tp5Tf'
+  - sort: 1600000
+    name: Expansão de Aura
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">A área do seu En aumenta para 6 metros. Você pode
+        adquirir essa habilidade diversas vezes, aumentando seu alcance em 6
+        metros a cada vez que a pegar novamente. Se você usar um 1/3 do seu
+        alcance, você não consome aura por
+        rodada.</p><ul><li><p><strong>Requisito:</strong> En, 3 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390346605
+      modifiedTime: 1777390366338
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.KunfCiUJvA0Tp5Tf
+      exportSource: null
+    _id: ik1yO9wtVRNfz1JC
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.ik1yO9wtVRNfz1JC'
+  - sort: 1700000
+    name: Ryu
+    type: text
+    _id: qJkP08ONDKUSw7HC
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>A técnica Ryu\_(流 fluxo) é outra aplicação de\_Gyo.\_Ryu\_foca-se mais na parte da defesa e ataque, focando maior quantidade de aura num soco para torná-lo mais potente, ou focando em sua perna para defender-se melhor de algum ataque de Nen do inimigo.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> “Foco Agressivo” e “Foco Defensivo”, Estágio Perito, 5 Pontos de Nen.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso as técnicas “Ryu – Controle de Aura” e “Ryu – Transferência Rápida”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Nenhuma</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390403628
+      modifiedTime: 1777390557033
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.qJkP08ONDKUSw7HC'
+  - sort: 1800000
+    name: Fluxo Veloz
+    type: text
+    _id: 6XSRr50Ar7Ma3xsi
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Você pode manter o Foco Agressivo e Foco Defensivo ativos o tempo
+        inteiro.</p><p><strong>Requisito:</strong> 6 Pontos de Nen.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390427253
+      modifiedTime: 1777390439789
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.6XSRr50Ar7Ma3xsi'
+  - sort: 1800000
+    name: Fluxo Perfeito
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">A margem de acerto crítico de suas jogadas de
+        ataque (Comuns e de Técnica) se torna
+        19-20.</p><ul><li><p><strong>Requisito:</strong> Estágio Perito, Fluxo
+        Veloz, 10 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390442623
+      modifiedTime: 1777390466186
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.6XSRr50Ar7Ma3xsi
+      exportSource: null
+    _id: k0E29NXdCk7SgDgl
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.k0E29NXdCk7SgDgl'
+  - sort: 1800000
+    name: Fluxo Constante
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">O dano do seu Foco Agressivo aumenta em um passo e
+        seu Foco Defensivo recebe 20 PV temporários
+        adicionais.</p><p><strong>Requisito:</strong> Estágio Perito,10 Pontos
+        de Nen.</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390468472
+      modifiedTime: 1777390482200
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.k0E29NXdCk7SgDgl
+      exportSource: null
+    _id: QDjwDQaCvoIX8DQM
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.QDjwDQaCvoIX8DQM'
+  - sort: 1800000
+    name: Ativação de Fluxo
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Enquanto você estiver com “Fluxo Veloz” ativo, você
+        pode aumentar um número de dados de dano do “Explosão Ofensiva” igual ao
+        dobro do bônus de proficiência no lugar do
+        original.</p><ul><li><p><strong>Requisito:</strong> Estágio Mestre, 15
+        Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390484720
+      modifiedTime: 1777390503109
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.QDjwDQaCvoIX8DQM
+      exportSource: null
+    _id: NzUjuPxfWz3j5r8m
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.NzUjuPxfWz3j5r8m'
+  - sort: 1900000
+    name: Ken
+    type: text
+    _id: av09UxDGuKYO0qpv
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>A técnica Ken\_(堅 fortificar) é outra aplicação avançada de\_Ren.\_Ken\_é usado mais para fins defensivos. Aumenta-se a potência do uso de\_Ren, tornando o corpo mais resistente. É como um\_Gyo, mas usado no corpo todo. E por aumentar consideravelmente a força defensiva do corpo, é também muito cansativo de se manter. É mais usado quando se suspeita de o inimigo estar usando algum tipo de ataque surpresa.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> “Explosão Defensiva”, “Último Recurso” e “Foco Defensivo”, Estágio Mestre, 5 Pontos de Nen.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso as técnicas “Ken – Defesa Absoluta”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Nenhuma</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390509094
+      modifiedTime: 1777390519680
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.av09UxDGuKYO0qpv'
+  - sort: 2000000
+    name: Disputa de Aura
+    type: text
+    _id: GAMRCaZxKgGDK5Zq
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Quando você for alvo de um efeito intrusivo de Nen, como “Supressão
+        de Aura”, ou de uma condição ou efeito negativo qualquer. Você pode usar
+        sua reação e gastar 10 Pontos de Aura e realizar um Teste Resistido de
+        Espírito (Nen) contra a mesma perícia da criatura. Em caso de sucesso,
+        você nega o efeito e fica imune a ele até o fim do seu turno
+        atual.</p><ul><li><p><strong>Requisito:</strong> Ken, 10 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390526039
+      modifiedTime: 1777390567894
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.GAMRCaZxKgGDK5Zq'
+  - sort: 2000000
+    name: Muralha de Aura
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Uma vez por descanso longo, quando você for alvo de
+        uma jogada de ataque (Comum ou de Técnica) ou tiver que realizar uma
+        Salvaguarda para tomar todo ou metade do dano, você pode usar sua reação
+        para reduzir o dano sobre você e toda criatura em um cone de 12 metros
+        atrás de você a 0.</p><ul><li><p><strong>Requisito:</strong> Ken, 15
+        Ponto de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390570916
+      modifiedTime: 1777390583373
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.GAMRCaZxKgGDK5Zq
+      exportSource: null
+    _id: jX9LwCNSVMGWUYWH
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.jX9LwCNSVMGWUYWH'
+  - sort: 2100000
+    name: Ko
+    type: text
+    _id: gRJeXaWBvPWczeIH
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>A técnica Ko (硬 temperamento) é uma aplicação avançada de\_Gyo, e\_Zetsu. Usa-se\_Gyo\_em uma determinada parte do corpo, e logo após usa-se\_Zetsu\_para fechar o fluxo de aura nas outras partes do corpo onde não seja a que está usando-se o\_Gyo. Isso faz aquela parte do corpo tornar-se extremamente poderosa, carregada de aura. É mais usado como uma técnica ofensiva, um ataque direto utilizando-se\_Ko\_carrega 100% da aura do usuário no ataque.</p><ul><li><p class=\"MsoNormal\"><strong>Requisito:</strong> Ten, Zetsu, Ren, Hatsu, Gyo, Estágio Mestre, 5 Pontos de Nen.</p></li><li><p class=\"MsoNormal\"><strong>Técnicas:</strong> Você recebe acesso as técnicas “Ko – Ofensiva Absoluta” e “Bloqueio Emergencial”.</p></li><li><p class=\"MsoNormal\"><strong>Característica:</strong> Nenhuma</p></li></ul>"
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390588780
+      modifiedTime: 1777390603626
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.gRJeXaWBvPWczeIH'
+  - sort: 2200000
+    name: Acúmulo Extremo
+    type: text
+    _id: YJPOuVrZW9hp2pF5
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Ao pagar 4 Pontos de Aura, você pode fazer com que seu próximo dano
+        se torne do tipo “Verdadeiro”.</p><ul><li><p><strong>Requisito:</strong>
+        Ko, 10 Pontos de Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390611026
+      modifiedTime: 1777390627815
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.YJPOuVrZW9hp2pF5'
+  - sort: 2200000
+    name: Mestre de Ko
+    type: text
+    system: {}
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p class="MsoNormal">Você pode colocar quantos dados de dano quiser pelo
+        “Explosão Ofensiva” até um limite igual sua aura gerada disponível, mas
+        sua Classe de Resistência se torna 0 até o início do seu próximo turno
+        caso você adicione um valor maior que seu nível de
+        personagem.</p><ul><li><p><strong>Requisito:</strong> Ko, 15 Pontos de
+        Nen.</p></li></ul>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1777390632097
+      modifiedTime: 1777390646959
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: >-
+        Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.YJPOuVrZW9hp2pF5
+      exportSource: null
+    _id: 9SbAGwJaZMc4UTab
+    _key: '!journal.pages!NTLmGaxbRETZzwYX.9SbAGwJaZMc4UTab'
+categories: []
+sort: 0
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '14.360'
+  systemId: hunter-system
+  systemVersion: 1.0.0
+  createdTime: 1777389525954
+  modifiedTime: 1777389525955
+  lastModifiedBy: dnd5ebuilder0000
+  duplicateSource: null
+  exportSource: null
+_key: '!journal!NTLmGaxbRETZzwYX'

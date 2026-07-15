@@ -1,6 +1,6 @@
 import CompendiumBrowser from "./applications/compendium-browser.mjs";
 import CalendarMonthView from "./applications/calendar/calendar-month-view.mjs";
-import BastionSettingsConfig from "./applications/settings/bastion-settings.mjs";
+// BastionSettingsConfig: menu de Bastiões removido da UI (classe segue exportada no barrel)
 import CalendarSettingsConfig from "./applications/settings/calendar-settings.mjs";
 import CustomCalendarConfig from "./applications/settings/custom-calendar-settings.mjs";
 import CombatSettingsConfig from "./applications/settings/combat-settings.mjs";
@@ -62,6 +62,32 @@ export function registerSystemSettings() {
     default: ""
   });
 
+  // Idioma do Sistema — seletor próprio do Hunter (por cliente). Sobrepõe as strings
+  // do sistema no idioma escolhido, independente do idioma do Foundry (ver
+  // module/hunter-language.mjs). Recarrega ao mudar para reaplicar a tradução.
+  game.settings.register("hunter-system", "interfaceLanguage", {
+    name: "HUNTER.Settings.Language.Name",
+    hint: "HUNTER.Settings.Language.Hint",
+    scope: "client",
+    config: true,
+    type: String,
+    default: "pt-BR",
+    choices: { "pt-BR": "Português (Brasil)", en: "English" },
+    requiresReload: true
+  });
+
+  // Criação de Personagem (tela fullscreen): permite ao Narrador desligar os
+  // gatilhos automáticos (ator novo, nível 2, ficha incompleta). O helper manual
+  // game.hunterCreation(...) continua funcionando mesmo desabilitada.
+  game.settings.register("hunter-system", "characterCreationEnabled", {
+    name: "Criação de Personagem",
+    hint: "Abre a tela de Criação de Personagem automaticamente (ator novo, nível 2 e ficha sem Categoria/Espécie). Desmarque para desativar os gatilhos automáticos.",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
+  });
+
   // Espécies customizadas (editor da Criação de Personagem — só Narrador edita).
   // Array de { id, name, img, desc }. Persistente/mundo → oficial para todos.
   game.settings.register("hunter-system", "customSpecies", {
@@ -78,12 +104,12 @@ export function registerSystemSettings() {
     type: TransformationSetting
   });
 
-  // Rules version
+  // Rules version — fixo nas regras modernas (2024); opção escondida da UI
   game.settings.register("hunter-system", "rulesVersion", {
     name: "SETTINGS.DND5E.RULESVERSION.Name",
     hint: "SETTINGS.DND5E.RULESVERSION.Hint",
     scope: "world",
-    config: true,
+    config: false,
     default: "modern",
     type: String,
     choices: {
@@ -118,12 +144,12 @@ export function registerSystemSettings() {
     type: Boolean
   });
 
-  // Loyalty
+  // Loyalty — escondido da UI (não usamos rastreamento de lealdade)
   game.settings.register("hunter-system", "loyaltyScore", {
     name: "SETTINGS.DND5E.LOYALTY.Name",
     hint: "SETTINGS.DND5E.LOYALTY.Hint",
     scope: "world",
-    config: true,
+    config: false,
     default: false,
     type: Boolean
   });
@@ -294,16 +320,8 @@ export function registerSystemSettings() {
     }
   });
 
-  // Bastions
-  game.settings.registerMenu("hunter-system", "bastionConfiguration", {
-    name: "DND5E.Bastion.Configuration.Name",
-    label: "DND5E.Bastion.Configuration.Label",
-    hint: "DND5E.Bastion.Configuration.Hint",
-    icon: "fas fa-chess-rook",
-    type: BastionSettingsConfig,
-    restricted: true
-  });
-
+  // Bastions — menu removido da UI (sistema não usa Bastiões); o setting de dados
+  // continua registrado (enabled: false) para o código do dnd5e que o lê.
   game.settings.register("hunter-system", "bastionConfiguration", {
     name: "Bastion Configuration",
     scope: "world",

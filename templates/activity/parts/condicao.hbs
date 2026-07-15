@@ -1,0 +1,45 @@
+<fieldset>
+    <legend>⛓ Condição no Alvo</legend>
+
+    <div class="form-group">
+        <label>Condição</label>
+        <div class="form-fields">
+            {{ formInput fields.condicao.fields.id value=source.condicao.id
+                         options=jjCond.condicoes blank="— sem condição —" }}
+        </div>
+        <p class="hint">O alvo rola a salvaguarda abaixo para não sofrer a condição — no acerto (Ataque), ao falhar na salvaguarda de dano (Salvaguarda) ou direto (Dano). Condições customizadas criadas nas fichas também aparecem aqui.</p>
+    </div>
+
+    {{#if source.condicao.id}}
+    {{#unless source.condicao.semSalvaguarda}}
+    <div class="form-group">
+        <label>Salvaguarda</label>
+        <div class="form-fields">
+            {{ formInput fields.condicao.fields.ability value=source.condicao.ability
+                         options=jjCond.salvaguardas }}
+            <label style="flex:0 0 auto; align-self:center; white-space:nowrap; margin:0 .35rem;">CD</label>
+            {{ formInput fields.condicao.fields.dc value=source.condicao.dc placeholder="auto" }}
+        </div>
+        <p class="hint">CD vazia = CD da própria atividade (Salvaguarda) ou a CD de técnica do conjurador.</p>
+    </div>
+    {{/unless}}
+
+    <div class="form-group">
+        <label>Pular Salvaguarda</label>
+        <div class="form-fields">
+            {{ formInput fields.condicao.fields.semSalvaguarda value=source.condicao.semSalvaguarda
+                         input=@root.inputs.createCheckboxInput }}
+        </div>
+        <p class="hint">O alvo recebe a condição automaticamente, sem rolar salvaguarda.</p>
+    </div>
+
+    <div class="form-group">
+        <label>Gatilho</label>
+        <div class="form-fields">
+            {{ formInput fields.condicao.fields.gatilho value=source.condicao.gatilho
+                         blank="No acerto (sempre)" }}
+        </div>
+        <p class="hint">Em <strong>Ataque</strong>, a condição só dispara no gatilho escolhido (crítico pelo limiar, ou apenas 20 natural). Salvaguarda e Dano ignoram o gatilho.</p>
+    </div>
+    {{/if}}
+</fieldset>

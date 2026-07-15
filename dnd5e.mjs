@@ -9,6 +9,10 @@
  * Issue Tracker: https://github.com/foundryvtt/dnd5e/issues
  */
 
+// Idioma do Sistema (Hunter) — importado cedo: pré-carrega os idiomas (top-level await)
+// e registra o hook i18nInit ANTES da pré-localização do CONFIG (mais abaixo neste arquivo).
+import "./module/hunter-language.mjs";
+
 // Import Configuration
 import DND5E from "./module/config.mjs";
 import {
@@ -764,6 +768,7 @@ Hooks.on("createActor", (actor, options, userId) => {
   const log = (...a) => console.log("HunterCreation | createActor:", ...a);
   if ( game.user.id !== userId ) return log("ignorado (outro usuário criou)");
   if ( actor.type !== "character" ) return log("ignorado (type =", actor.type, ")");
+  if ( !game.settings.get("hunter-system", "characterCreationEnabled") ) return log("ignorado (desabilitada nas configurações)");
   if ( options?.fromCompendium || options?.keepId || options?.noHook ) return log("ignorado (import/duplicação)");
   if ( (actor.items?.size ?? 0) > 0 ) return log("ignorado (já tem itens:", actor.items.size, ")");
   if ( !C?.isAvailable() ) return log("ignorado (hunter-legacy-module não está ativo) — módulo:",
@@ -790,6 +795,7 @@ const _l2Open = new Set();
 function hunterMaybeLevel2(actor) {
   const C = applications.actor.HunterCharacterCreation;
   if ( !C?.isAvailable() ) return;
+  if ( !game.settings.get("hunter-system", "characterCreationEnabled") ) return;
   if ( !actor || actor.documentName !== "Actor" || actor.type !== "character" || !actor.isOwner ) return;
   if ( (actor.system?.details?.level ?? 1) < 2 ) return;
   const norm = s => (s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -815,6 +821,7 @@ Hooks.on("closeHunterCharacterCreation", app => { if ( app.actor ) _l2Open.delet
 function hunterMaybeCreationOnOpen(actor) {
   const C = applications.actor.HunterCharacterCreation;
   if ( !C?.isAvailable() ) return;
+  if ( !game.settings.get("hunter-system", "characterCreationEnabled") ) return;
   if ( !actor || actor.documentName !== "Actor" || actor.type !== "character" || !actor.isOwner ) return;
   const hasCategoria = actor.items.some(i => i.type === "class");   // Categoria = item de classe
   const hasEspecie   = actor.items.some(i => i.type === "race");    // Espécie = item de raça

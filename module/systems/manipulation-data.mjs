@@ -149,7 +149,7 @@ export const MANIPULATION_ABILITIES = {
     stage: "beginner",
     cost: 3,
     description: "Você pode utilizar uma ação bônus e 2 PA para realizar um Teste de Atributo de Espírito (Nen) com CD igual a 10 + ND da criatura para tentar encontrar um ponto fraco em seu corpo, se houver um. Caso contrário, você recebe duas informações entre ND, CR, PV atual, Resistências e Vulnerabilidades (à escolha do narrador). Você pode utilizar essa habilidade uma vez por criatura a cada descanso longo.",
-    techniques: ["Salto Concentrado", "Investida Focada (4 PA)", "Sentidos Aprimorados", "Gyo – Foco Rápido", "Gyo – Golpe Devastador"],
+    techniques: ["Detectar Aura", "Salto Concentrado", "Investida Focada (4 PA)", "Sentidos Aprimorados", "Gyo – Foco Rápido", "Gyo – Golpe Devastador", "Gyo – Foco Destruidor"],
     requires: { stage: "beginner", abilities: [], principle: "gyo" }
   },
   focoAgressivo: {
@@ -387,7 +387,7 @@ export const PRINCIPLES_DATA = {
     label: "Gyo",
     type: "advanced",
     description: "Concentração da aura em uma parte específica do corpo, aumentando dramaticamente a habilidade dessa parte.",
-    techniques: ["Salto Concentrado", "Investida Focada (4 PA)", "Sentidos Aprimorados", "Gyo – Foco Rápido", "Gyo – Golpe Devastador"],
+    techniques: ["Detectar Aura", "Salto Concentrado", "Investida Focada (4 PA)", "Sentidos Aprimorados", "Gyo – Foco Rápido", "Gyo – Golpe Devastador", "Gyo – Foco Destruidor"],
     passive: "Nenhuma",
     unlockRequires: { stage: "beginner", principles: ["ren"], cost: 3 }
   },

@@ -32,20 +32,26 @@ both `activation.type`/`activation.condition` on the manifestação's activity a
 `<hr>` footer `<strong>Requisito:</strong>` line. When it's absent, don't invent one — most
 manifestações are a plain power action and just say so in prose instead of the header line.
 
-## Secondary effects: inline enrichers, not extra Activities
+## Secondary effects: the `condicao` field first, then inline enrichers
 
-Most conditional effects mentioned only in prose — "a criatura deve realizar uma Salvaguarda
-de Agilidade para não receber a condição Cego" — are **not** built as a separate `save`-type
-Activity. They're written directly into the description HTML as a dnd5e inline roll enricher:
+A técnica that *also* imposes a **condition** on the target — "a criatura deve realizar uma
+Salvaguarda de Agilidade para não receber a condição Cego" — is still **not** a separate
+`save`-type Activity. Since 2026-07 the primary home for this is the structured **`condicao`**
+field on the same attack/save/damage activity (`condicao:{id:"jj-cego", ability:"dex", ...}` —
+full docs and the PT→`jj-` id table in data-schema.md). It renders a save/apply button on the
+chat card and applies the real status effect, which the old enricher couldn't do.
+
+Fall back to a dnd5e inline roll enricher in the description HTML —
 
 ```
 [[/save dex dc=@attributes.spell.dc]]
 ```
 
-using the ability code from data-schema.md's table. This is the actual convention already in
-use (see Black Cloud's and Kill Yourself's descriptions in the existing data) — it makes the
-save clickable straight from the chat card without needing a dedicated mechanical Activity for
-every secondary condition a técnica happens to mention.
+— only when the condition has **no matching `jj-*` status id**, or when a *second* condition
+needs to ride on the same activity (the `condicao` field holds only one). The enricher is still
+the convention already visible in Black Cloud's and Kill Yourself's descriptions; it just stops
+being the *default* for anything that maps to a known condition. Either way, this is a secondary
+effect riding on the activity, never its own dedicated mechanical Activity.
 
 Only build a real `save`-type Activity when the save check *is* the técnica's whole mechanical
 point, not a side effect of something else — e.g. Playground, whose entire function is

@@ -1,0 +1,192 @@
+folder: DVnVYS93cChe5onq
+name: Chaves do Sistema
+_id: ChavesSistema001
+pages:
+  - sort: 100000
+    name: Como usar as chaves
+    type: text
+    _id: ChavesPagIntro01
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Referência das chaves internas do sistema, para usar em <strong>fórmulas de rolagem</strong>
+        (itens, atividades, bônus) e em <strong>Active Effects</strong>.</p><ul><li><strong>Fórmulas</strong>
+        usam o caminho com <code>@</code>: ex. <code>2d6 + @abilities.esp.mod</code>.</li><li><strong>Active
+        Effects</strong> usam o caminho com <code>system.</code>: ex. Attribute Key
+        <code>system.attributes.hp.bonuses.overall</code>.</li></ul><p><strong>Exemplo real</strong> — a Aura
+        Adaptável (Conjurador) dá PV extra com um Active Effect
+        assim:</p><p><code>system.attributes.hp.bonuses.overall</code> | Add | <code>3 *
+        @abilities.esp.mod</code></p><blockquote><p>✅ <strong>Chaves recomendadas:</strong> use
+        <code>esp</code> (Espírito) e <code>pre</code> (Presença). As chaves legadas <code>int</code> e
+        <code>cha</code> continuam funcionando — são apelidos do MESMO valor, nunca
+        divergem.</p></blockquote><p>Outras chaves gerais úteis: <code>@prof</code> (bônus de proficiência),
+        <code>@details.level</code> (nível), <code>@abilities.X.save.value</code> (bônus de salvaguarda).</p>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1784480000000
+      modifiedTime: 1784480000000
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ChavesSistema001.ChavesPagIntro01'
+  - sort: 200000
+    name: Atributos
+    type: text
+    _id: ChavesPagAtrib01
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <table><thead><tr><th>Chave</th><th>Atributo</th><th>Modificador (fórmula)</th><th>Valor (Active
+        Effect)</th></tr></thead><tbody><tr><td><code>str</code></td><td>Força</td><td><code>@abilities.str.mod</code></td><td><code>system.abilities.str.value</code></td></tr><tr><td><code>dex</code></td><td>Agilidade</td><td><code>@abilities.dex.mod</code></td><td><code>system.abilities.dex.value</code></td></tr><tr><td><code>con</code></td><td>Constituição</td><td><code>@abilities.con.mod</code></td><td><code>system.abilities.con.value</code></td></tr><tr><td><code>esp</code>
+        <small>(legado:
+        <code>int</code>)</small></td><td><strong>Espírito</strong></td><td><code>@abilities.esp.mod</code></td><td><code>system.abilities.esp.value</code></td></tr><tr><td><code>wis</code></td><td>Sabedoria</td><td><code>@abilities.wis.mod</code></td><td><code>system.abilities.wis.value</code></td></tr><tr><td><code>pre</code>
+        <small>(legado:
+        <code>cha</code>)</small></td><td>Presença</td><td><code>@abilities.pre.mod</code></td><td><code>system.abilities.pre.value</code></td></tr><tr><td><code>hon</code></td><td>Honra</td><td><code>@abilities.hon.mod</code></td><td><code>system.abilities.hon.value</code></td></tr><tr><td><code>san</code></td><td>Sanidade</td><td><code>@abilities.san.mod</code></td><td><code>system.abilities.san.value</code></td></tr></tbody></table><p>Salvaguarda:
+        <code>@abilities.X.save.value</code> · Teste puro: <code>1d20 +
+        @abilities.X.mod</code></p><blockquote><p>✅ <code>esp</code> e <code>pre</code> são apelidos oficiais
+        de <code>int</code> e <code>cha</code> — funcionam em fórmulas e Active Effects, sempre com o mesmo
+        valor. Prefira as novas; as antigas seguem como legado.</p></blockquote>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1784480000000
+      modifiedTime: 1784480000000
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ChavesSistema001.ChavesPagAtrib01'
+  - sort: 300000
+    name: Perícias
+    type: text
+    _id: ChavesPagPeric01
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Total da perícia: <code>@skills.CHAVE.total</code> · Passiva:
+        <code>@skills.CHAVE.passive</code></p><table><thead><tr><th>Chave</th><th>Perícia</th><th>Atributo</th></tr></thead><tbody><tr><td><code>ath</code></td><td>Atletismo</td><td>Força</td></tr><tr><td><code>acr</code></td><td>Acrobacia</td><td>Agilidade</td></tr><tr><td><code>ste</code></td><td>Furtividade</td><td>Agilidade</td></tr><tr><td><code>pil</code></td><td>Pilotagem</td><td>Agilidade</td></tr><tr><td><code>slt</code></td><td>Prestidigitação</td><td>Agilidade</td></tr><tr><td><code>sci</code></td><td>Ciência</td><td>Sabedoria</td></tr><tr><td><code>his</code></td><td>História</td><td>Sabedoria</td></tr><tr><td><code>inv</code></td><td>Investigação</td><td>Sabedoria</td></tr><tr><td><code>med</code></td><td>Medicina</td><td>Sabedoria</td></tr><tr><td><code>nat</code></td><td>Natureza</td><td>Sabedoria</td></tr><tr><td><code>sur</code></td><td>Sobrevivência</td><td>Sabedoria</td></tr><tr><td><code>tec</code></td><td>Tecnologia</td><td>Sabedoria</td></tr><tr><td><code>nen</code></td><td>Nen</td><td>Espírito</td></tr><tr><td><code>ins</code></td><td>Intuição</td><td>Espírito</td></tr><tr><td><code>prc</code></td><td>Percepção</td><td>Espírito</td></tr><tr><td><code>sob</code></td><td>Sobrenatural</td><td>Espírito</td></tr><tr><td><code>luc</code></td><td>Sorte</td><td>Espírito</td></tr><tr><td><code>prf</code></td><td>Atuação</td><td>Presença</td></tr><tr><td><code>dec</code></td><td>Enganação</td><td>Presença</td></tr><tr><td><code>itm</code></td><td>Intimidação</td><td>Presença</td></tr><tr><td><code>per</code></td><td>Persuasão</td><td>Presença</td></tr><tr><td><code>pro</code></td><td>Provocação</td><td>Presença</td></tr></tbody></table>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1784480000000
+      modifiedTime: 1784480000000
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ChavesSistema001.ChavesPagPeric01'
+  - sort: 400000
+    name: Recursos e Vitais
+    type: text
+    _id: ChavesPagRecur01
+    system: {}
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Caminhos para Active Effects (prefixo <code>system.</code>) — em fórmulas troque por <code>@</code>
+        (ex.: <code>@attributes.hp.max</code>).</p><h2>Vida e
+        Defesa</h2><table><thead><tr><th>Caminho</th><th>O que
+        é</th></tr></thead><tbody><tr><td><code>system.attributes.hp.value</code> / <code>.max</code> /
+        <code>.temp</code></td><td>Pontos de Vida (atual / máximo /
+        temporário)</td></tr><tr><td><code>system.attributes.hp.bonuses.overall</code></td><td>Bônus de PV
+        máximo (aceita fórmula — ex. Aura Adaptável)</td></tr><tr><td><code>system.attributes.pve.value</code>
+        / <code>.max</code> / <code>.temp</code></td><td>Pontos de Vitalidade
+        (PVE)</td></tr><tr><td><code>system.attributes.ac.value</code> / <code>.bonus</code></td><td>Classe de
+        Armadura (valor fixo / bônus)</td></tr><tr><td><code>system.armorPoints.value</code></td><td>Pontos de
+        Armadura (Foco
+        Defensivo)</td></tr><tr><td><code>system.attributes.movement.walk</code></td><td>Deslocamento</td></tr><tr><td><code>system.attributes.inspiration</code></td><td>Inspiração</td></tr></tbody></table><h2>Aura
+        (PA)</h2><table><thead><tr><th>Caminho</th><th>O que
+        é</th></tr></thead><tbody><tr><td><code>system.energy.max</code></td><td>PA
+        Máximo</td></tr><tr><td><code>system.energy.total</code></td><td>PA Total
+        (atual)</td></tr><tr><td><code>system.energy.generated</code></td><td>PA
+        Gerado</td></tr><tr><td><code>system.energy.bonuses.overall</code> / <code>.level</code></td><td>Bônus
+        de PA máximo (fórmulas)</td></tr><tr><td><code>system.energy.bonuses.temp</code> /
+        <code>.generatedEnergy</code></td><td>PA temporário / bônus de
+        geração</td></tr><tr><td><code>system.attributes.auraActive</code></td><td>Aura ativa
+        (true/false)</td></tr><tr><td><code>system.energyDice.value</code> / <code>.max</code> /
+        <code>.bonus</code> / <code>.denomination</code></td><td>Dados de Aura (atual / máx / bônus / tipo,
+        ex. "d4")</td></tr></tbody></table><h2>Treinamento e Nen</h2><table><thead><tr><th>Caminho</th><th>O
+        que é</th></tr></thead><tbody><tr><td><code>system.curseResources.trainingPoints</code></td><td>Pontos
+        de Treinamento (PT)</td></tr><tr><td><code>system.curseResources.spentTrainingPoints</code></td><td>PT
+        Gastos</td></tr><tr><td><code>system.curseResources.narratorTrainingPoints</code></td><td>PT do
+        Narrador</td></tr><tr><td><code>system.curseResources.lostTrainingPoints</code></td><td>PT
+        Perdidos</td></tr><tr><td><code>system.curseResources.cursePoints</code></td><td>Pontos de Nen
+        (PM)</td></tr></tbody></table>
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    category: null
+    ownership:
+      default: -1
+    flags: {}
+    _stats:
+      coreVersion: '14.360'
+      systemId: hunter-system
+      systemVersion: 1.0.0
+      createdTime: 1784480000000
+      modifiedTime: 1784480000000
+      lastModifiedBy: dnd5ebuilder0000
+      duplicateSource: null
+      exportSource: null
+    _key: '!journal.pages!ChavesSistema001.ChavesPagRecur01'
+categories: []
+sort: 500000
+ownership:
+  default: 0
+flags: {}
+_stats:
+  coreVersion: '14.360'
+  systemId: hunter-system
+  systemVersion: 1.0.0
+  createdTime: 1784480000000
+  modifiedTime: 1784480000000
+  lastModifiedBy: dnd5ebuilder0000
+  duplicateSource: null
+  exportSource: null
+_key: '!journal!ChavesSistema001'

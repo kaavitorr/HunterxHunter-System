@@ -142,6 +142,52 @@ absence as a completeness gap.
   effect paid once. Only wire it up if a PDF explicitly describes a per-turn drain while a
   toggle stays active; don't assume every "Duração: X minutos" ability needs it (it doesn't —
   both example hatsus have several fixed-duration técnicas that just pay once).
+- **reduction** (only on `type: "reduction"` activities): `reduction:{formula:"<NdM or fixed>",
+  constant:<bool>}`. `formula` is the shield/reduction amount (dice or flat, e.g. `"6d8"` or
+  `"5"`). `constant:false` (default) = a one-shot shield rolled once per use that absorbs like
+  armor points and depletes as hits land — the reaction "reduz Xd8 de dano até o início do
+  próximo turno" case. `constant:true` = a **sustained per-hit reduction**: once used it stays
+  ACTIVE (shows in the combat HUD, toggled off there) and reduces *all* damage taken by the
+  formula, **re-rolled fresh on every hit**, never depleting — the "enquanto ativa, reduz Xd8 de
+  cada dano sofrido" case (e.g. Star Shield). Pair `constant:true` with `constantCost` when the
+  PDF says it drains PA per turn while active. Added by the user 2026-07 — the earlier deferred
+  Star Shield ("a cada dano recebido rola xd8 e reduz automaticamente") is exactly this case.
+- **condicao** (only on `type` attack/save/damage — the only three sheets that render it):
+  `condicao:{id:"<jj-status-id>", ability:"<save code>", dc:"<formula or ''>",
+  semSalvaguarda:<bool>, gatilho:"<'' | 'crit' | 'nat20'>"}`. Structured way to make a
+  damaging/attacking técnica also impose a **condition** on the target. Fields:
+  - `id` — the condition's status id. Built-in conditions all use the `jj-` prefix (see the
+    JJ_CONDITIONS table below). Empty = no condition. Must match an existing status id or a
+    custom condition defined on a world actor, or it won't resolve — if the PDF's condition isn't
+    in the table and isn't a known custom one, fall back to an inline enricher/text and flag it.
+  - `ability` — the save the target rolls to resist (`str`/`dex`/`con`/`int`/`wis`/`cha`, default
+    `con`; PT→code map is the same ability table below).
+  - `dc` — optional DC formula. Empty = auto (the activity's own save DC on a `save` activity,
+    else the caster's technique DC `@attributes.spell.dc`). Only set it if the PDF states a fixed
+    CD that differs from the caster's normal técnica DC.
+  - `semSalvaguarda` — `true` when the condition applies with NO save (PDF says it just happens,
+    "sem salvaguarda"/"automaticamente").
+  - `gatilho` — trigger, **only meaningful on Attack**: `""` = on any hit, `"crit"` = only on a
+    crit, `"nat20"` = only on a natural 20. Save and Damage activities ignore it.
+  Runtime: Attack → on-hit button "Salv. X · CD n" rolls for targets, applies to failures; Save
+  → auto-stitched when the target fails the damage save; Damage → a direct condition-save button.
+  **This replaces the old "secondary condition-save becomes an inline `[[/save]]` enricher"
+  convention** whenever the condition maps to a known `jj-*` status — prefer the structured
+  `condicao` field now; keep enrichers only for conditions with no matching status id, or for a
+  *second* condition on the same activity (the field holds only one).
+
+  Common PT condition → `jj-` id (from JJ_CONDITIONS in `character-sheet.mjs`; re-check the source
+  for the full list, it's user-extensible): Agarrado=`jj-agarrado`, Alucinado=`jj-alucinado`,
+  Amedrontado=`jj-amedrontado`, Apaixonado=`jj-apaixonado`, Atordoado=`jj-atordoado`,
+  Bêbado=`jj-bebado`, Caído=`jj-caido`, Cego=`jj-cego`, Congelado=`jj-congelado`,
+  Desidratado=`jj-desidratado`, Empoderado=`jj-empoderado`, Enfeitiçado=`jj-enfeiticado`,
+  Enfurecido=`jj-enfurecido`, Energia Esgotada=`jj-energia-esgotada`, Estremecido=`jj-estremecido`,
+  Exausto=`jj-exausto`, Envenenado=`jj-envenenado`, Hipotérmico=`jj-hipotermico`,
+  Impedido=`jj-impedido`, Incapacitado=`jj-incapacitado`, Inconsciente=`jj-inconsciente`,
+  Invisível=`jj-invisivel`, Letárgico=`jj-letargico`, Mudo=`jj-mudo`, Paralisado=`jj-paralisado`,
+  Pesado=`jj-pesado`, Petrificado=`jj-petrificado`, Queimado=`jj-queimado`,
+  Queimadura=`jj-queimadura`, Sangramento=`jj-sangramento`, Sonolento=`jj-sonolento`,
+  Sufocado=`jj-sufocado`, Surdo=`jj-surdo`.
 - **Activity `type` selection** is its own decision tree with several PDF-phrasing triggers —
   see `references/activity-type-rules.md`, don't guess this from first principles each time.
 - **`system.identifier`** is cosmetic slug residue Foundry auto-generates from whatever

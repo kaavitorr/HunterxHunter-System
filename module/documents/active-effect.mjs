@@ -198,6 +198,14 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
     // Apply shims to moved fields
     change = this._applyChangeShim(change);
 
+    // Aliases PT-BR: Espírito (esp→int) e Presença (pre→cha) — efeito configurado
+    // com a chave nova aplica no mesmo atributo da chave legada
+    if ( /^system\.abilities\.(esp|pre)(\.|$)/.test(change.key) ) {
+      change = { ...change, key: change.key
+        .replace(/^system\.abilities\.esp(?=\.|$)/, "system.abilities.int")
+        .replace(/^system\.abilities\.pre(?=\.|$)/, "system.abilities.cha") };
+    }
+
     // Ensure changes targeting flags use the proper types
     if ( change.key.startsWith("flags.HunterLegacy.") ) change = this._prepareFlagChange(doc, change);
 
