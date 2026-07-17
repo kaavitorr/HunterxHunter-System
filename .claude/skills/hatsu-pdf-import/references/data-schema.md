@@ -136,6 +136,24 @@ absence as a completeness gap.
 - **jjScale** (the PDF's "Você pode gastar N PA para aumentar XdY de dano até um máximo de
   ZdY" pattern): `{enabled:true, formula:"XdY", cost:N, maxPA:(Z-baseDiceCount)*N}`. Doesn't
   apply to attack-roll bonuses — only damage/healing/save-DC-shaped numeric bonuses.
+- **Critical hit (attack activities only) — two SEPARATE fields, never conflate them:**
+  - `attack.critical.threshold` — the crit **range** as a single number: the lowest d20 that
+    crits. PDF "margem de acerto crítico 18-20" → `18`; "19-20" → `19`; normal (20 only) → leave
+    `null`. In the batch plan this is `critThreshold`.
+  - `damage.critical.bonus` — **extra damage dice on a crit**, as a dice formula matching the
+    base die. PDF "causa N dados de dano adicionais em um crítico" on a d10 base → `"6d10"`. In
+    the batch plan this is `criticalBonus`.
+  A técnica can have one, both, or neither. **This was a real import bug (2026-07, 22 técnicas):
+  the crit range text got dumped into `damage.critical.bonus`** — letters like "margem..." crash
+  Foundry's roll parser (the "d" in "de"), and even a bare "18-20"/"19" silently corrupts the
+  crit-damage math while leaving the crit range unset. Two more gotchas seen in real data: (1) a
+  técnica with BOTH (e.g. Shield Saw "margem 18-20 e 6 dados adicionais") needs `critThreshold:18`
+  AND `criticalBonus:"6d10"` — don't drop one; (2) a *conditional* range ("18-20 só com a arma
+  Tac-50") can't be a static threshold — leave it unset and keep it in the description. Note most
+  PDF mentions of crit range are **buffs** ("suas jogadas de ataque têm margem 18-20") on a
+  utility manifestação that modify the character's attacks in general, not a range on that
+  técnica's own attack roll — those correctly get no `critThreshold` (there's no per-activity
+  crit-range-buff field; leave as description text).
 - **constantCost** (per-turn upkeep for a toggle, distinct from a one-time activation cost):
   `{enabled, value:"<formula>", pool:"generated"|"total", concentration}`. None of the
   técnicas in either example hatsu use this — everything is either instant or a fixed-duration
@@ -194,6 +212,40 @@ absence as a completeness gap.
   placeholder name an item had at creation time (e.g. "Nova Técnica" → `nova-tecnica`), and it
   doesn't update on rename. It is not hand-curated anywhere in the existing data — don't invent
   a naming convention for it, just let Foundry default it.
+
+## Formula & numeric field hygiene (real import bugs, 2026-07)
+
+Every field below stores a **formula or a number**, never prose, never a bare unit, never a
+cross-reference to another ability. Foundry evaluates them as roll formulas — putting anything
+else in either crashes the roll parser or silently corrupts the value. Four concrete errors from
+the import, each generalizes to a rule:
+
+- **Prose → translate to a formula with rolldata.** `range.value` had `"3 vezes o nível do
+  personagem"` (I'm Coming!) → must be `3 * @details.level`. The character level rolldata path is
+  **`@details.level`** (confirmed in `module/data/actor/.../character.mjs`). Any "X vezes o
+  nível / seu modificador / etc." becomes the arithmetic form with the right `@`-path — never the
+  Portuguese sentence.
+- **No bare units in a value field.** `jjScale.formula` had `"1000m"` (Black Gate) → the "m" is
+  invalid in a formula. A value field holds only the number/dice; the unit lives in the separate
+  `.units` field next to it (`range.units`, `duration.units`, `target.template.units`). A raw
+  distance like 1000 m never belongs in `jjScale.formula` at all (that field is damage dice) —
+  that was a value dropped into the wrong field; leave it `""` and set the real range on
+  `range.value`/`range.units`.
+- **No dice in a DETERMINISTIC field.** `constantCost.value` had `"2d8"` (Shukei: Hakuteiken) →
+  invalid: per-turn upkeep must resolve to a fixed number, so it's a `deterministic` FormulaField
+  that rejects dice. Leave `""` (or a flat number). The deterministic, **no-dice** fields are:
+  `constantCost.value`, `condicao.dc`, `consumption.scaling.max`, and the numeric
+  `attack.critical.threshold`. Dice ARE allowed in the roll fields: `jjScale.formula`,
+  `reduction.formula`, `damage.critical.bonus`, and `damage.parts[]`.
+- **No cross-references to other abilities.** `target.template.size` had `"3x alcance do Remote
+  Punch"` (Weak Pulse) → a formula field can't resolve another técnica's range by name. Either
+  put the actual resolved number, or leave `""` and keep the "3× o alcance de X" text in the
+  description for the player.
+
+General rule: if the PDF phrases a value as prose, a unit, or "relative to another ability", it
+does NOT go verbatim into the numeric field. Convert it to a rolldata formula when there's a
+clean `@`-path, otherwise leave the field empty and record the intent in the description — never
+paste the sentence into the field.
 
 ## Ability code mapping
 

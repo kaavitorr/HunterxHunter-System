@@ -124,36 +124,15 @@ Hooks.on("dnd5e.preUseActivity", (activity, usageConfig, dialog) => {
   }
 });
 
-// ── Redução de PA do Seis Olhos via activityConsumption ──────────────────────
-// Este hook dispara APÓS o cálculo dos updates mas ANTES de aplicá-los,
-// permitindo modificar o valor real que será descontado.
-
-Hooks.on("dnd5e.activityConsumption", (activity, usageConfig, messageConfig, updates) => {
-  const actor = activity.item?.actor ?? activity.actor;
-  if ( !actor ) return;
-
-  const seisOlhosItem = actor.items?.find(i => i.name === "Seis Olhos" && i.type === "feat");
-  const seisOlhosMode = actor.getFlag("hunter-system", "seisOlhosMode");
-  if ( !seisOlhosItem || !seisOlhosMode ) return;
-
-  const prof     = actor.system.attributes?.prof ?? 2;
-  const halfProf = Math.max(1, Math.floor(prof / 2));
-  const reduction = seisOlhosMode === "full" ? prof : halfProf;
-
-  // updates.actor contém os paths que serão atualizados no actor
-  // ex: { "system.energy.generated": 10 } (novo valor após consumo)
-  for ( const [key, newValue] of Object.entries(updates.actor ?? {}) ) {
-    if ( !key.includes("energy.generated") && !key.includes("energy.total") ) continue;
-
-    // O valor atual antes do consumo
-    const currentValue = foundry.utils.getProperty(actor, key) ?? 0;
-    // Custo calculado pelo sistema
-    const cost = currentValue - newValue;
-    if ( cost <= 0 ) continue;
-
-    // Aplicar redução: o novo valor pós-consumo fica maior (gasta menos)
-    const reducedCost = Math.max(1, cost - reduction);
-    updates.actor[key] = currentValue - reducedCost;
+// ── PT Narrador: só o narrador edita ─────────────────────────────────────────
+// A ficha já desabilita o input pra jogador; este guard cobre o resto (console,
+// macros) revertendo a mudança no cliente que tentou.
+Hooks.on("preUpdateActor", (actor, changes, options, userId) => {
+  if ( game.user.isGM ) return;
+  const path = "system.curseResources.narratorTrainingPoints";
+  if ( foundry.utils.hasProperty(changes, path) ) {
+    foundry.utils.setProperty(changes, path, foundry.utils.getProperty(actor, path) ?? 0);
+    ui.notifications.warn("PT Narrador só pode ser alterado pelo narrador.");
   }
 });
 

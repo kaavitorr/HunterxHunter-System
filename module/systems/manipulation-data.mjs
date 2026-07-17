@@ -254,6 +254,7 @@ export const MANIPULATION_ABILITIES = {
     label: "Expansão de Aura",
     stage: "expert",
     cost: 3,
+    repeatable: true,   // adquirível várias vezes; cada aquisição +6m na área do En
     description: "A área do seu En aumenta para 6 metros. Você pode adquirir essa habilidade diversas vezes, aumentando seu alcance em 6 metros a cada vez. Se você usar um 1/3 do seu alcance, você não consome aura por rodada.",
     techniques: [],
     requires: { stage: "expert", abilities: [], principle: "en" }
@@ -405,7 +406,9 @@ export const PRINCIPLES_DATA = {
     description: "Aplicação avançada de Zetsu. Esconde literalmente toda a presença de aura do indivíduo.",
     techniques: ["Ocultação Completa"],
     passive: "Nenhuma",
-    unlockRequires: { stage: "expert", principles: ["zetsu"], cost: 3 }
+    // custo 6 — igual à roda (TREE_DATA) e à descrição; 3 aqui causava exploit:
+    // desbloquear cobrava 3 (esta fonte) e desfazer devolvia 6 (roda) = +3 PN infinitos.
+    unlockRequires: { stage: "expert", principles: ["zetsu"], cost: 6 }
   },
   en: {
     label: "En",
@@ -438,6 +441,26 @@ export const PRINCIPLES_DATA = {
     techniques: ["Ko – Ofensiva Absoluta", "Bloqueio Emergencial"],
     passive: "Nenhuma",
     unlockRequires: { stage: "master", principles: ["ten", "zetsu", "ren", "hatsu", "gyo"], cost: 5 }
+  }
+};
+
+// ============================================================
+// EFEITOS DE HABILIDADE (Active Effects aplicados ao desbloquear)
+// ============================================================
+// key = id em MANIPULATION_ABILITIES; `changes` no formato de ActiveEffect
+// (mode 5 = OVERRIDE). Aplicados/removidos por _applyAbilityEffect (character-sheet).
+export const ABILITY_ACTIVE_EFFECTS = {
+  // Fluxo Perfeito: margem de crítico 19-20 em ataques de arma e de técnica.
+  // Aplicado como FLAGS DIRETAS no ator (não via ActiveEffect): "HunterLegacy" não é um
+  // pacote registrado, e um AE apontando p/ flags.HunterLegacy.* corrompe a preparação de
+  // dados do ator (causava desfazer + estorno de PM infinitos). Os getters de item
+  // (weapon.mjs/spell.mjs) já leem essas flags por acesso direto.
+  fluxoPerfeito: {
+    label: "Fluxo Perfeito",
+    flags: {
+      "flags.HunterLegacy.weaponCriticalThreshold": 19,
+      "flags.HunterLegacy.spellCriticalThreshold": 19
+    }
   }
 };
 
@@ -670,8 +693,8 @@ export function canUnlockAbility(abilityId, actor) {
   const cursePoints = actor.system.curseResources?.cursePoints ?? 0;
   const unlockedAbilities = actor.system.manipulation?.abilities ?? {};
 
-  // Já desbloqueada
-  if ( unlockedAbilities[abilityId]?.unlocked ) return { can: false, reason: "Já desbloqueada" };
+  // Já desbloqueada (repetíveis podem ser adquiridas de novo — limitadas só pelos PM)
+  if ( !abilityDef.repeatable && unlockedAbilities[abilityId]?.unlocked ) return { can: false, reason: "Já desbloqueada" };
 
   // Princípio precisa estar desbloqueado
   if ( abilityDef.principle && !isPrincipleUnlocked(abilityDef.principle, actor) ) {
@@ -694,10 +717,21 @@ export function canUnlockAbility(abilityId, actor) {
 
   // PM suficientes
   if ( cursePoints < abilityDef.cost ) {
-    return { can: false, reason: `Faltam ${abilityDef.cost - cursePoints} PM` };
+    return { can: false, reason: `Faltam ${abilityDef.cost - cursePoints} PN` };
   }
 
   return { can: true };
+}
+
+/**
+ * Área do En do ator, em metros (raio). Base 3m; com Expansão de Aura, 6m por aquisição
+ * (1×→6, 2×→12, 3×→18…). Usado pela automação do En (zona no token).
+ * @param {Actor5e} actor
+ * @returns {number}
+ */
+export function enAreaMeters(actor) {
+  const count = actor?.system?.manipulation?.abilities?.expansaoAuraEn?.count ?? 0;
+  return count > 0 ? 6 * count : 3;
 }
 
 /**
@@ -718,6 +752,7 @@ export function prepareManipulationAbilities(actor) {
       ...def,
       stageLabel: STAGE_LABELS[def.stage] ?? def.stage,
       unlocked: unlockedAbilities[id]?.unlocked ?? false,
+      count: unlockedAbilities[id]?.count ?? 0,
       canUnlock: can && principleUnlocked,
       principleUnlocked,
       lockReason: reason ?? ""
@@ -759,7 +794,7 @@ export function preparePrinciples(actor) {
       if ( !stageOk ) lockReason = `Requer estágio ${STAGE_LABELS[req.stage]}`;
       else if ( !principlesOk ) lockReason = `Requer: ${req.principles?.map(p => PRINCIPLES_DATA[p]?.label ?? p).join(", ")}`;
       else if ( !abilitiesOk ) lockReason = "Requer habilidades pré-requisito";
-      else if ( !costOk ) lockReason = `Faltam ${req.cost - cursePoints} PM`;
+      else if ( !costOk ) lockReason = `Faltam ${req.cost - cursePoints} PN`;
 
       canUnlock = stageOk && costOk && principlesOk && abilitiesOk;
     }
@@ -776,6 +811,46 @@ export function preparePrinciples(actor) {
   }
 
   return result;
+}
+
+/**
+ * Normaliza nome de técnica p/ comparação tolerante: travessão/hífen (– — − → -),
+ * acentos, espaços múltiplos e caixa. Grafias divergentes entre os dados e o pack
+ * (ex.: "Ryu - Controle" vs "Ryu – Controle") deixavam técnicas sem conceder, em silêncio.
+ */
+export function normalizeTechniqueName(s) {
+  return String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[–—−]/g, "-").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+/**
+ * Concede ao ator as técnicas vinculadas (por nome), buscando nos packs de Item do sistema.
+ * Match exato primeiro; se falhar, match normalizado. Nome sem correspondência vira warn no
+ * console (antes era pulado em silêncio). Compartilhado por character-sheet e npc-sheet.
+ * @param {Actor5e} actor
+ * @param {string[]} techniqueNames
+ */
+export async function grantLinkedTechniques(actor, techniqueNames) {
+  const itemPacks = game.packs.filter(p => p.metadata.type === "Item" && p.metadata.system === "hunter-system");
+  for ( const name of techniqueNames ?? [] ) {
+    const alvo = normalizeTechniqueName(name);
+    if ( actor.items.find(i => normalizeTechniqueName(i.name) === alvo) ) continue;
+    let item = null;
+    for ( const pack of itemPacks ) {
+      await pack.getIndex();
+      const entry = pack.index.find(i => i.name === name)
+        ?? pack.index.find(i => normalizeTechniqueName(i.name) === alvo);
+      if ( !entry ) continue;
+      item = await pack.getDocument(entry._id);
+      if ( item ) break;
+    }
+    if ( !item ) {
+      console.warn(`Hunter | Técnica vinculada não encontrada em nenhum pack: "${name}"`);
+      continue;
+    }
+    await actor.createEmbeddedDocuments("Item", [item.toObject()]);
+    ui.notifications.info(`Técnica "${item.name}" adicionada automaticamente.`);
+  }
 }
 
 /**
@@ -924,7 +999,7 @@ export const TREE_DATA = [
         id: "gyo", label: "Gyo", type: "advanced", cost: 3, req: { pr: ["ren"] },
         reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.tKUzIPAxkmVdRG7C",
         passive: "Nenhuma.",
-        desc: "Concentração da aura em uma parte específica do corpo. Nos olhos, permite enxergar aura de outras pessoas e objetos ocultos.\n\nRequisito: Ren · 3 PM.\nTécnicas: Detectar Aura, Salto Concentrado, Investida Focada, Sentidos Aprimorados, Gyo – Foco Rápido, Gyo – Golpe Devastador, Gyo – Foco Destruidor.",
+        desc: "Concentração da aura em uma parte específica do corpo. Nos olhos, permite enxergar aura de outras pessoas e objetos ocultos.\n\nRequisito: Ren · 3 PN.\nTécnicas: Detectar Aura, Salto Concentrado, Investida Focada, Sentidos Aprimorados, Gyo – Foco Rápido, Gyo – Golpe Devastador, Gyo – Foco Destruidor.",
         abilities: [
           { id: "pontoFraco",      label: "Ponto Fraco",      cost: 3,  stage: "beginner", req: [],
             desc: "Você pode utilizar uma ação bônus e 2 PA para realizar um Teste de Atributo de Espírito (Nen) com CD igual a 10 + ND da criatura para tentar encontrar um ponto fraco. Caso contrário, recebe duas informações (à escolha do narrador). Uma vez por criatura por descanso longo.\n\nRequisito: Gyo · 3 Pontos de Nen.",
@@ -944,7 +1019,7 @@ export const TREE_DATA = [
         id: "shu", label: "Shu", type: "advanced", cost: 3, req: { pr: ["ten", "hatsu"] },
         reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.hP0lVBbd9a5aveNP",
         passive: "Nenhum.",
-        desc: "Aplicação avançada de Ten e Ren. Permite ao usuário envolver um objeto com sua própria aura, tornando-o extensão do corpo.\n\nRequisito: Ten e Hatsu · Estágio Perito · 3 PM.\nTécnicas: Shu – Revestimento.",
+        desc: "Aplicação avançada de Ten e Ren. Permite ao usuário envolver um objeto com sua própria aura, tornando-o extensão do corpo.\n\nRequisito: Ten e Hatsu · Estágio Perito · 3 PN.\nTécnicas: Shu – Revestimento.",
         abilities: [
           { id: "envolverObjeto", label: "Envolver Objeto", cost: 3, stage: "expert", req: [],
             reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.KFRBt9Qs9pux4FJR",
@@ -958,7 +1033,7 @@ export const TREE_DATA = [
         id: "in", label: "In", type: "advanced", cost: 6, req: { pr: ["zetsu"] },
         reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.fAkJ48umoWpTUtfO",
         passive: "Nenhuma.",
-        desc: "Aplicação avançada de Zetsu. Esconde literalmente toda a presença de aura. Principal uso: tornar o Hatsu invisível aos inimigos.\n\nRequisito: Zetsu · Estágio Perito · 6 PM.\nTécnicas: In – Ocultação Completa.",
+        desc: "Aplicação avançada de Zetsu. Esconde literalmente toda a presença de aura. Principal uso: tornar o Hatsu invisível aos inimigos.\n\nRequisito: Zetsu · Estágio Perito · 6 PN.\nTécnicas: In – Ocultação Completa.",
         abilities: [
           { id: "ocultacao", label: "Ocultação",    cost: 6,  stage: "expert", req: [],
             reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.o1W5rSuj3beI8aaO",
@@ -972,7 +1047,7 @@ export const TREE_DATA = [
         id: "en", label: "En", type: "advanced", cost: 3, req: { pr: ["ten", "ren"] },
         reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.0JfFZMXVsuGW6vV6",
         passive: "Você pode usar sua ação de poder para realizar um Teste de Espírito (Percepção) com vantagem, detectando criaturas escondidas em 3m ao redor. Consome 2 PA na ativação e no início de cada turno. Você é imune à condição Surpreso dentro da área do En.",
-        desc: "O usuário expande sua aura através do Ren, criando um campo de aura extenso normalmente em círculo. Qualquer coisa que aparecer ou se mover dentro desse campo será imediatamente sentida.\n\nRequisito: Ten e Ren · Estágio Perito · 3 PM.\nTécnicas: En – Sentido Verdadeiro.",
+        desc: "O usuário expande sua aura através do Ren, criando um campo de aura extenso normalmente em círculo. Qualquer coisa que aparecer ou se mover dentro desse campo será imediatamente sentida.\n\nRequisito: Ten e Ren · Estágio Perito · 3 PN.\nTécnicas: En – Sentido Verdadeiro.",
         abilities: [
           { id: "sensitivo",         label: "Sensitivo",          cost: 3, stage: "expert", req: [],
             desc: "Ao ser alvo de uma jogada de ataque, você pode escolher ser atingido automaticamente para ver a direção exata em que o ataque veio, recebendo vantagem e +10 em Testes de Percepção para encontrar a criatura.\n\nRequisito: En · 3 Pontos de Nen.",
@@ -989,7 +1064,7 @@ export const TREE_DATA = [
         id: "ryu", label: "Ryu", type: "advanced", cost: 5, req: { pr: ["gyo"], ab: ["focoAgressivo", "focoDefensivo"] },
         reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.qJkP08ONDKUSw7HC",
         passive: "Nenhuma.",
-        desc: "Outra aplicação de Gyo. Foca maior quantidade de aura num soco para torná-lo mais potente, ou focando na perna para defender-se melhor.\n\nRequisito: Foco Agressivo e Foco Defensivo · Estágio Perito · 5 PM.\nTécnicas: Ryu – Controle de Aura, Ryu – Transferência Rápida.",
+        desc: "Outra aplicação de Gyo. Foca maior quantidade de aura num soco para torná-lo mais potente, ou focando na perna para defender-se melhor.\n\nRequisito: Foco Agressivo e Foco Defensivo · Estágio Perito · 5 PN.\nTécnicas: Ryu – Controle de Aura, Ryu – Transferência Rápida.",
         abilities: [
           { id: "fluxoVeloz",     label: "Fluxo Veloz",      cost: 6,  stage: "expert", req: [],
             desc: "Você pode manter o Foco Agressivo e Foco Defensivo ativos o tempo inteiro.\n\nRequisito: Ryu · 6 Pontos de Nen.",
@@ -1009,7 +1084,7 @@ export const TREE_DATA = [
         id: "ken", label: "Ken", type: "advanced", cost: 5, req: { pr: ["ren"], ab: ["explosaoDefensiva", "ultimoRecurso", "focoDefensivo"] },
         reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.av09UxDGuKYO0qpv",
         passive: "Nenhuma.",
-        desc: "Outra aplicação avançada de Ren para fins defensivos. Aumenta a potência do Ren tornando o corpo todo mais resistente.\n\nRequisito: Explosão Defensiva, Último Recurso e Foco Defensivo · Mestre · 5 PM.\nTécnicas: Ken – Defesa Absoluta.",
+        desc: "Outra aplicação avançada de Ren para fins defensivos. Aumenta a potência do Ren tornando o corpo todo mais resistente.\n\nRequisito: Explosão Defensiva, Último Recurso e Foco Defensivo · Mestre · 5 PN.\nTécnicas: Ken – Defesa Absoluta.",
         abilities: [
           { id: "disputaAura", label: "Disputa de Aura", cost: 10, stage: "master", req: [],
             reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.GAMRCaZxKgGDK5Zq",
@@ -1023,7 +1098,7 @@ export const TREE_DATA = [
         id: "ko", label: "Ko", type: "advanced", cost: 5, req: { pr: ["ten", "zetsu", "ren", "hatsu", "gyo"] },
         reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.gRJeXaWBvPWczeIH",
         passive: "Nenhuma.",
-        desc: "Aplicação avançada de Gyo e Zetsu. Usa-se Gyo em uma parte do corpo e Zetsu para fechar o fluxo nas demais. Um ataque direto com Ko carrega 100% da aura.\n\nRequisito: Ten, Zetsu, Ren, Hatsu e Gyo · Mestre · 5 PM.\nTécnicas: Ko – Ofensiva Absoluta, Bloqueio Emergencial.",
+        desc: "Aplicação avançada de Gyo e Zetsu. Usa-se Gyo em uma parte do corpo e Zetsu para fechar o fluxo nas demais. Um ataque direto com Ko carrega 100% da aura.\n\nRequisito: Ten, Zetsu, Ren, Hatsu e Gyo · Mestre · 5 PN.\nTécnicas: Ko – Ofensiva Absoluta, Bloqueio Emergencial.",
         abilities: [
           { id: "acumuloExtremo", label: "Acúmulo Extremo", cost: 10, stage: "master", req: [],
             reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.YJPOuVrZW9hp2pF5",

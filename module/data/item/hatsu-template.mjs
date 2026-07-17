@@ -105,3 +105,49 @@ export default class HatsuTemplateData extends ItemDataModel.mixin(ItemDescripti
     }
   }
 }
+
+/* -------------------------------------------- */
+/*  Importação: reconstrói os filhos empacotados */
+/* -------------------------------------------- */
+
+/**
+ * Reconstrói as manifestações/técnicas de um Molde Hatsu que veio empacotado no JSON
+ * (`flags.hunter-system.hatsuBundle`, gerado pelo Export Data — ver documents/item.mjs).
+ * Recria os filhos no pack deste mundo, religados ao novo Molde, e limpa o pacote.
+ * Remove filhos atuais antes (importar sobre um Molde existente não duplica).
+ * @param {Item5e} item
+ */
+async function _importarBundleHatsu(item) {
+  const bundle = item.getFlag("hunter-system", "hatsuBundle");
+  if ( !Array.isArray(bundle) || !bundle.length ) return;
+  try {
+    const pack = await ensureHatsuPack();
+    const atuais = await item.system.contents;
+    if ( atuais.size ) await Item.deleteDocuments([...atuais.keys()], { pack: pack.metadata.id });
+    // folder herdado não existe neste mundo: descarta e cria um novo
+    await item.unsetFlag("hunter-system", "hatsuFolder").catch(() => null);
+    const folder = await item.system.ensureFolder();
+    const toCreate = bundle.map(raw => {
+      const data = foundry.utils.deepClone(raw);
+      delete data._id;
+      data.folder = folder?.id ?? null;
+      foundry.utils.setProperty(data, "flags.hunter-system.hatsuTemplate", item.id);
+      return data;
+    });
+    await Item.implementation.create(toCreate, { pack: pack.metadata.id });
+    await item.update({ "flags.hunter-system.-=hatsuBundle": null });
+    ui.notifications.info(`Molde "${item.name}": ${toCreate.length} técnica(s)/manifestação(ões) importada(s).`);
+  } catch ( err ) {
+    console.error("Hunter | falha ao importar os filhos do Molde Hatsu:", err);
+  }
+}
+
+// Novo Molde (drag do JSON / criar) OU Import Data sobre um Molde existente.
+Hooks.on("createItem", (item, options, userId) => {
+  if ( userId === game.user.id && item.type === "hatsuTemplate"
+    && item.getFlag("hunter-system", "hatsuBundle") ) _importarBundleHatsu(item);
+});
+Hooks.on("updateItem", (item, changed, options, userId) => {
+  if ( userId === game.user.id && item.type === "hatsuTemplate"
+    && foundry.utils.getProperty(changed, "flags.hunter-system.hatsuBundle") ) _importarBundleHatsu(item);
+});

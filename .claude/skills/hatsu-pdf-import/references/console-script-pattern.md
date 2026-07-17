@@ -292,7 +292,10 @@ different (and possibly buggy) JS.
     areaType?, areaUnits?, areaSize?,          // target.template shape — see the enum-key table above
     jjScaleEnabled?, jjScaleFormula?, jjScaleCost?, jjScaleMaxPA?,
     constantCostEnabled?, constantCostValue?, constantCostPool?,
-    criticalBonus?,
+    critThreshold?,   // crit RANGE as its lower-bound NUMBER (margem 18-20 → 18, 19-20 → 19); omit for normal
+    criticalBonus?,   // EXTRA crit damage DICE only, a formula like "6d10" — NEVER the crit range/"margem" text
+                      // (attack only). "6 dados adicionais em crítico" on a d10 base → "6d10". These two are
+                      // different fields — the range is critThreshold, the bonus damage is criticalBonus.
     namedSubActivities?: [{ name, cost, activationType, mechanicKind, damageParts,
                             reductionFormula?, reductionConstant?, condicao? }]
   }],

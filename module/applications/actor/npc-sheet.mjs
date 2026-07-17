@@ -3,7 +3,7 @@ import { createCheckboxInput } from "../fields.mjs";
 import BaseActorSheet from "./api/base-actor-sheet.mjs";
 import HabitatConfig from "./config/habitat-config.mjs";
 import TreasureConfig from "./config/treasure-config.mjs";
-import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, MANIPULATION_ABILITIES, canUnlockAbility, getAvailableTrainingPoints } from "../../systems/manipulation-data.mjs";
+import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, MANIPULATION_ABILITIES, PRINCIPLES_DATA, canUnlockAbility, getAvailableTrainingPoints, grantLinkedTechniques } from "../../systems/manipulation-data.mjs";
 import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory } from "../../systems/nen-categories-data.mjs";
 import CharacterActorSheet, { JJ_CONDITIONS, _injectJJConditions, setupNenWheels } from "./character-sheet.mjs";
 import ContextMenu5e from "../context-menu.mjs";
@@ -620,12 +620,13 @@ export default class NPCActorSheet extends BaseActorSheet {
         })
       }));
 
-      // O template usa manipulation.sections
-      context.manipulation = { sections };
+      // O template usa manipulation.sections; categoryColor pinta os acentos da aba
+      const categoryColor = this._getPrimaryNenCategory()?.color ?? "#c8a84b";
+      context.manipulation = { sections, categoryColor };
       console.log("NPCSheet | _prepareManipulationContext | sections:", sections.length);
     } catch(err) {
       console.error("NPCSheet | Erro em _prepareManipulationContext:", err);
-      context.manipulation = { sections: [] };
+      context.manipulation = { sections: [], categoryColor: "#c8a84b" };
     }
     return context;
   }
@@ -1058,7 +1059,7 @@ export default class NPCActorSheet extends BaseActorSheet {
             <label style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0e0e1a; border:1px solid #2a2a40; border-radius:6px; cursor:pointer;">
               <input type="radio" name="jj-training-choice" value="cursePoints">
               <div><strong style="color:#ffa060;">💀 Pontos de Nen +4</strong>
-                <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PM → ${cursePoints + 4} PM</div></div>
+                <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PN → ${cursePoints + 4} PN</div></div>
             </label>
           </div>
         </div>`,
@@ -1165,12 +1166,18 @@ export default class NPCActorSheet extends BaseActorSheet {
 
     const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
     if ( cursePoints < (def.cost ?? 0) ) {
-      ui.notifications.warn(`PM insuficientes para desbloquear (custo: ${def.cost}, disponível: ${cursePoints}).`);
+      ui.notifications.warn(`PN insuficientes para desbloquear (custo: ${def.cost}, disponível: ${cursePoints}).`);
       return;
     }
 
+    const entryManip = this.actor.system.manipulation?.abilities?.[abilityId] ?? {};
     await this.actor.update({
-      [`system.manipulation.abilities.${abilityId}.unlocked`]: true,
+      // Entrada completa — updates parciais em entradas antigas são descartados em silêncio.
+      [`system.manipulation.abilities.${abilityId}`]: {
+        unlocked: true,
+        dcReduction: entryManip.dcReduction ?? 0,
+        count: entryManip.count ?? 0
+      },
       "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + (def.cost ?? 0),
       "system.curseResources.cursePoints": Math.max(0, cursePoints - (def.cost ?? 0))
     });
@@ -1179,6 +1186,9 @@ export default class NPCActorSheet extends BaseActorSheet {
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `🔓 <strong>${this.actor.name}</strong> desbloqueou: <strong>${def.label}</strong>!`
     });
+
+    // Técnicas vinculadas — paridade com o character-sheet (NPC não recebia nenhuma)
+    if ( def.techniques?.length ) await grantLinkedTechniques(this.actor, def.techniques);
     console.log(`NPCSheet | _onUnlockManipulationAbility | ${abilityId}`);
   }
 
@@ -1192,7 +1202,7 @@ export default class NPCActorSheet extends BaseActorSheet {
     const cost = pr.cost ?? 0;
     if ( cost > 0 ) {
       const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
-      if ( cursePoints < cost ) { ui.notifications.warn(`PM insuficientes! Precisa de ${cost} PM.`); return; }
+      if ( cursePoints < cost ) { ui.notifications.warn(`PN insuficientes! Precisa de ${cost} PN.`); return; }
       await this.actor.update({
         [`system.manipulation.principles.${principleId}.unlocked`]: true,
         "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + cost,
@@ -1202,6 +1212,10 @@ export default class NPCActorSheet extends BaseActorSheet {
       await this.actor.update({ [`system.manipulation.principles.${principleId}.unlocked`]: true });
     }
     ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `🔓 <strong>${this.actor.name}</strong> desbloqueou o princípio: <strong>${pr.label}</strong>!` });
+
+    // Técnicas vinculadas ao princípio — paridade com o character-sheet
+    const principleData = PRINCIPLES_DATA[principleId];
+    if ( principleData?.techniques?.length ) await grantLinkedTechniques(this.actor, principleData.techniques);
   }
 
   /* -------------------------------------------- */
@@ -1214,12 +1228,21 @@ export default class NPCActorSheet extends BaseActorSheet {
 
     const cost = def.cost ?? 0;
     const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
+    const entryNen = this.actor.system.manipulation?.abilities?.[abilityId] ?? {};
     await this.actor.update({
-      [`system.manipulation.abilities.${abilityId}.unlocked`]: true,
+      // Entrada completa — updates parciais em entradas antigas são descartados em silêncio.
+      [`system.manipulation.abilities.${abilityId}`]: {
+        unlocked: true,
+        dcReduction: entryNen.dcReduction ?? 0,
+        count: (entryNen.count ?? 0) + (def.repeatable ? 1 : 0)
+      },
       "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + cost,
       "system.curseResources.cursePoints": Math.max(0, cursePoints - cost)
     });
     ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor: this.actor }), content: `🔓 <strong>${this.actor.name}</strong> desbloqueou: <strong>${def.label}</strong>!` });
+
+    // Técnicas vinculadas — paridade com o character-sheet
+    if ( def.techniques?.length ) await grantLinkedTechniques(this.actor, def.techniques);
   }
 
   /* -------------------------------------------- */
@@ -1239,7 +1262,8 @@ export default class NPCActorSheet extends BaseActorSheet {
     ];
     if ( blockers.length ) { ui.notifications.warn(`Desfaz primeiro: ${blockers.join(", ")}.`); return; }
 
-    const cost = thisPr.cost ?? 0;
+    // Estorno pela mesma fonte que o desbloqueio cobra (PRINCIPLES_DATA), não pela roda.
+    const cost = PRINCIPLES_DATA[principleId]?.unlockRequires?.cost ?? thisPr.cost ?? 0;
     const updates = { [`system.manipulation.principles.${principleId}.unlocked`]: false, "system.manipulation.pointsInvested": Math.max(0, (this.actor.system.manipulation?.pointsInvested ?? 0) - cost) };
     if ( cost > 0 ) updates["system.curseResources.cursePoints"] = (this.actor.system.curseResources?.cursePoints ?? 0) + cost;
     await this.actor.update(updates);
@@ -1253,9 +1277,26 @@ export default class NPCActorSheet extends BaseActorSheet {
     if ( !abilities[abilityId]?.unlocked ) return;
     const def = MANIPULATION_ABILITIES[abilityId];
     if ( !def ) return;
+    // Bloqueia desfazer se outra habilidade desbloqueada depende desta (paridade c/ character-sheet)
+    const unlockedIds = new Set(Object.entries(abilities).filter(([, v]) => v?.unlocked).map(([k]) => k));
+    const bloqueadores = Object.entries(MANIPULATION_ABILITIES)
+      .filter(([abId, ab]) => unlockedIds.has(abId) && (ab.requires?.abilities ?? []).includes(abilityId))
+      .map(([, ab]) => ab.label);
+    if ( bloqueadores.length ) {
+      ui.notifications.warn(`Não é possível desfazer "${def.label}" — desfaz primeiro: ${bloqueadores.map(b => `"${b}"`).join(", ")}.`);
+      return;
+    }
     const cost = def.cost ?? 0;
+    // Entrada completa — updates parciais em entradas antigas são descartados em silêncio.
+    const entryUndo = this.actor.system.manipulation?.abilities?.[abilityId] ?? {};
+    const undoCount = Math.max(0, (entryUndo.count ?? 0) - 1);
+    const aindaFica = !!def.repeatable && undoCount > 0;
     await this.actor.update({
-      [`system.manipulation.abilities.${abilityId}.unlocked`]: false,
+      [`system.manipulation.abilities.${abilityId}`]: {
+        unlocked: aindaFica,
+        dcReduction: entryUndo.dcReduction ?? 0,
+        count: def.repeatable ? undoCount : 0
+      },
       "system.manipulation.pointsInvested": Math.max(0, (this.actor.system.manipulation?.pointsInvested ?? 0) - cost),
       "system.curseResources.cursePoints": (this.actor.system.curseResources?.cursePoints ?? 0) + cost
     });

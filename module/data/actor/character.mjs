@@ -243,10 +243,15 @@ export default class CharacterData extends CreatureTemplate {
         principles: new MappingField(new SchemaField({
           unlocked: new BooleanField({ initial: false })
         }), { label: "JUJUTSU.Manipulation.Abilities" }),
-        // Habilidades desbloqueadas: { [id]: { unlocked, dcReduction } }
+        // Habilidades desbloqueadas: { [id]: { unlocked, dcReduction, count } }
+        // IMPORTANTE: required:false nos numéricos — entradas antigas na FONTE não têm esses
+        // campos (schema evoluiu depois delas) e um campo required ausente faz a validação
+        // descartar em silêncio updates parciais da entrada (bug do desfazer/estorno infinito).
         abilities: new MappingField(new SchemaField({
           unlocked: new BooleanField({ initial: false }),
-          dcReduction: new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 })
+          dcReduction: new NumberField({ required: false, nullable: false, integer: true, min: 0, initial: 0 }),
+          // Nº de vezes adquirida (habilidades repetíveis, ex.: Expansão de Aura). 0 = não possui.
+          count: new NumberField({ required: false, nullable: false, integer: true, min: 0, initial: 0 })
         }), { label: "JUJUTSU.Manipulation.Abilities" })
       }, { label: "JUJUTSU.Manipulation.Label" }),
 
