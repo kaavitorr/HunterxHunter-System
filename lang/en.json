@@ -3980,11 +3980,11 @@
   "DND5E.SpecialTraits": "Special Traits",
   "DND5E.Species": {
     "Label": "Species",
-    "Add": "Add Origin",
+    "Add": "Add Species",
     "AddLegacy": "Add Race",
-    "Features": "Origin Features",
+    "Features": "Species Features",
     "FeaturesLegacy": "Racial Features",
-    "Name": "Origin Name"
+    "Name": "Species Name"
   },
   "DND5E.Speed": "Speed",
   "DND5E.SpeedSpecial": "Special Movement",

@@ -581,17 +581,17 @@ filigree-box.jj-foco-defensivo-box {
 .jj-en-row { display: flex; align-items: stretch; gap: 8px; padding: 6px 10px 4px; }
 .jj-en-btn {
   flex: 1 1 0; min-width: 0;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 7px 8px;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 7px 6px;
   background: rgba(200, 168, 75, 0.08);
   border: 1px solid rgba(200, 168, 75, 0.3);
   border-radius: 7px;
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 0.04em; text-transform: uppercase;
+  font-size: 8.5px; font-weight: 700;
+  letter-spacing: 0.02em; text-transform: uppercase;
   white-space: nowrap;
   color: #d0bc86; cursor: pointer; transition: all 140ms ease;
 }
-.jj-en-btn i { font-size: 12px; }
+.jj-en-btn i { font-size: 11px; }
 .jj-en-btn:hover { background: rgba(200,168,75,0.16); border-color: rgba(200,168,75,0.5); color: #f0dca0; }
 .jj-en-btn.is-ghost { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); color: #8a8060; }
 .jj-en-btn.is-ghost:hover { background: rgba(200,168,75,0.08); border-color: rgba(200,168,75,0.3); color: #cbb87e; }
