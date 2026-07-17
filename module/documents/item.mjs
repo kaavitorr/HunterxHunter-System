@@ -57,6 +57,46 @@ export default class Item5e extends SystemDocumentMixin(Item) {
   /* -------------------------------------------- */
 
   /**
+   * Exporta um Molde Hatsu levando junto as manifestações/técnicas (que moram no pack do
+   * mundo, ligadas por flag). O JSON ganha `flags.hunter-system.hatsuBundle` com os filhos;
+   * ao importar em outro mundo, um hook recria tudo religado ao novo Molde (ver
+   * data/item/hatsu-template.mjs). Outros tipos de item usam o comportamento padrão.
+   * @inheritDoc
+   */
+  async exportToJSON(options={}) {
+    if ( this.type !== "hatsuTemplate" ) return super.exportToJSON(options);
+    const contents = await this.system.contents;
+    const bundle = Array.from(contents.values()).map(i => {
+      const o = i.toObject();
+      delete o._id;
+      delete o.folder;
+      return o;   // mantém flags hunter-system.hatsu.{slot,parent} para religar na importação
+    });
+    // toObject() = objeto puro (deep clone); toCompendium() devolvia um objeto com
+    // getters (exportSource só-leitura) que quebrava a atribuição. Limpamos os campos
+    // voláteis à mão — a importação recria tudo.
+    const data = this.toObject();
+    delete data._id;
+    delete data.folder;
+    delete data.ownership;
+    delete data.sort;
+    foundry.utils.setProperty(data, "flags.hunter-system.hatsuBundle", bundle);
+    // `flags.exportSource` virou um getter só-leitura no v13 (migrado p/ `_stats.exportSource`).
+    // Escrever na chave nova (campo real e gravável no clone de toObject) evita o "only a getter".
+    foundry.utils.setProperty(data, "_stats.exportSource", {
+      world: game.world?.id, system: game.system.id,
+      coreVersion: game.version, systemVersion: game.system.version
+    });
+    const filename = ["fvtt", this.documentName, this.name?.slugify?.(), this.id].filter(Boolean).join("-");
+    (foundry.utils.saveDataToFile ?? globalThis.saveDataToFile)(
+      JSON.stringify(data, null, 2), "application/json", `${filename}.json`
+    );
+    return data;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
    * Types that can be selected within the compendium browser.
    * @param {object} [options={}]
    * @param {Set<string>} [options.chosen]  Types that have been selected.

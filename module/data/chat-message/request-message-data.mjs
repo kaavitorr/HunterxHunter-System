@@ -140,7 +140,7 @@ export default class RequestMessageData extends ChatMessageDataModel {
    * @param {string} userId
    */
   static onUpdateResultMessage(message, changes, options, userId) {
-    const flag = foundry.utils.getProperty(changes, "flags.HunterLegacy.requestResult");
+    const flag = foundry.utils.getProperty(changes, "flags.hunter-system.requestResult");
     if ( flag && (game.users.activeGM === game.user) ) RequestMessageData.#updateRequestTargets(message, flag);
   }
 

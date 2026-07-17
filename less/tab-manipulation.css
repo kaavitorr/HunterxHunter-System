@@ -600,6 +600,23 @@
 .nen-orbit:hover { transform: translate(-50%, -50%) scale(1.05); z-index: 5; border-color: rgba(255,255,255,0.42); }
 .nen-orbit.is-unlocked:hover { border-color: rgba(220,196,120,0.9); }
 
+/* ── Habilidades repetíveis (ex.: Expansão de Aura): badge ×N + node segue clicável ── */
+.nen-node.is-repeatable { overflow: visible; }
+.nen-node-count {
+  /* topo-ESQUERDO — o botão de desfazer (.nen-undo) ocupa o topo-direito */
+  position: absolute; top: -5px; left: -5px;
+  min-width: 17px; height: 17px; padding: 0 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #e0c060, #c8a84b);
+  color: #1a1408; font: 800 10px/1 var(--dnd5e-font-roboto, sans-serif);
+  box-shadow: 0 0 5px rgba(200,168,75,0.7), 0 1px 2px rgba(0,0,0,0.5);
+  pointer-events: none; z-index: 6;
+}
+/* Repetível já adquirida mas ainda comprável: acena que dá pra pegar mais */
+.nen-orbit.is-unlocked.can-repeat { cursor: pointer; }
+.nen-orbit.is-unlocked.can-repeat:hover { border-color: rgba(255,220,130,1); box-shadow: 0 0 10px rgba(220,196,120,0.5); }
+
 .nen-undo {
   position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; padding: 0;
   display: none; align-items: center; justify-content: center; border-radius: 50%;
@@ -641,3 +658,132 @@
   box-shadow: none !important; border-color: rgba(200,168,75,0.45) !important; background: #12151d !important;
 }
 .ability-card.available:hover, .btn-unlock:hover { box-shadow: none !important; }
+
+/* ════════════════════════════════════════════════════════════
+   POLISH HxH — cabeçalhos de seção + aura dos hubs (2026-07-15)
+   Linguagem das Placas Nen: dourado, linhas que somem nas pontas.
+   ════════════════════════════════════════════════════════════ */
+
+/* Cabeçalho de seção: regras em gradiente dourado + losangos no título */
+.nen-sec-rule {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(200,168,75,0.38));
+}
+.nen-sec-head .nen-sec-rule:last-child {
+  background: linear-gradient(to left, transparent, rgba(200,168,75,0.38));
+}
+.nen-sec-title { color: #c4b078; letter-spacing: .22em; }
+.nen-sec-title::before, .nen-sec-title::after {
+  content: "◆";
+  font-size: 7px;
+  color: rgba(200,168,75,0.55);
+  vertical-align: 2px;
+}
+.nen-sec-title::before { margin-right: 10px; }
+.nen-sec-title::after  { margin-left: 10px; }
+
+/* Hub desbloqueado: aura Nen respirando por trás do símbolo */
+.nen-wheel.pr-on .nen-hub::after {
+  content: "";
+  position: absolute; inset: -14px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,168,75,0.20), transparent 70%);
+  pointer-events: none; z-index: -1;
+  animation: nen-aura-breathe 3.2s ease-in-out infinite;
+}
+@keyframes nen-aura-breathe {
+  0%, 100% { opacity: .5; transform: scale(.96); }
+  50%      { opacity: 1;  transform: scale(1.05); }
+}
+.nen-wheel.pr-on .nen-hub {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.55), inset 0 2px 2px rgba(255,255,255,0.10),
+              inset 0 -4px 8px rgba(0,0,0,0.5), 0 0 14px rgba(200,168,75,0.22);
+}
+.nen-wheel.pr-on .nen-hub-kanji {
+  text-shadow: 0 2px 2px rgba(0,0,0,0.7), 0 0 12px rgba(224,192,96,0.35);
+}
+/* Fundamentais concedidos: brilho mais tímido */
+.nen-wheel.pr-fund .nen-hub-kanji { text-shadow: 0 2px 2px rgba(0,0,0,0.7), 0 0 8px rgba(224,192,96,0.18); }
+
+/* Roda aberta e desbloqueada: anel e raios dourados */
+.nen-wheel.pr-on .nen-ring { border-color: rgba(200,168,75,0.28); }
+.nen-wheel.pr-on .nen-wheel-svg line { stroke: rgba(200,168,75,0.16); }
+.nen-wheel.pr-on .nen-wheel-svg line.on { stroke: rgba(200,168,75,0.5); }
+
+/* Nó desbloqueado: hover com halo dourado sutil (em vez do branco genérico) */
+.nen-orbit.is-unlocked:hover {
+  border-color: rgba(224,192,96,0.85);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(220,196,120,0.18),
+              inset 0 -2px 5px rgba(0,0,0,0.4), 0 0 10px rgba(200,168,75,0.3);
+}
+
+/* ════════════════════════════════════════════════════════════
+   COR POR CATEGORIA — os acentos da aba seguem a categoria Nen
+   primária do personagem via --nen-cat (setada no template):
+   Aprimorador #E8791A · Emissor #B8860B · Transmutador #9B59D0 ·
+   Conjurador #3A8FD4 · Manipulador #2ECC71 · Especialista #AAAAAA
+   ════════════════════════════════════════════════════════════ */
+.jujutsu-section[data-tab="manipulation"] { --nen-cat: #c8a84b; } /* fallback */
+
+/* Cabeçalhos de seção */
+.jujutsu-section[data-tab="manipulation"] .nen-sec-rule {
+  background: linear-gradient(to right, transparent, color-mix(in srgb, var(--nen-cat) 45%, transparent));
+}
+.jujutsu-section[data-tab="manipulation"] .nen-sec-head .nen-sec-rule:last-child {
+  background: linear-gradient(to left, transparent, color-mix(in srgb, var(--nen-cat) 45%, transparent));
+}
+.jujutsu-section[data-tab="manipulation"] .nen-sec-title { color: color-mix(in srgb, var(--nen-cat) 55%, #d8d4c8); }
+.jujutsu-section[data-tab="manipulation"] .nen-sec-title::before,
+.jujutsu-section[data-tab="manipulation"] .nen-sec-title::after { color: color-mix(in srgb, var(--nen-cat) 65%, transparent); }
+
+/* Hub desbloqueado: borda, kanji, brilho e aura na cor da categoria */
+.nen-wheel.pr-on .nen-hub {
+  border-color: color-mix(in srgb, var(--nen-cat) 65%, transparent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.55), inset 0 2px 2px rgba(255,255,255,0.10),
+              inset 0 -4px 8px rgba(0,0,0,0.5), 0 0 14px color-mix(in srgb, var(--nen-cat) 25%, transparent);
+}
+.nen-wheel.pr-on .nen-hub-kanji {
+  color: color-mix(in srgb, var(--nen-cat) 55%, #f0ead8);
+  text-shadow: 0 2px 2px rgba(0,0,0,0.7), 0 0 12px color-mix(in srgb, var(--nen-cat) 40%, transparent);
+}
+.nen-wheel.pr-on .nen-hub::after {
+  background: radial-gradient(circle, color-mix(in srgb, var(--nen-cat) 22%, transparent), transparent 70%);
+}
+.nen-wheel.pr-fund .nen-hub { border-color: color-mix(in srgb, var(--nen-cat) 40%, transparent); }
+.nen-wheel.pr-fund .nen-hub-kanji {
+  color: color-mix(in srgb, var(--nen-cat) 45%, #d8d0bc);
+  text-shadow: 0 2px 2px rgba(0,0,0,0.7), 0 0 8px color-mix(in srgb, var(--nen-cat) 20%, transparent);
+}
+.nen-wheel.pr-fund .nen-hub-name { color: color-mix(in srgb, var(--nen-cat) 50%, #6a6a6a); }
+
+/* Anel e raios da roda desbloqueada */
+.nen-wheel.pr-on .nen-ring { border-color: color-mix(in srgb, var(--nen-cat) 30%, transparent); }
+.nen-wheel.pr-on .nen-wheel-svg line { stroke: color-mix(in srgb, var(--nen-cat) 18%, transparent); }
+.nen-wheel.pr-on .nen-wheel-svg line.on { stroke: color-mix(in srgb, var(--nen-cat) 55%, transparent); }
+
+/* Nós (habilidades) desbloqueados */
+.nen-orbit.is-unlocked {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--nen-cat) 14%, #171510), color-mix(in srgb, var(--nen-cat) 6%, #121118));
+  border-color: color-mix(in srgb, var(--nen-cat) 62%, transparent);
+}
+.nen-orbit.is-unlocked .nen-node-name { color: color-mix(in srgb, var(--nen-cat) 40%, #ece6d6); }
+.nen-orbit.is-unlocked .nen-node-cost { color: color-mix(in srgb, var(--nen-cat) 55%, #8a8474); }
+.nen-orbit.is-unlocked:hover {
+  border-color: color-mix(in srgb, var(--nen-cat) 88%, transparent);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5), inset 0 1px 0 color-mix(in srgb, var(--nen-cat) 20%, transparent),
+              inset 0 -2px 5px rgba(0,0,0,0.4), 0 0 10px color-mix(in srgb, var(--nen-cat) 32%, transparent);
+}
+.nen-orbit.is-unlocked.can-repeat:hover {
+  border-color: color-mix(in srgb, var(--nen-cat) 95%, #fff);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nen-cat) 50%, transparent);
+}
+
+/* Badge ×N das repetíveis + hover do mini-desbloquear do hub */
+.nen-node-count {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--nen-cat) 75%, #fff), var(--nen-cat));
+  color: #14100a;
+  box-shadow: 0 0 5px color-mix(in srgb, var(--nen-cat) 70%, transparent), 0 1px 2px rgba(0,0,0,0.5);
+}
+.mini-unlock:hover {
+  border-color: color-mix(in srgb, var(--nen-cat) 70%, transparent);
+  color: color-mix(in srgb, var(--nen-cat) 55%, #e8e2d2);
+}

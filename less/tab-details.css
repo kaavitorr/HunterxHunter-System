@@ -136,13 +136,14 @@
   position: relative;
 }
 
-/* Divisória horizontal entre cabeçalho e botão — mesma da Agressivo/Defensivo. */
-.jj-expdef-header::after {
+/* Divisória horizontal entre cabeçalho e botão — mesma da Agressivo/Defensivo.
+   Ancorada no TOPO do wrapper do botão (div), não em pseudo de h3 (que não renderizava). */
+.jj-expdef-btn-wrap::before {
   content: "";
   position: absolute;
   left: 12%;
   right: 12%;
-  bottom: 0;
+  top: 0;
   height: 1px;
   background: linear-gradient(to right, transparent, #24456e 25%, #24456e 75%, transparent);
   pointer-events: none;
@@ -164,7 +165,8 @@
 
 /* ── Wrapper do botão ── */
 .jj-expdef-btn-wrap {
-  padding: 6px 8px 8px;   /* respiro no topo pra a divisória do cabeçalho aparecer */
+  position: relative;      /* âncora da divisória (::before no topo) */
+  padding: 8px 10px 6px;
 }
 
 /* ── Botão base (Foco) ── */
@@ -225,15 +227,43 @@
 }
 .jj-expdef-trigger-btn:active { transform: translateY(1px); }
 
-/* ── Explosão Defensiva (azul) ── */
-filigree-box.jj-expdef-box {
-  --filigree-background-color: #0a1622;
-  --filigree-border-color: #1a3a68;
-  --filigree-drop-shadow: drop-shadow(0 0 4px rgba(60, 120, 210, 0.3));
+/* ══ PLACA NEN — painel HxH (chanfro + fio interno + kanji marca-d'água) ══
+   Substitui as filigree-box dos poderes da sidebar/aba Effects. O kanji vem
+   do atributo data-kanji de cada placa (練 凝 硬 円). */
+.jj-nen-panel {
+  position: relative;
   display: block;
   width: 100%;
   box-sizing: border-box;
+  padding: 5px 7px 9px;
+  background:
+    linear-gradient(155deg, rgba(200,168,75,0.05), transparent 45%),
+    linear-gradient(180deg, #10141c, #0a0e14);
+  border: 1px solid #262c38;
+  clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
+                     calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+  box-shadow: inset 0 0 0 1px rgba(200,168,75,0.10), inset 0 0 20px rgba(0,0,0,0.5);
+  overflow: hidden;
 }
+.jj-nen-panel::before {
+  content: attr(data-kanji);
+  position: absolute; right: -4px; bottom: -16px;
+  font: 700 50px/1 var(--dnd5e-font-roboto-slab, serif);
+  color: rgba(200,168,75,0.08);
+  pointer-events: none;
+  z-index: 0;
+}
+.jj-nen-panel > * { position: relative; z-index: 1; }
+
+/* ── Explosão Defensiva (azul) ── */
+.jj-nen-panel.jj-expdef-box {
+  background:
+    linear-gradient(155deg, rgba(60,120,210,0.07), transparent 45%),
+    linear-gradient(180deg, #0c1420, #080e18);
+  border-color: #1c3050;
+  box-shadow: inset 0 0 0 1px rgba(80,140,230,0.13), inset 0 0 20px rgba(0,0,0,0.5);
+}
+.jj-nen-panel.jj-expdef-box::before { color: rgba(90,150,240,0.09); }
 
 @keyframes jj-expdef-pulse {
   0%, 100% { text-shadow: 0 0 4px rgba(70,130,230,0.35); }
@@ -271,17 +301,16 @@ filigree-box.jj-foco-agressivo-box {
   50%       { box-shadow: inset 0 0 10px rgba(220,80,40,0.25), 0 0 6px rgba(180,40,30,0.18); }
 }
 
-/* ── Foco Combo Box (Agressivo + Defensivo numa única filigree) ── */
-filigree-box.jj-foco-combo-box {
-  --filigree-background-color: #0a1622;
-  --filigree-border-color: #1a3a68;
-  --filigree-drop-shadow: drop-shadow(0 0 4px rgba(60, 120, 210, 0.3));
-  display: block;
-  position: relative;
-  width: 100%;
+/* ── Foco Combo Box (Agressivo + Defensivo numa única placa) ── */
+.jj-nen-panel.jj-foco-combo-box {
   min-width: 0;
-  box-sizing: border-box;
+  background:
+    linear-gradient(155deg, rgba(200,90,50,0.05), transparent 40%),
+    linear-gradient(205deg, rgba(60,120,210,0.05), transparent 40%),
+    linear-gradient(180deg, #0e121a, #090d13);
+  border-color: #2a2c38;
 }
+.jj-nen-panel.jj-foco-combo-box::before { color: rgba(210,140,90,0.08); }
 
 .jj-foco-combo-header {
   display: flex;
@@ -326,6 +355,7 @@ filigree-box.jj-foco-combo-box {
   border-radius: 7px;
   padding: 7px 8px;
   font-size: 10px;
+  white-space: nowrap;   /* "38/38 PA" nunca quebra em duas linhas */
 }
 
 .jj-foco-combo-body > .jj-foco-btn i { font-size: 12px; }
@@ -413,18 +443,20 @@ filigree-box.jj-foco-defensivo-box {
   background: #020810;
   border-color: #2050a0;
   color: #4080d0;
-  padding: 15px;
+  /* sem padding extra no ativo — o chip mantém o mesmo tamanho de sempre */
   animation: jj-expdef-glow 2s ease-in-out infinite;
 }
 .jj-foco-btn.jj-foco-defensivo.active i { color: #2860b0; }
 
 /* ── Estágio de Foco (Ultimato — dourado) ── */
-filigree-box.jj-estagio-box {
-  --filigree-background-color: #181004;
-  --filigree-border-color: #503820;
-  --filigree-drop-shadow: drop-shadow(0 0 4px rgba(240, 192, 96, 0.3));
-  display: block;
+.jj-nen-panel.jj-estagio-box {
+  background:
+    linear-gradient(155deg, rgba(240,192,96,0.08), transparent 45%),
+    linear-gradient(180deg, #14100a, #0c0906);
+  border-color: #4a3418;
+  box-shadow: inset 0 0 0 1px rgba(240,192,96,0.14), inset 0 0 20px rgba(0,0,0,0.5);
 }
+.jj-nen-panel.jj-estagio-box::before { color: rgba(240,192,96,0.10); }
 
 .jj-estagio-header { display: flex; align-items: center; justify-content: center; gap: 5px;
   padding: 5px 8px 3px; border: none; margin: 0; }
@@ -511,8 +543,63 @@ filigree-box.jj-estagio-box {
   transform: rotate(45deg);
 }
 
-filigree-box.jj-expdef-box,
-filigree-box.jj-estagio-box,
+/* ── En (círculo — dourado) ── */
+.jj-nen-panel.jj-en-box { border-color: #3a3220; }
+.jj-nen-panel.jj-en-box.is-ativo {
+  border-color: rgba(224,192,96,0.55);
+  box-shadow: inset 0 0 0 1px rgba(224,192,96,0.18), inset 0 0 20px rgba(0,0,0,0.5),
+              0 0 9px rgba(200,168,75,0.18);
+}
+/* Cabeçalho no molde do Foco combo: divisória em gradiente que some nas pontas */
+.jj-en-title {
+  display: flex; align-items: center; gap: 6px;
+  margin: 0; padding: 6px 14px 4px;
+  border: none; position: relative;
+  font: 700 9px/1.2 var(--dnd5e-font-roboto, sans-serif);
+  letter-spacing: 0.07em; text-transform: uppercase; color: #c0a060;
+}
+/* Divisória ancorada no primeiro bloco após o título (status ou fileira de botões) */
+.jj-en-title + .jj-en-status,
+.jj-en-title + .jj-en-row { position: relative; }
+.jj-en-title + .jj-en-status::before,
+.jj-en-title + .jj-en-row::before {
+  content: "";
+  position: absolute; left: 12%; right: 12%; top: 0; height: 1px;
+  background: linear-gradient(to right, transparent, #6e5a24 25%, #6e5a24 75%, transparent);
+  pointer-events: none;
+}
+.jj-en-title .jj-en-kanji { font-size: 12px; color: #c09030; line-height: 1; }
+.jj-en-title .jj-en-live {
+  margin-left: auto; padding: 1px 6px;
+  border: 1px solid rgba(224,192,96,0.4); border-radius: 7px;
+  font-size: 8px; color: #f0dca0; letter-spacing: 0.08em;
+  animation: jj-estagio-pulse 2s ease-in-out infinite;
+}
+.jj-en-status { margin: 4px 0 0; padding-top: 6px; font-size: 10px; text-align: center; color: #c8a84b; }
+
+/* Botões no molde dos chips do Foco combo (radius 7, fundo sutil, uma linha) */
+.jj-en-row { display: flex; align-items: stretch; gap: 8px; padding: 6px 10px 4px; }
+.jj-en-btn {
+  flex: 1 1 0; min-width: 0;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 7px 8px;
+  background: rgba(200, 168, 75, 0.08);
+  border: 1px solid rgba(200, 168, 75, 0.3);
+  border-radius: 7px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  white-space: nowrap;
+  color: #d0bc86; cursor: pointer; transition: all 140ms ease;
+}
+.jj-en-btn i { font-size: 12px; }
+.jj-en-btn:hover { background: rgba(200,168,75,0.16); border-color: rgba(200,168,75,0.5); color: #f0dca0; }
+.jj-en-btn.is-ghost { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); color: #8a8060; }
+.jj-en-btn.is-ghost:hover { background: rgba(200,168,75,0.08); border-color: rgba(200,168,75,0.3); color: #cbb87e; }
+.jj-en-btn.is-off { background: rgba(190,90,80,0.08); border-color: rgba(190,90,80,0.3); color: #d0a090; }
+.jj-en-btn.is-off:hover { background: rgba(190,90,80,0.16); border-color: rgba(190,90,80,0.5); color: #e0a89a; }
+
+.jj-nen-panel.jj-expdef-box,
+.jj-nen-panel.jj-estagio-box,
 filigree-box.jj-foco-agressivo-box,
 filigree-box.jj-foco-defensivo-box {
   position: relative;
@@ -745,3 +832,224 @@ filigree-box.jj-foco-defensivo-box {
 .op-sing-card .op-sing-esp { font-size: 9px; font-weight: 900; line-height: 1; padding: 0 5px; height: 16px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(0,0,0,0.45); color: inherit; opacity: 0.85; pointer-events: none; }
 .op-sing-card .op-sing-rm { font-size: 10px; width: 19px; height: 19px; border-radius: 50%; opacity: 0.5; display: inline-flex; align-items: center; justify-content: center; transition: all 120ms; }
 .op-sing-card:hover .op-sing-rm { opacity: 1; background: rgba(178,58,43,0.22); color: #b23a2b; }
+/* ══ PERÍCIAS NO TOPO DA ABA DETALHES — full-width, 2 colunas por atributo ══
+   Classe própria no container (.jj-details-tab) pra não depender dos seletores do core.
+   O <ul> continua FILHO DIRETO da filigree (o CSS de item do dnd5e exige isso) e as
+   2 colunas são CSS multicol, com quebra forçada na marca .col-break vinda do prep. */
+.jj-details-tab {
+  flex-wrap: wrap;
+  /* container NOMEADO: o core marca a própria .saves como container (inline-size) e uma
+     query sem nome pode resolver contra o container errado — com nome não tem ambiguidade */
+  container: jj-details / inline-size;
+}
+
+/* Topo em grid nomeado:  Salvaguardas | Categoria | Espécie
+                          Salvaguardas | Caminho   | Origem  */
+.jj-details-tab > .jj-details-top {
+  flex: 1 1 100%;
+  width: 100%;
+  grid-column: 1 / -1;   /* cobre o caso do core usar grid na aba */
+  box-sizing: border-box;
+  display: grid;
+  /* minmax(0, …) em TODAS as colunas: nenhuma pode ser forçada pelo conteúdo a invadir
+     a vizinha — no pior caso o excesso é recortado dentro da própria caixa */
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: 1fr 1fr;   /* duas linhas de MESMA altura */
+  grid-template-areas:
+    "saves categoria especie"
+    "saves caminho   origem";
+  gap: 6px 12px;   /* respiro vertical menor entre as duas linhas de pílulas */
+  align-items: stretch;
+}
+.jj-details-top > .jj-area-saves {
+  grid-area: saves;
+  /* A BORDA ABRAÇA O CONTEÚDO: sem height 100%/stretch — o grid pode ter linhas mais
+     altas (outra célula manda), mas a caixa nunca mostra vão interno. */
+  height: auto !important;
+  align-self: start;
+  margin: 0;
+  /* core: .saves { min-width: var(--skills-col-width) } (0,5,0) — ERA a invasão das
+     pílulas: a caixa não encolhia abaixo da largura da coluna de perícias. */
+  min-width: 0 !important;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+/* ul compacto: grid 2-colunas com respiro fixo entre as linhas (sem esticar).
+   !important nos paddings/gap: o core (.saves > ul, 0,5,1) impõe padding-bottom 12px
+   e gap ~9px — medidos no DevTools — que criavam o vão no rodapé da caixa. */
+.jj-details-top > .jj-area-saves > ul {
+  flex: 0 0 auto !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  align-content: start !important;
+  align-items: center;
+  position: relative;              /* âncora da divisória do header */
+  padding: 6px 10px 0 !important;
+  gap: 2px 8px !important;
+  margin: 0 !important;
+}
+.jj-details-top > .jj-area-categoria { grid-area: categoria; }
+.jj-details-top > .jj-area-caminho   { grid-area: caminho; }
+.jj-details-top > .jj-area-especie   { grid-area: especie; }
+.jj-details-top > .jj-area-origem    { grid-area: origem; }
+/* cada célula tem 1 pílula — box-model idêntico nas 4 (a classe .classes do core
+   trazia padding/margem próprios e desalinhava as linhas).
+   !important de propósito: o core fixa height:50px, max-width:280px e width:240px
+   (.classes .class) — sem isso as pílulas nunca preenchem as células por igual. */
+/* !important contra o core: [data-tab="details"] .pills-lg força flex-direction: COLUMN
+   (0,5,0) e .classes.pills-lg põe justify-content: center — que em coluna vira
+   centralização VERTICAL só na Categoria/Caminho (o "espaço acima" delas). */
+.jj-details-top > .pills-lg {
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;       /* pílula centralizada na célula — igual nas 4 */
+  justify-content: flex-start !important;
+}
+.jj-details-top > .pills-lg > .pill-lg {
+  flex: 1 1 auto;
+  width: 100% !important;
+  max-width: none !important;
+  /* Preenche a linha do grid — as linhas são 1fr 1fr, então as 4 pílulas continuam
+     SEMPRE iguais entre si, agora sem folga interna. 54px é o piso. */
+  height: 100% !important;
+  min-height: 54px !important;
+  max-height: none !important;
+  margin: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.jj-details-top > .pills-lg.classes { flex-wrap: nowrap; justify-content: stretch; }
+.jj-details-top > .pills-lg.classes > .class.pill-lg { width: 100% !important; }
+
+/* A raiz da diferença de ALTURA: o core usa ícone ~40px nas pílulas de espécie/origem
+   e ~32px nas de classe — o conteúdo mais alto infla a caixa. Ícone igual nas 4. */
+.jj-details-top .pill-lg .gold-icon,
+.jj-details-top .pill-lg img.gold-icon {
+  width: 32px !important;
+  height: 32px !important;
+  flex: 0 0 32px;
+}
+/* corrente de altura completa, pro stretch valer em qualquer caso */
+.jj-details-top > .pills-lg { height: 100%; }
+
+/* Janela estreita: Salvaguardas em cima, pílulas em 2×2 — nada se sobrepõe.
+   Gatilho em 760px: dispara ANTES das 3 colunas apertarem a ponto de colidir. */
+@container jj-details (max-width: 760px) {
+  .jj-details-tab > .jj-details-top {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "saves     saves"
+      "categoria especie"
+      "caminho   origem";
+  }
+  .jj-details-top > .jj-area-saves { height: auto; }
+  /* empilhado: o ul abraça o conteúdo (sem flex:1/space-evenly esticando) — some o vão no rodapé */
+  .jj-details-top > .jj-area-saves > ul {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    align-content: start !important;
+    grid-auto-rows: min-content;
+  }
+}
+
+/* Perícias — abaixo do topo, largura inteira */
+.jj-details-tab > .jj-skills-top {
+  flex: 1 1 100%;
+  width: 100%;
+  grid-column: 1 / -1;
+  box-sizing: border-box;
+}
+.jj-details-tab > .jj-skills-top > ul {
+  display: block;       /* multicol precisa de fluxo em bloco (o core usa flex na ul) */
+  columns: 2;
+  column-gap: 26px;
+  column-rule: 1px solid rgba(200, 168, 75, 0.14);
+  margin: 0;
+  padding: 0;
+}
+.jj-details-tab > .jj-skills-top > ul > li {
+  break-inside: avoid;  /* nunca corta uma perícia ao meio */
+}
+.jj-details-tab > .jj-skills-top > ul > li.skill-separator.col-break {
+  break-before: column; /* o grupo marcado abre a 2ª coluna (FOR/AGI/ESP | SAB/PRE) */
+}
+/* Alinhamento do topo das colunas (medido no DevTools): o core dá margin-top 8px a
+   todos os separadores — que RENDERIZA inclusive na quebra de coluna (Sabedoria) —
+   mas zera no :first-child, deixando só a Força colada. Devolve os 8px a ela.
+   !important: a regra do core tem especificidade (0,6,1) e atropela qualquer seletor nosso. */
+.jj-details-tab > .jj-skills-top > ul > li.skill-separator:first-child {
+  margin-top: 8px !important;
+}
+/* Ajuste fino do ritmo da coluna esquerda: Agilidade e Espírito com respiro maior */
+.jj-details-tab > .jj-skills-top > ul > li.skill-separator.sep-dex {
+  margin-top: 24px !important;
+}
+.jj-details-tab > .jj-skills-top > ul > li.skill-separator.sep-int {
+  margin-top: 23px !important;
+}
+/* O core zera a borda só no :last-child do <ul> inteiro (Provocação, fim real da
+   lista) — mas o multicol quebra a lista em 2 colunas visuais, e Sorte (fim da
+   1ª coluna) fica com a linha enquanto Provocação (fim da 2ª) não. Devolve nela. */
+.jj-details-tab > .jj-skills-top > ul > li:last-child {
+  border-bottom: var(--dnd5e-border-dotted) !important;
+}
+
+/* ══ ABA DETALHES NO TEMA PLACA NEN — Salvaguardas 守 · Perícias 技 · pílulas chanfradas ══ */
+
+/* Headers das placas (a base .jj-nen-panel já dá chanfro/fio/kanji) */
+.jj-nen-panel.jj-area-saves > h3,
+.jj-nen-panel.jj-skills-top > h3 {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  margin: 0; padding: 6px 10px 5px; border: none;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: #c4b078;
+}
+.jj-nen-panel.jj-area-saves > h3 i,
+.jj-nen-panel.jj-skills-top > h3 i { font-size: 10px; color: #c09030; }
+
+/* Divisória-gradiente sob o header — ancorada no topo do <ul> (pseudo em h3 não renderiza) */
+.jj-nen-panel.jj-area-saves > ul,
+.jj-nen-panel.jj-skills-top > ul { position: relative; padding-top: 7px; }
+.jj-nen-panel.jj-area-saves > ul::before,
+.jj-nen-panel.jj-skills-top > ul::before {
+  content: "";
+  position: absolute; top: 0; left: 12%; right: 12%; height: 1px;
+  background: linear-gradient(to right, transparent, #6e5a24 25%, #6e5a24 75%, transparent);
+  pointer-events: none;
+}
+
+/* Respiro interno das placas grandes */
+.jj-nen-panel.jj-skills-top { padding: 6px 14px 12px; }
+.jj-nen-panel.jj-area-saves { padding: 5px 10px 6px; }
+
+/* O kanji marca-d'água fica maior nas placas grandes */
+.jj-nen-panel.jj-skills-top::before { font-size: 72px; right: 2px; bottom: -22px; }
+
+/* Pílulas (Categoria/Caminho/Espécie/Origem) — chanfro + fio dourado, mantendo a arte */
+.jj-details-top .pill-lg {
+  border: 1px solid #3a3220;
+  border-radius: 0;
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px),
+                     calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+  box-shadow: inset 0 0 0 1px rgba(200,168,75,0.10), inset 0 0 16px rgba(0,0,0,0.45);
+}
+.jj-details-top .pill-lg .subtitle { color: #9a8c60; }
+/* vazias (Adicionar X): tracejado dourado discreto */
+.jj-details-top .pill-lg.empty {
+  border-style: dashed;
+  border-color: rgba(200,168,75,0.3);
+  color: #8a7c54;
+}
+.jj-details-top .pill-lg.empty:hover { border-color: rgba(224,192,96,0.6); color: #cbb87e; }
+/* número de nível da Categoria em dourado */
+.jj-details-top .class.pill-lg .level { color: #e0c060; }

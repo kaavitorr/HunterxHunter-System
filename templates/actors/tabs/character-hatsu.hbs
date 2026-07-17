@@ -191,4 +191,43 @@
   {{/each}}
   </div>
 
+  {{!-- ═════════════════ MANIPULAÇÕES DE HABILIDADE ═════════════════ --}}
+  <div class="jj-manip-section">
+    <div class="jj-manip-header">
+      <span>MANIPULAÇÕES DE HABILIDADE</span>
+      <span class="jj-manip-counter" data-tooltip="Ativas por vez = seu bônus de proficiência">
+        {{ hatsu.manipulacoes.ativas }} / {{ hatsu.manipulacoes.limite }} ativas
+      </span>
+      <button type="button" class="jj-manip-add" data-action="manip-create" data-tooltip="Nova manipulação">
+        <i class="fas fa-plus" inert></i>
+      </button>
+    </div>
+
+    {{#each hatsu.manipulacoes.lista as |m|}}
+    <div class="jj-manip-card {{#if m.ativa}}is-ativa{{/if}} {{#if m.bloqueada}}is-bloqueada{{/if}}">
+      <button type="button" class="jj-manip-toggle" data-action="manip-toggle" data-id="{{ m.id }}"
+              data-tooltip="{{#if m.ativa}}Desativar{{else}}Ativar{{/if}}">
+        <i class="fas {{#if m.ativa}}fa-circle-check{{else}}fa-circle{{/if}}" inert></i>
+      </button>
+      <div class="jj-manip-body">
+        <div class="jj-manip-title">
+          <strong>{{ m.nome }}</strong>
+          <div class="jj-manip-acts">
+            <a data-action="manip-chat" data-id="{{ m.id }}" data-tooltip="Enviar para o chat"><i class="fas fa-comment-dots" inert></i></a>
+            <a data-action="manip-edit" data-id="{{ m.id }}" data-tooltip="Editar"><i class="fas fa-edit" inert></i></a>
+            <a data-action="manip-del" data-id="{{ m.id }}" data-tooltip="Remover"><i class="fas fa-trash" inert></i></a>
+          </div>
+        </div>
+        {{#if m.desc}}<div class="jj-manip-desc">{{{ m.desc }}}</div>{{/if}}
+        <div class="jj-manip-meta">
+          {{#if m.duracao}}<span><b>Duração:</b> {{ m.duracao }}</span>{{/if}}
+          {{#if m.requisito}}<span><b>Requisito:</b> {{ m.requisito }}</span>{{/if}}
+        </div>
+      </div>
+    </div>
+    {{else}}
+    <p class="jj-manip-empty">Nenhuma manipulação. Clique no + para adicionar (consulta e ativação por aqui).</p>
+    {{/each}}
+  </div>
+
 </section>

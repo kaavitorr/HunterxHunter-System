@@ -79,28 +79,43 @@
     </div>
     {{/if}}
 
-    <div class="hatsu-tecnicas-row hatsu-drop-zone" data-hatsu-drop="tecnica">
+    <div class="hatsu-tecnicas-row hatsu-tecnicas-split hatsu-drop-zone" data-hatsu-drop="tecnica">
       <span class="hatsu-tecnicas-label">{{ slot.tecnicasLabel }}</span>
-      {{#each slot.tecnicas as |tec|}}
-      <div class="hatsu-tecnica-chip" data-item-id="{{ tec.id }}" draggable="true">
-        <img src="{{ tec.img }}" alt="{{ tec.name }}" />
-        <span class="hatsu-tecnica-chip-name">{{ tec.name }}</span>
-        {{#if slot.isVersatil}}
-        <select class="hatsu-tecnica-grau" data-hatsu-grau data-item-id="{{ tec.id }}"
+
+      {{!-- Chip de técnica (partial inline). isVersatil e grauChoices (com "selected")
+            já vêm resolvidos em cada técnica pelo JS — não depende de contexto pai. --}}
+      {{#*inline "hatsuMoldeTecChip"}}
+      <div class="hatsu-tecnica-chip" data-item-id="{{ id }}" draggable="true">
+        <img src="{{ img }}" alt="{{ name }}" />
+        <span class="hatsu-tecnica-chip-name">{{ name }}</span>
+        {{#if isVersatil}}
+        <select class="hatsu-tecnica-grau" data-hatsu-grau data-item-id="{{ id }}"
                 data-tooltip="Grau da técnica">
-          {{#each @root.hatsu.grauOptions as |g|}}
-          <option value="{{ g.value }}" {{#if (eq g.value tec.grau)}}selected{{/if}}>{{ g.label }}</option>
+          {{#each grauChoices as |g|}}
+          <option value="{{ g.value }}" {{#if g.selected}}selected{{/if}}>{{ g.label }}</option>
           {{/each}}
         </select>
         {{/if}}
         <div class="hatsu-tecnica-chip-actions">
-          <a data-action="hatsuEdit" data-item-id="{{ tec.id }}" data-tooltip="Editar"><i class="fas fa-edit" inert></i></a>
-          <a data-action="hatsuRemove" data-item-id="{{ tec.id }}" data-tooltip="Remover"><i class="fas fa-trash" inert></i></a>
+          <a data-action="hatsuEdit" data-item-id="{{ id }}" data-tooltip="Editar"><i class="fas fa-edit" inert></i></a>
+          <a data-action="hatsuRemove" data-item-id="{{ id }}" data-tooltip="Remover"><i class="fas fa-trash" inert></i></a>
+        </div>
+      </div>
+      {{/inline}}
+
+      {{#if slot.hasTecnicas}}
+      <div class="hatsu-tecnicas-cols">
+        <div class="hatsu-tecnicas-col hatsu-tecnicas-col-grau">
+          {{#each slot.tecnicasGrau as |tec|}}{{> hatsuMoldeTecChip tec}}{{/each}}
+        </div>
+        <div class="hatsu-tecnicas-col hatsu-tecnicas-col-aux">
+          {{#each slot.tecnicasAux as |tec|}}{{> hatsuMoldeTecChip tec}}{{/each}}
         </div>
       </div>
       {{else}}
       <span class="hatsu-tecnicas-empty-hint">Arraste uma técnica ou clique no +</span>
-      {{/each}}
+      {{/if}}
+
       <a class="hatsu-tecnica-add-chip" data-action="hatsuCreateTecnica" data-slot="{{ slot.id }}"
          data-tooltip="Criar técnica">
         <i class="fas fa-plus" inert></i>

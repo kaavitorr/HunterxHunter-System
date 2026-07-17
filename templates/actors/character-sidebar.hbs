@@ -500,37 +500,38 @@
         {{!-- Botões de poder (apenas os pinados aparecem aqui) --}}
         {{> "systems/hunter-system/templates/actors/parts/jj-power-buttons.hbs" showPin=false }}
 
-        {{!-- Seis Olhos — aparece se o item Seis Olhos estiver na ficha --}}
-        {{#if seisOlhos}}
-        <filigree-box class="jj-seis-olhos-box">
-            <h3 class="jj-seis-olhos-header">
-                <i class="fas fa-eye" inert></i>
-                <span>Seis Olhos</span>
-            </h3>
-            <div class="jj-seis-olhos-options">
-                <label class="jj-seis-olhos-option {{#if (eq seisOlhosMode 'sealed')}}active{{/if}}">
-                    <input type="radio" name="flags.hunter-system.seisOlhosMode" value="sealed"
-                           {{#if (eq seisOlhosMode 'sealed')}}checked{{/if}}>
-                    <div class="jj-seis-olhos-btn">
-                        <i class="fas fa-eye-slash" inert></i>
-                        <span>Selado</span>
-                    </div>
-                </label>
-                <label class="jj-seis-olhos-option {{#if (eq seisOlhosMode 'full')}}active{{/if}}">
-                    <input type="radio" name="flags.hunter-system.seisOlhosMode" value="full"
-                           {{#if (eq seisOlhosMode 'full')}}checked{{/if}}>
-                    <div class="jj-seis-olhos-btn">
-                        <i class="fas fa-eye" inert></i>
-                        <span>Poder Completo</span>
-                    </div>
-                </label>
+        {{!-- En — ativação da zona de aura (só aparece se a aplicação avançada "En" estiver desbloqueada) --}}
+        {{#if en}}
+        <div class="jj-habilidades-row">
+          <div class="jj-nen-panel jj-en-box {{#if en.ativo}}is-ativo{{/if}}" data-kanji="円">
+            <div class="jj-en-title">
+                <span class="jj-en-kanji">円</span>
+                <span>En</span>
+                {{#if en.ativo}}<span class="jj-en-live">ativo</span>{{/if}}
             </div>
-            {{#if (eq seisOlhosMode 'full')}}
-            <div class="jj-seis-olhos-warning">
-                <i class="fas fa-skull" inert></i> 2d8 dano psíquico no início do turno
+            {{#if en.ativo}}
+            <div class="jj-en-status">
+                {{#if (eq en.modo "terco")}}{{ en.areaTerco }}m — ⅓ do alcance · sem custo{{else}}{{ en.areaFull }}m · 2 PA/turno{{/if}}
+            </div>
+            <div class="jj-en-row">
+                <button type="button" class="jj-en-btn is-off" data-action="enDeactivate">
+                    <i class="fas fa-power-off" inert></i> Desativar
+                </button>
+            </div>
+            {{else}}
+            <div class="jj-en-row">
+                <button type="button" class="jj-en-btn" data-action="enActivate" data-mode="total"
+                        data-tooltip="Zona de {{ en.areaFull }}m — custa 2 PA na ativação e por turno">
+                    Ativar · {{ en.areaFull }}m
+                </button>
+                <button type="button" class="jj-en-btn is-ghost" data-action="enActivate" data-mode="terco"
+                        data-tooltip="Zona reduzida a ⅓ ({{ en.areaTerco }}m) — não gasta aura">
+                    ⅓ · {{ en.areaTerco }}m
+                </button>
             </div>
             {{/if}}
-        </filigree-box>
+          </div>
+        </div>
         {{/if}}
 
     </div>

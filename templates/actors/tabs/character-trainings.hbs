@@ -66,10 +66,15 @@
           <input type="number" name="system.curseResources.trainingPoints"
             value="{{nenTrainingPoints}}" min="0" />
         </div>
-        <div class="nen-pt-field income">
+        <div class="nen-pt-field income {{#unless nenIsGM}}readonly{{/unless}}"
+             {{#unless nenIsGM}}data-tooltip="Concedido pelo narrador — só ele edita."{{/unless}}>
           <label>PT Narrador</label>
+          {{#if nenIsGM}}
           <input type="number" name="system.curseResources.narratorTrainingPoints"
             value="{{nenNarratorTrainingPoints}}" min="0" />
+          {{else}}
+          <input type="number" value="{{nenNarratorTrainingPoints}}" disabled />
+          {{/if}}
         </div>
         <div class="nen-pt-field outflow readonly" data-tooltip="Calculado automaticamente pelas rolagens de treino — não é editável.">
           <label>PT Perdidos</label>

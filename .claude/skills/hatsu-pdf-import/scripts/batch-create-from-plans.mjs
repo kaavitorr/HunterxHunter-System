@@ -131,15 +131,15 @@ function areaTemplate(t) {
   return { contiguous: false, stationary: false, units: t.areaUnits || "m", type: t.areaType, size: t.areaSize || "" };
 }
 
-// Best-effort guesses (2026-07-02), unverified against Foundry's actual core icon set — flag
-// to the user if any of these show as a broken image and swap for a confirmed path.
+// Per-category molde icons — the system's own art in assets/Categorias/*-mini.png (user-provided
+// 2026-07, replacing the earlier best-effort core-icon guesses).
 const CATEGORY_ICONS = {
-  "Aprimoramento": "icons/skills/melee/strike-hammer-destructive-blue.webp",
-  "Emissão": "icons/magic/light/projectile-smoke-blue.webp",
-  "Conjuração": "icons/magic/symbols/runes-star-pentagon-blue.webp",
-  "Transmutação": "icons/magic/nature/leaf-glow-green.webp",
-  "Manipulação": "icons/magic/control/hand-open-fire-blue.webp",
-  "Especialização": "icons/magic/symbols/question-stone-yellow.webp"
+  "Aprimoramento": "systems/hunter-system/assets/Categorias/apri-mini.png",
+  "Emissão": "systems/hunter-system/assets/Categorias/emi-mini.png",
+  "Conjuração": "systems/hunter-system/assets/Categorias/conj-mini.png",
+  "Transmutação": "systems/hunter-system/assets/Categorias/transmini.png",
+  "Manipulação": "systems/hunter-system/assets/Categorias/mani-mini.png",
+  "Especialização": "systems/hunter-system/assets/Categorias/esp-mini.png"
 };
 const DEFAULT_ICON = "icons/skills/melee/strike-hammer-destructive-blue.webp";
 
@@ -174,7 +174,10 @@ function buildActivity(id, t) {
 
   if (kind === "attack") {
     base.type = "attack";
-    base.attack = { critical: { threshold: null }, flat: false, type: { value: "", classification: "" }, ability: "spellcasting", bonus: "" };
+    // critThreshold = the crit RANGE as its lower bound number (18-20 → 18, 19-20 → 19); null = normal (20 only).
+    // criticalBonus = EXTRA damage dice ON a crit (a formula like "6d10"), NOT the crit range — never put
+    // "18-20"/"margem de acerto crítico" text here or it corrupts the field / crashes the roll parser.
+    base.attack = { critical: { threshold: t.critThreshold ?? null }, flat: false, type: { value: "", classification: "" }, ability: "spellcasting", bonus: "" };
     base.damage = { critical: { bonus: t.criticalBonus || "" }, includeBase: true, parts: partsFromPlan(t.damageParts) };
   } else if (kind === "save") {
     base.type = "save";

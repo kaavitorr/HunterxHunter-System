@@ -21,6 +21,18 @@ in the summary for the user to check.
     (attack roll + damage). This system's convention is that attack-roll damage uses d10/d12 —
     it's a real signal, not a coincidence of the two examples read so far (Soco de Gratidão
     12d10, Black Cloud 2d10, Mão Zero 34d10 — all attack type, all d10).
+    - **Crit range vs. crit bonus damage — two different fields, do not mix them up.** A PDF's
+      "margem de acerto crítico 18-20" is the crit *range*: it goes in `critThreshold` as the
+      **lower-bound number** (18-20 → `18`, 19-20 → `19`; omit for a normal 20-only crit). A
+      PDF's "causa N dados de dano adicionais em um crítico" is *bonus crit damage*: it goes in
+      `criticalBonus` as a **dice formula** matching the base die (e.g. "6 dados adicionais" on a
+      d10 base → `"6d10"`). A técnica can have one, both, or neither. **Never** put the range text
+      ("18-20", "margem de acerto crítico 18-20") into `criticalBonus` — that was a real import
+      bug (12 técnicas): the letters crash Foundry's roll parser ("d" of "de"), and even a bare
+      "18-20"/"19" silently corrupts the crit-damage math while leaving the crit range wrong. If
+      the crit range is *conditional* (e.g. "18-20 apenas com a arma Tac-50"), leave
+      `critThreshold` unset and keep the condition in the description — a static threshold can't
+      express a weapon-dependent range.
   - **A saving throw gates the damage itself** (e.g. "a criatura recebe Xd_ de dano, ou metade
     em caso de sucesso em uma Salvaguarda de \_") → `type: "save"`, with `damage.parts` set and
     `save.ability`/`save.dc` configured.

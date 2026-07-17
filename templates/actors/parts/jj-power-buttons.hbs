@@ -7,7 +7,7 @@
 {{#if expDef.show}}
 {{#if (or showPin pinSidebar.expDef)}}
 <div class="jj-habilidades-row">
-  <filigree-box class="jj-expdef-box">
+  <div class="jj-nen-panel jj-expdef-box" data-kanji="練">
     {{#if showPin}}
     <button type="button" class="jj-power-pin {{#if pinSidebar.expDef}}pinned{{/if}}"
             data-action="jj-toggle-pin" data-pin="expDef"
@@ -15,10 +15,10 @@
       <i class="fas fa-thumbtack" inert></i>
     </button>
     {{/if}}
-    <h3 class="jj-expdef-header">
+    <div class="jj-expdef-header">
       <i class="fas fa-shield-halved" inert></i>
       <span>Explosão Defensiva</span>
-    </h3>
+    </div>
     <div class="jj-expdef-btn-wrap">
       <button type="button" class="jj-expdef-trigger-btn" data-action="jj-expdef-trigger"
               data-actor-id="{{ actor.id }}"
@@ -26,7 +26,7 @@
         <span>Redução</span>
       </button>
     </div>
-  </filigree-box>
+  </div>
 </div>
 {{/if}}
 {{/if}}
@@ -35,7 +35,7 @@
 {{#if estagioFoco.show}}
 {{#if (or showPin pinSidebar.estagio)}}
 <div class="jj-habilidades-row">
-  <filigree-box class="jj-estagio-box">
+  <div class="jj-nen-panel jj-estagio-box" data-kanji="硬">
     {{#if showPin}}
     <button type="button" class="jj-power-pin {{#if pinSidebar.estagio}}pinned{{/if}}"
             data-action="jj-toggle-pin" data-pin="estagio"
@@ -56,7 +56,7 @@
         <span>{{#if estagioFoco.ativo}}Ativo{{else}}Ativar{{/if}}</span>
       </button>
     </div>
-  </filigree-box>
+  </div>
 </div>
 {{/if}}
 {{/if}}
@@ -65,7 +65,7 @@
 {{#if foco.show}}
 {{#if (or showPin foco.anyPinned)}}
 <div class="jj-habilidades-row">
-  <filigree-box class="jj-foco-combo-box">
+  <div class="jj-nen-panel jj-foco-combo-box" data-kanji="凝">
 
     {{!-- Header dividido --}}
     <div class="jj-foco-combo-header">
@@ -135,7 +135,7 @@
       {{/if}}
     </div>
 
-  </filigree-box>
+  </div>
 </div>
 {{/if}}
 {{/if}}

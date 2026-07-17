@@ -1,186 +1,178 @@
-<section class="tab {{ tab.cssClass }}" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
+<section class="tab {{ tab.cssClass }} jj-details-tab" data-tab="{{ tab.id }}" data-group="{{ tab.group }}">
 
-    {{!-- Skills & Tools --}}
-    <div class="left">
+    {{!-- Topo: Salvaguardas (ocupa as 2 linhas) | Categoria/Caminho | Espécie/Origem --}}
+    <div class="jj-details-top">
 
-        {{!-- Skills --}}
-        <filigree-box class="skills">
+        {{!-- Salvaguardas --}}
+        <div class="saves jj-area-saves jj-nen-panel" data-kanji="守">
             <h3>
-                <i class="fas fa-briefcase" inert></i>
-                <span class="roboto-upper">{{ localize "DND5E.Skills" }}</span>
+                <i class="fas fa-shield-heart" inert></i>
+                <span class="roboto-upper">{{ localize "DND5E.ClassSaves" }}</span>
             </h3>
             <ul>
-  {{#each skills}}
-  {{#if this.isSeparator}}
-  <li class="skill-separator">{{ this.label }}</li>
-  {{else}}
-  {{> ".skill-prof" path=(concat "system.skills." key) config="DND5E.SkillConfigure"
-      type="skill" hasPassive=true roll="skill-name" }}
-  {{/if}}
-  {{/each}}
-</ul>
-        </filigree-box>
-
-        {{!-- Tools --}}
-        <filigree-box class="tools">
-            {{#if editable}}
-            <button type="button" class="trait-selector config-button unbutton" data-action="showConfiguration"
-                    data-trait="tool"
-                    data-tooltip="{{ localize 'DND5E.TraitConfig' trait=(localize 'DND5E.TraitToolProf') }}"
-                    aria-label="{{ localize 'DND5E.TraitConfig' trait=(localize 'DND5E.TraitToolProf') }}">
-                <i class="fas fa-cog" inert></i>
-            </button>
-            {{/if}}
-            <h3>
-                <i class="fas fa-hammer" inert></i>
-                <span class="roboto-upper">{{ localize "TYPES.Item.toolPl" }}</span>
-            </h3>
-            <ul>
-                {{#each tools}}
-                {{> ".skill-prof" path=(concat "system.tools." key) config="DND5E.ToolConfigure"
-                    type="tool" hasPassive=false roll="tool-name" }}
+                {{#each saves}}
+                {{> ".ability-prof" path=(concat "system.abilities." @key)
+                    config=(localize "DND5E.AbilityConfigure" ability=label) }}
                 {{/each}}
             </ul>
-        </filigree-box>
+        </div>
+
+        {{!-- Categoria (classe) — level up pelo select .level-selector (listener da ficha toda) --}}
+        <div class="pills-lg classes jj-area-categoria">
+            {{#each classes as |cls|}}
+            {{#if (eq cls.type "class")}}
+            {{#dnd5e-itemContext cls as |ctx|}}
+            <div class="class pill-lg texture" data-item-id="{{ cls.id }}" style="--underlay: url('{{ ctx.prefixedImage }}');">
+                <img class="draggable gold-icon item-tooltip" src="{{ cls.img }}" alt="{{ cls.name }}"
+                     data-action="showDocument" data-uuid="{{ cls.uuid }}" data-item-id="{{ cls.id }}">
+                <div class="name name-stacked">
+                    <span class="title">{{ cls.name }}</span>
+                    <span class="subtitle">Categoria</span>
+                </div>
+                <div class="level">
+                    {{#if @root.editable}}
+                    <select class="level-selector">
+                        {{ selectOptions ctx.availableLevels selected=0 }}
+                    </select>
+                    {{else}}
+                    <span>{{ cls.system.levels }}</span>
+                    {{/if}}
+                </div>
+                {{#if @root.editable}}
+                <button type="button" class="deletion-control unbutton" data-action="deleteDocument"
+                        data-item-id="{{ cls.id }}" data-uuid="{{ cls.uuid }}"
+                        data-tooltip="DND5E.ItemDelete" aria-label="{{ localize 'DND5E.ItemDelete' }}"
+                        data-tooltip-class data-tooltip-direction>
+                    <i class="fas fa-trash" inert></i>
+                </button>
+                {{/if}}
+            </div>
+            {{/dnd5e-itemContext}}
+            {{/if}}
+            {{/each}}
+            {{#if showClassDrop}}
+            <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="class">
+                {{ localize "DND5E.ClassAdd" }}
+            </div>
+            {{/if}}
+        </div>
+
+        {{!-- Espécie --}}
+        <div class="pills-lg jj-area-especie">
+            {{#if species}}
+            <div class="draggable pill-lg item-tooltip" data-action="showDocument"
+                 data-item-id="{{ species.id }}" data-uuid="{{ species.uuid }}"
+                 aria-label="{{ localize (ifThen actor.isOwner 'DND5E.ItemEdit' 'DND5E.ItemView') }}">
+                {{#if species.img}}
+                <img class="gold-icon" src="{{ species.img }}" alt="{{ species.name }}">
+                {{/if}}
+                <div class="name name-stacked">
+                    <span class="title">{{ species.name }}</span>
+                    {{#if editable}}
+                    <select class="actor-size unselect" name="system.traits.size">
+                        {{ selectOptions CONFIG.actorSizes selected=source.traits.size labelAttr="label" }}
+                    </select>
+                    {{else}}
+                    <span class="subtitle">{{ labels.size }}</span>
+                    {{/if}}
+                </div>
+                {{#if editable}}
+                <button type="button" class="config-button unbutton" data-action="deleteDocument"
+                        data-tooltip="DND5E.ItemDelete" aria-label="{{ localize 'DND5E.ItemDelete' }}"
+                        data-tooltip-class data-tooltip-direction>
+                    <i class="fas fa-trash" inert></i>
+                </button>
+                {{/if}}
+            </div>
+            {{else if actor.isOwner}}
+            <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="race">
+                {{ localize "DND5E.Species.Add" }}
+            </div>
+            {{/if}}
+        </div>
+
+        {{!-- Caminho (subclasse) --}}
+        <div class="pills-lg classes jj-area-caminho">
+            {{#each classes as |cls|}}
+            {{#if (eq cls.type "class")}}
+            {{#dnd5e-itemContext cls as |ctx|}}
+            {{#if cls.subclass}}
+            <div class="draggable pill-lg item-tooltip" data-action="showDocument"
+                 data-item-id="{{ cls.subclass.id }}" data-uuid="{{ cls.subclass.uuid }}"
+                 aria-label="{{ localize (ifThen @root.actor.isOwner 'DND5E.ItemEdit' 'DND5E.ItemView') }}">
+                {{#if cls.subclass.img}}
+                <img class="gold-icon" src="{{ cls.subclass.img }}" alt="{{ cls.subclass.name }}">
+                {{/if}}
+                <div class="name name-stacked">
+                    <span class="title">{{ cls.subclass.name }}</span>
+                    <span class="subtitle">Caminho</span>
+                </div>
+                {{#if @root.editable}}
+                <button type="button" class="deletion-control unbutton" data-action="deleteDocument"
+                        data-item-id="{{ cls.subclass.id }}" data-uuid="{{ cls.subclass.uuid }}"
+                        data-tooltip="DND5E.ItemDelete" aria-label="{{ localize 'DND5E.ItemDelete' }}"
+                        data-tooltip-class data-tooltip-direction>
+                    <i class="fas fa-trash" inert></i>
+                </button>
+                {{/if}}
+            </div>
+            {{else if ctx.needsSubclass}}
+            <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="subclass"
+                 data-class-identifier="{{ cls.identifier }}">
+                {{ localize "DND5E.SubclassAdd" }}
+            </div>
+            {{/if}}
+            {{/dnd5e-itemContext}}
+            {{/if}}
+            {{/each}}
+        </div>
+
+        {{!-- Origem (antecedente) --}}
+        <div class="pills-lg jj-area-origem">
+            {{#if background}}
+            <div class="draggable pill-lg item-tooltip" data-action="showDocument"
+                 data-item-id="{{ background.id }}" data-uuid="{{ background.uuid }}"
+                 aria-label="{{ localize (ifThen actor.isOwner DND5E.ItemEdit DND5E.ItemView) }}">
+                {{#if background.img}}
+                <img class="gold-icon" src="{{ background.img }}" alt="{{ background.name }}">
+                {{/if}}
+                <div class="name name-stacked">
+                    <span class="title">{{ background.name }}</span>
+                </div>
+                {{#if editable}}
+                <button type="button" class="config-button unbutton" data-action="deleteDocument"
+                        data-tooltip="DND5E.ItemDelete" aria-label="{{ localize 'DND5E.ItemDelete' }}"
+                        data-tooltip-class data-tooltip-direction>
+                    <i class="fas fa-trash" inert></i>
+                </button>
+                {{/if}}
+            </div>
+            {{else if actor.isOwner}}
+            <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="background">
+                {{ localize "DND5E.BackgroundAdd" }}
+            </div>
+            {{/if}}
+        </div>
 
     </div>
 
-    {{!-- Background, Saving Throws, Proficiencies, & Senses --}}
-    <div class="right">
-
-        {{!-- Background & Saving Throws --}}
-        <div class="top flexrow">
-
-            {{!-- Saving Throws --}}
-            <filigree-box class="saves">
-                <h3>
-                    <i class="fas fa-shield-heart" inert></i>
-                    <span class="roboto-upper">{{ localize "DND5E.ClassSaves" }}</span>
-                </h3>
-                <ul>
-                    {{#each saves}}
-                    {{> ".ability-prof" path=(concat "system.abilities." @key)
-                        config=(localize "DND5E.AbilityConfigure" ability=label) }}
-                    {{/each}}
-                </ul>
-            </filigree-box>
-
-            {{!-- Background --}}
-            <div class="pills-lg">
-                {{#with creatureType}}
-                <div class="pill-lg texture type" {{#if reference}}data-reference-tooltip="{{ reference }}"{{/if}}>
-                    <div class="gold-icon creature-type {{ class }}" style="background-image: url('{{ icon }}');"></div>
-                    <div class="name name-stacked">
-                        <span class="title">
-                            {{ localize title }}
-                        </span>
-                        <span class="subtitle">{{ subtitle }}</span>
-                    </div>
-                    {{#if (and @root.editable @root.species)}}
-                    <button type="button" class="config-button unbutton" data-action="showConfiguration"
-                            data-config="creatureType" data-tooltip="DND5E.CreatureTypeConfig"
-                            aria-label="{{ localize 'DND5E.CreatureTypeConfig' }}">
-                        <i class="fas fa-cog" inert></i>
-                    </button>
-                    {{/if}}
-                </div>
-                {{/with}}
-                {{#if species}}
-                <div class="draggable pill-lg texture race item-tooltip" data-action="showDocument"
-                     data-item-id="{{ species.id }}" data-uuid="{{ species.uuid }}"
-                     aria-label="{{ localize (ifThen actor.isOwner 'DND5E.ItemEdit' 'DND5E.ItemView') }}">
-                    {{#if species.img}}
-                    <img class="gold-icon" src="{{ species.img }}" alt="{{ species.name }}">
-                    {{/if}}
-                    <div class="name name-stacked">
-                        <span class="title">{{ species.name }}</span>
-                        {{#if editable}}
-                        <select class="actor-size unselect" name="system.traits.size">
-                            {{ selectOptions CONFIG.actorSizes selected=source.traits.size labelAttr="label" }}
-                        </select>
-                        {{else}}
-                        <span class="subtitle">{{ labels.size }}</span>
-                        {{/if}}
-                    </div>
-                    {{#if editable}}
-                    <button type="button" class="config-button unbutton" data-action="deleteDocument"
-                            data-tooltip="DND5E.ItemDelete" aria-label="{{ localize 'DND5E.ItemDelete' }}"
-                            data-tooltip-class data-tooltip-direction>
-                        <i class="fas fa-trash" inert></i>
-                    </button>
-                    {{/if}}
-                </div>
-                {{else if actor.isOwner}}
-                <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="race">
-                    {{ localize "DND5E.Species.Add" }}
-                </div>
-                {{/if}}
-                {{#if background}}
-                <div class="draggable pill-lg texture background item-tooltip" data-action="showDocument"
-                     data-item-id="{{ background.id }}" data-uuid="{{ background.uuid }}"
-                     aria-label="{{ localize (ifThen actor.isOwner DND5E.ItemEdit DND5E.ItemView) }}">
-                    {{#if background.img}}
-                    <img class="gold-icon" src="{{ background.img }}" alt="{{ background.name }}">
-                    {{/if}}
-                    <div class="name name-stacked">
-                        <span class="title">{{ background.name }}</span>
-                    </div>
-                    {{#if editable}}
-                    <button type="button" class="config-button unbutton" data-action="deleteDocument"
-                            data-tooltip="DND5E.ItemDelete" aria-label="{{ localize 'DND5E.ItemDelete' }}"
-                            data-tooltip-class data-tooltip-direction>
-                        <i class="fas fa-trash" inert></i>
-                    </button>
-                    {{/if}}
-                </div>
-                {{else if actor.isOwner}}
-                <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="background">
-                    {{ localize "DND5E.BackgroundAdd" }}
-                </div>
-                {{/if}}
-            </div>
-
-        </div>
-
-        {{!-- Senses --}}
-        {{#if (or editable senses)}}
-        {{> "dnd5e.actor-trait-pills" values=senses key="senses" icon="fas fa-eye"
-            label="DND5E.Senses" configAction="senses" }}
-        {{/if}}
-
-        {{!-- Resistances --}}
-        {{> "dnd5e.actor-trait-pills" values=traits.dr key="dr" color="green" icon="fas fa-shield-halved"
-            label="DND5E.Resistances" }}
-
-        {{!-- Immunities --}}
-        {{#if editable}}
-            {{> "dnd5e.actor-trait-pills" values=traits.di key="di" color="green" icon="fas fa-shield"
-                label="DND5E.DamImm" }}
-        {{else}}
-            {{> "dnd5e.actor-trait-pills" values=traits.di key="di" color="green" icon="fas fa-shield"
-                label="DND5E.Immunities" }}
-        {{/if}}
-        {{> "dnd5e.actor-trait-pills" values=traits.ci key="ci" color="green" svg="rosa-shield" label="DND5E.ConImm" }}
-
-        {{!-- Vulnerabilities --}}
-        {{> "dnd5e.actor-trait-pills" values=traits.dv key="dv" color="maroon" icon="fas fa-heart-crack"
-            label="DND5E.Vulnerabilities" }}
-
-        {{!-- Damage Modification --}}
-        {{> "dnd5e.actor-trait-pills" values=traits.dm key="dm" icon="fas fa-heart-circle-plus"
-            label="DND5E.DamageModification.Label" }}
-
-        {{!-- Armor --}}
-        {{> "dnd5e.actor-trait-pills" values=traits.armor key="armor" svg="checked-shield" label="DND5E.Armor" }}
-
-        {{!-- Weapons --}}
-        {{> "dnd5e.actor-trait-pills" values=traits.weapon key="weapon" svg="trait-weapon-proficiencies"
-            label="TYPES.Item.weaponPl" }}
-
-        {{!-- Languages --}}
-        {{> "dnd5e.actor-trait-pills" values=traits.languages key="languages" icon="fas fa-flag"
-            label="DND5E.Languages" }}
-
+    {{!-- Perícias — full-width abaixo do topo; 2 colunas via CSS multicol
+         (o <ul> precisa ser filho direto do painel pro estilo de item do dnd5e valer) --}}
+    <div class="skills jj-skills-top jj-nen-panel" data-kanji="技">
+        <h3>
+            <i class="fas fa-briefcase" inert></i>
+            <span class="roboto-upper">{{ localize "DND5E.Skills" }}</span>
+        </h3>
+        <ul>
+            {{#each skills}}
+            {{#if this.isSeparator}}
+            <li class="skill-separator sep-{{ this.sepKey }}{{#if this.colBreak}} col-break{{/if}}">{{ this.label }}</li>
+            {{else}}
+            {{> ".skill-prof" path=(concat "system.skills." key) config="DND5E.SkillConfigure"
+                type="skill" hasPassive=true roll="skill-name" }}
+            {{/if}}
+            {{/each}}
+        </ul>
     </div>
 </section>
 

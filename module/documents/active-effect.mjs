@@ -631,7 +631,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
   _onUpdate(data, options, userId) {
     super._onUpdate(data, options, userId);
     const originalLevel = foundry.utils.getProperty(options, "dnd5e.originalExhaustion");
-    const newLevel = foundry.utils.getProperty(data, "flags.HunterLegacy.exhaustionLevel");
+    const newLevel = foundry.utils.getProperty(data, "flags.hunter-system.exhaustionLevel");
     const originalEncumbrance = foundry.utils.getProperty(options, "dnd5e.originalEncumbrance");
     const newEncumbrance = data.statuses?.[0];
     const name = this.name;

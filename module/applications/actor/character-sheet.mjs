@@ -5,7 +5,7 @@ import { EnergySystem } from "../../systems/energy.mjs";
 import CompendiumBrowser from "../compendium-browser.mjs";
 import ContextMenu5e from "../context-menu.mjs";
 import BaseActorSheet from "./api/base-actor-sheet.mjs";
-import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, prepareTrainings, canUnlockAbility, MANIPULATION_ABILITIES, PRINCIPLES_DATA, getAvailableTrainingPoints } from "../../systems/manipulation-data.mjs";
+import { prepareManipulationAbilities, preparePrinciples, TREE_DATA, prepareTrainings, canUnlockAbility, MANIPULATION_ABILITIES, PRINCIPLES_DATA, getAvailableTrainingPoints, ABILITY_ACTIVE_EFFECTS, enAreaMeters, grantLinkedTechniques, normalizeTechniqueName } from "../../systems/manipulation-data.mjs";
 import { CAMINHO_OBJETIVOS, CAMINHO_MEIOS, getCaminho } from "../../systems/caminhos.mjs";
 import { getBioTalentos, getBioDefeitos, isDefeitoItem, norm as bioNorm } from "../../systems/bio-items.mjs";
 import { NEN_CATEGORIES_DATA, NEN_LEVEL_COSTS, NEN_AFFINITY, getMaxLevelForCategory, getUnlockedMinorAbilities, getAvailableMajorAbilities, NEN_HYBRIDS, NEN_HYBRID_OPTIONS_BY_PRIMARY, getHybridSecondary } from "../../systems/nen-categories-data.mjs";
@@ -20,6 +20,7 @@ import { renderSacrificeHud } from "./jj/combat-sacrifice-hud.mjs";
 import "./jj/gm-resource-hud.mjs";   // HUD do Narrador — mesmo caminho de carga dos outros widgets jj
 import { reducaoDoGigante } from "./jj/categoria-aprimorador.mjs";   // regras automáticas do Aprimorador (nv 3/6)
 import "./jj/categoria-manipulador.mjs";                              // Aura Controlada (Manipulador nv 2/5/8) — hooks próprios
+import { activateEn, deactivateEn } from "./jj/en-aura.mjs";          // Automação do En (zona no token + dreno de PA) — registra hooks
 import { condicaoDe, injetarBotaoCondicao, rolarSalvaguardaCondicao } from "../../systems/condicao-atividade.mjs"; // Condição no Alvo
 import "./jj/heal-limit.mjs";
 import { chooseJJScale, applyScaleChoice, promptJJScale } from "./jj/jj-scale.mjs";
@@ -474,23 +475,41 @@ export default class CharacterActorSheet extends BaseActorSheet {
       else if ( key in CONFIG.DND5E.tools ) entry.reference = Trait.getBaseItemUUID(CONFIG.DND5E.tools[key].id ?? "");
     }
 
-    // Ordenar skills por atributo e adicionar separadores
+    // Ordenar skills por atributo (com separadores) e dividir em 2 colunas — metade dos
+    // grupos de atributo em cada (5 grupos ativos → 3+2; com CON vira 3+3).
 const abilityOrder = ["str", "dex", "con", "int", "wis", "cha"];
 const abilityLabels = {
   str: "Força", dex: "Agilidade", con: "Constituição",
   int: "Espírito", wis: "Sabedoria", cha: "Presença"
 };
-const skillsSorted = [];
+const skillGroups = [];
 for ( const ab of abilityOrder ) {
   const group = context.skills.filter(s => (s.baseAbility ?? s.ability) === ab);
   if ( !group.length ) continue;
-  skillsSorted.push({ isSeparator: true, label: abilityLabels[ab] });
-  skillsSorted.push(...group);
+  skillGroups.push([{ isSeparator: true, label: abilityLabels[ab], sepKey: ab }, ...group]);
 }
-context.skills = skillsSorted;
+// Marca onde a 2ª coluna começa (metade dos grupos) — o CSS força a quebra ali.
+const metade = Math.ceil(skillGroups.length / 2);
+if ( skillGroups[metade] ) skillGroups[metade][0].colBreak = true;
+context.skills = skillGroups.flat();
     
     // Traits
     context.traits = this._prepareTraits(context);
+
+    // Categoria (classe) + Caminho (subclasse) — pills movidas da aba Características.
+    // Espelha o prep de _prepareFeaturesContext (needsSubclass via getter cls.subclass).
+    context.classes = (context.itemCategories.classes ?? [])
+      .sort((lhs, rhs) => rhs.system.levels - lhs.system.levels);
+    for ( const cls of context.classes ) {
+      const ctx = context.itemContext[cls.id] ??= {};
+      if ( !cls.subclass ) {
+        const subclassAdvancement = cls.advancement.byType.Subclass?.[0];
+        if ( subclassAdvancement && (subclassAdvancement.level <= cls.system.levels) ) ctx.needsSubclass = true;
+      }
+    }
+    // Hunter é classe única: o "Adicionar Classe" só aparece se a ficha ainda não tem nenhuma
+    // (no dnd5e ele ficava sempre visível em modo edição, por causa de multiclasse).
+    context.showClassDrop = !context.classes.length;
 
     return context;
   }
@@ -703,6 +722,21 @@ const armor = this.actor.system.armorPoints;
 context.armorPct = armor?.max > 0 ? ((armor.value / armor.max) * 100).toFixed(2) : 0;
 
 context.primaryCategoryColor = this._getPrimaryNenCategory()?.color ?? "#828892";
+
+    // En — caixa de ativação na sidebar (só se a aplicação avançada "En" estiver desbloqueada).
+    // O En destrava como PRINCÍPIO (hub da roda → principles.en); o fallback em abilities.en
+    // cobre o card do grid antigo.
+    const enUnlocked = this.actor.system.manipulation?.principles?.en?.unlocked
+      || this.actor.system.manipulation?.abilities?.en?.unlocked;
+    if ( enUnlocked ) {
+      const enFull = enAreaMeters(this.actor);
+      context.en = {
+        ativo: !!this.actor.getFlag("hunter-system", "enAtivo"),
+        modo: this.actor.getFlag("hunter-system", "enModo") ?? "total",
+        areaFull: enFull,
+        areaTerco: Math.max(1, Math.round(enFull / 3))
+      };
+    }
     for ( const deathSave of ["success", "failure"] ) {
       context.death[deathSave] = [];
       for ( let i = 1; i < 4; i++ ) {
@@ -1315,14 +1349,6 @@ new foundry.applications.ux.ContextMenu.implementation(
       });
     });
 
-    // Seis Olhos — listener nos radio buttons
-    this.element.querySelectorAll("input[name='flags.hunter-system.seisOlhosMode']")
-      .forEach(radio => radio.addEventListener("change", async (event) => {
-        const mode = event.target.value;
-        await this.actor.setFlag("hunter-system", "seisOlhosMode", mode);
-        await _applySeiOlhosEffects(this.actor, mode);
-      }));
-
     // Formatar inputs de Yen com pontuação (ex: 5000 → 5.000)
     const _formatYen = val => {
       const num = parseInt(String(val).replace(/\D/g, "")) || 0;
@@ -1922,7 +1948,9 @@ new foundry.applications.ux.ContextMenu.implementation(
               reference: ab.reference ?? "",
               cost: ab.cost,
               unlocked: abStatus.unlocked ?? false,
-              canUnlock: abStatus.canUnlock ?? false
+              canUnlock: abStatus.canUnlock ?? false,
+              repeatable: abStatus.repeatable ?? false,
+              count: abStatus.count ?? 0
             };
           });
           const isMasterGrant = prStatus.isMasterGrant ?? false;
@@ -1946,10 +1974,12 @@ new foundry.applications.ux.ContextMenu.implementation(
         })
       }));
 
-      context.manipulation = { sections };
+      // Cor da categoria Nen primária — pinta os acentos da aba (roda, títulos, nós)
+      const categoryColor = this._getPrimaryNenCategory()?.color ?? "#c8a84b";
+      context.manipulation = { sections, categoryColor };
     } catch(err) {
       console.error("Hunter | Erro Manipulacao:", err);
-      context.manipulation = { sections: [] };
+      context.manipulation = { sections: [], categoryColor: "#c8a84b" };
     }
     return context;
   }
@@ -2511,7 +2541,7 @@ new foundry.applications.ux.ContextMenu.implementation(
     if ( cost > 0 ) {
       const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
       if ( cursePoints < cost ) {
-        ui.notifications.warn(`PM insuficientes! Precisa de ${cost} PM.`);
+        ui.notifications.warn(`PN insuficientes! Precisa de ${cost} PN.`);
         return;
       }
       await this.actor.update({
@@ -2548,7 +2578,8 @@ new foundry.applications.ux.ContextMenu.implementation(
     const def = MANIPULATION_ABILITIES[abilityId];
     if ( !def ) return;
 
-    if ( this.actor.system.manipulation?.abilities?.[abilityId]?.unlocked ) {
+    // Repetível (ex.: Expansão de Aura): não abre tooltip — deixa adquirir de novo.
+    if ( !def.repeatable && this.actor.system.manipulation?.abilities?.[abilityId]?.unlocked ) {
       const treeAb = this._findTreeEntry("ability", abilityId);
       return this._onDisplayNenTooltip({
         label: def.label,
@@ -2566,21 +2597,34 @@ new foundry.applications.ux.ContextMenu.implementation(
     const cost = def.cost ?? 0;
     const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
 
-    await this.actor.update({
-      [`system.manipulation.abilities.${abilityId}.unlocked`]: true,
+    // Escreve a entrada COMPLETA (não campo pontilhado): entradas antigas na fonte não têm
+    // count/dcReduction e updates parciais nelas eram descartados em silêncio pela validação.
+    // Escrever completo também migra a entrada antiga de graça.
+    const entryAtual = this.actor.system.manipulation?.abilities?.[abilityId] ?? {};
+    const novoCount = (entryAtual.count ?? 0) + (def.repeatable ? 1 : 0);
+    const updates = {
+      [`system.manipulation.abilities.${abilityId}`]: {
+        unlocked: true,
+        dcReduction: entryAtual.dcReduction ?? 0,
+        count: novoCount
+      },
       "system.manipulation.pointsInvested": (this.actor.system.manipulation?.pointsInvested ?? 0) + cost,
       "system.curseResources.cursePoints": Math.max(0, cursePoints - cost)
-    });
+    };
+    await this.actor.update(updates);
 
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      content: `🔓 <strong>${this.actor.name}</strong> desbloqueou: <strong>${def.label}</strong>!`
+      content: `🔓 <strong>${this.actor.name}</strong> desbloqueou: <strong>${def.label}</strong>${def.repeatable ? ` (×${novoCount})` : ""}!`
     });
 
     // Concessão de técnicas vinculadas
     if ( def.techniques?.length ) {
       await this._grantLinkedTechniques(def.techniques);
     }
+
+    // Active Effect vinculado (ex.: Fluxo Perfeito → margem de crítico 19-20)
+    await this._applyAbilityEffect(abilityId, true);
   }
 
 
@@ -2630,12 +2674,14 @@ new foundry.applications.ux.ContextMenu.implementation(
     const confirmed = await Dialog.confirm({
       title: "Desfazer Princípio",
       content: `<p>Desfazer <strong>${thisPr.label}</strong>?</p>`
-        + `<p style="font-size:11px;color:#aaa;margin-top:6px">Os PM gastos serão devolvidos.</p>`,
+        + `<p style="font-size:11px;color:#aaa;margin-top:6px">Os PN gastos serão devolvidos.</p>`,
       yes: () => true, no: () => false
     });
     if ( !confirmed ) return;
 
-    const cost = thisPr.cost ?? 0;
+    // Estorno pela MESMA fonte que o desbloqueio cobra (PRINCIPLES_DATA) — usar o custo
+    // da roda (TREE_DATA) aqui permitia farm de PN se as duas fontes divergissem.
+    const cost = PRINCIPLES_DATA[principleId]?.unlockRequires?.cost ?? thisPr.cost ?? 0;
     const updates = {
       [`system.manipulation.principles.${principleId}.unlocked`]: false,
       "system.manipulation.pointsInvested": Math.max(0, (this.actor.system.manipulation?.pointsInvested ?? 0) - cost)
@@ -2672,6 +2718,11 @@ new foundry.applications.ux.ContextMenu.implementation(
     const def = MANIPULATION_ABILITIES[abilityId];
     if ( !def ) return;
 
+    // Repetível: cada "desfazer" remove 1 aquisição; só sai de vez quando count chega a 0.
+    const currentCount = this.actor.system.manipulation?.abilities?.[abilityId]?.count ?? 0;
+    const newCount = def.repeatable ? Math.max(0, currentCount - 1) : 0;
+    const stillUnlocked = def.repeatable && newCount > 0;
+
     const unlockedAbilities = new Set(
       Object.entries(abilities).filter(([, v]) => v?.unlocked).map(([k]) => k)
     );
@@ -2689,18 +2740,19 @@ new foundry.applications.ux.ContextMenu.implementation(
       return (p.req?.ab ?? []).includes(abilityId);
     });
 
-    // Habilidades que listam esta no seu req[]
-    const blockerAbilities = Object.values(MANIPULATION_ABILITIES).filter(ab => {
-      if ( !unlockedAbilities.has(ab.id) ) return false;
-      return (ab.req ?? []).includes(abilityId);
-    });
+    // Habilidades desbloqueadas que exigem esta como pré-requisito.
+    // (Shape correto: a chave do objeto é o id e o pré-requisito mora em requires.abilities —
+    // a versão antiga lia ab.id/ab.req, que não existem, e nunca bloqueava nada.)
+    const blockerAbilities = Object.entries(MANIPULATION_ABILITIES)
+      .filter(([abId, ab]) => unlockedAbilities.has(abId) && (ab.requires?.abilities ?? []).includes(abilityId))
+      .map(([, ab]) => ab);
 
     const blockers = [
       ...blockerPrinciples.map(p => p.label),
       ...blockerAbilities.map(ab => ab.label)
     ];
 
-    if ( blockers.length > 0 ) {
+    if ( !stillUnlocked && blockers.length > 0 ) {
       ui.notifications.warn(
         `Não é possível desfazer "${def.label}" — desfaz primeiro: ${blockers.map(b => `"${b}"`).join(", ")}.`
       );
@@ -2710,19 +2762,28 @@ new foundry.applications.ux.ContextMenu.implementation(
     const confirmed = await Dialog.confirm({
       title: "Desfazer Habilidade",
       content: `<p>Desfazer <strong>${def.label}</strong>?</p>`
-        + `<p style="font-size:11px;color:#aaa;margin-top:6px">Os PM gastos serão devolvidos.</p>`,
+        + `<p style="font-size:11px;color:#aaa;margin-top:6px">Os PN gastos serão devolvidos.</p>`,
       yes: () => true, no: () => false
     });
     if ( !confirmed ) return;
 
     const cost = def.cost ?? 0;
-    await this.actor.update({
-      [`system.manipulation.abilities.${abilityId}.unlocked`]: false,
+    // Entrada COMPLETA (ver _onUnlockNenAbility): evita o descarte silencioso em entradas antigas.
+    const undoUpdates = {
+      [`system.manipulation.abilities.${abilityId}`]: {
+        unlocked: stillUnlocked,
+        dcReduction: this.actor.system.manipulation?.abilities?.[abilityId]?.dcReduction ?? 0,
+        count: newCount
+      },
       "system.manipulation.pointsInvested": Math.max(0, (this.actor.system.manipulation?.pointsInvested ?? 0) - cost),
       "system.curseResources.cursePoints": (this.actor.system.curseResources?.cursePoints ?? 0) + cost
-    });
+    };
+    await this.actor.update(undoUpdates);
 
-    ui.notifications.info(`Habilidade "${def.label}" desfeita.`);
+    // Remove o Active Effect vinculado só quando a habilidade sai de vez (ex.: Fluxo Perfeito)
+    if ( !stillUnlocked ) await this._applyAbilityEffect(abilityId, false);
+
+    ui.notifications.info(`Habilidade "${def.label}" desfeita${stillUnlocked ? ` (agora ×${newCount})` : ""}.`);
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `↩ <strong>${this.actor.name}</strong> desfez: <strong>${def.label}</strong>.`
@@ -2805,6 +2866,29 @@ new foundry.applications.ux.ContextMenu.implementation(
     } else {
       await ActiveEffect.create(effectData, { parent: this.actor });
     }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Cria/remove o Active Effect vinculado a uma habilidade de Nen (ver ABILITY_ACTIVE_EFFECTS).
+   * Chamado ao desbloquear (active=true) e ao desfazer (active=false). Idempotente.
+   */
+  async _applyAbilityEffect(abilityId, active) {
+    const def = ABILITY_ACTIVE_EFFECTS[abilityId];
+    if ( !def?.flags ) return;
+
+    // Limpeza: remove qualquer AE antigo desta habilidade (a versão anterior setava
+    // flags.HunterLegacy via ActiveEffect, o que corrompia a preparação de dados do ator).
+    const stale = this.actor.effects.filter(e => e.getFlag("hunter-system", "abilityEffect") === abilityId);
+    if ( stale.length ) await this.actor.deleteEmbeddedDocuments("ActiveEffect", stale.map(e => e.id));
+
+    // Aplica (ou remove) as flags direto no ator — sem AE.
+    const updates = {};
+    for ( const [path, value] of Object.entries(def.flags) ) {
+      updates[active ? path : path.replace(/\.([^.]+)$/, ".-=$1")] = active ? value : null;
+    }
+    if ( Object.keys(updates).length ) await this.actor.update(updates);
   }
 
   /* -------------------------------------------- */
@@ -3042,8 +3126,11 @@ new foundry.applications.ux.ContextMenu.implementation(
       for ( const t of tecnicasLite ) t.isVersatil = isVersatil;
       // Duas colunas dentro da manifestação: técnicas com Grau (>=1) à esquerda,
       // Auxiliares (grau 0) à direita.
-      const tecnicasGrau = tecnicasLite.filter(t => (t.grau ?? 0) >= 1);
-      const tecnicasAux  = tecnicasLite.filter(t => (t.grau ?? 0) === 0);
+      let tecnicasGrau = tecnicasLite.filter(t => (t.grau ?? 0) >= 1);
+      let tecnicasAux  = tecnicasLite.filter(t => (t.grau ?? 0) === 0);
+      // Sem técnicas de Grau (só Auxiliares): elas ocupam a coluna da esquerda para
+      // não flutuarem à direita numa manifestação Focada.
+      if ( !tecnicasGrau.length ) { tecnicasGrau = tecnicasAux; tecnicasAux = []; }
 
       return {
         ...def,
@@ -3124,10 +3211,25 @@ new foundry.applications.ux.ContextMenu.implementation(
 
     const tierLabels = { none: "—", otimo: "Ótimo", excelente: "Excelente", genial: "Genial", ultimato: "Ultimato" };
 
+    // Manipulações de Habilidade: lista de consulta na ficha. Ativa-se até `prof` por vez.
+    const manipLista = this.actor.getFlag("hunter-system", "manipulacoes") ?? [];
+    const manipLimite = this.actor.system.attributes?.prof ?? 2;
+    const manipAtivas = manipLista.filter(m => m.ativa).length;
+
     context.hatsu = {
       slots,
       categoryOptions: CATEGORIES,
       grauOptions,
+      manipulacoes: {
+        lista: manipLista.map(m => ({
+          id: m.id, nome: m.nome, duracao: m.duracao ?? "", requisito: m.requisito ?? "",
+          desc: m.desc ?? "", ativa: !!m.ativa,
+          // no limite, quem não está ativa fica bloqueada (não pode ligar mais)
+          bloqueada: !m.ativa && (manipAtivas >= manipLimite)
+        })),
+        ativas: manipAtivas,
+        limite: manipLimite
+      },
       name: this.actor.getFlag("hunter-system", "hatsuName") ?? "",
       proficiencia: {
         id: tier,
@@ -3261,6 +3363,134 @@ new foundry.applications.ux.ContextMenu.implementation(
     }], { parent: this.actor });
     const item = Array.isArray(created) ? created[0] : created;
     if ( item ) item.sheet?.render(true);
+  }
+
+  /* -------------------------------------------- */
+  /*  Manipulações de Habilidade                  */
+  /* -------------------------------------------- */
+
+  /** Editor (criar/editar) de uma Manipulação de Habilidade: nome + duração + requisito
+   *  + descrição (ProseMirror). Persiste em flags.hunter-system.manipulacoes. */
+  async _onManipEdit(id) {
+    const lista = this.actor.getFlag("hunter-system", "manipulacoes") ?? [];
+    const def = id ? lista.find(m => m.id === id) : null;
+    const editando = !!def;
+
+    const content = `
+      <div class="jj-manip-form" style="display:flex;flex-direction:column;gap:10px;min-width:460px;padding:4px 2px">
+        <div>
+          <label style="display:block;margin-bottom:4px;font-size:12px;color:#c8a84b">Nome</label>
+          <input type="text" name="manip-nome" value="${foundry.utils.escapeHTML(def?.nome ?? "")}"
+                 placeholder="Ex: Restrição de Alcance" style="width:100%">
+        </div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1">
+            <label style="display:block;margin-bottom:4px;font-size:12px;color:#c8a84b">Duração</label>
+            <input type="text" name="manip-duracao" value="${foundry.utils.escapeHTML(def?.duracao ?? "")}"
+                   placeholder="Ex: Até o fim do turno." style="width:100%">
+          </div>
+          <div style="flex:1">
+            <label style="display:block;margin-bottom:4px;font-size:12px;color:#c8a84b">Requisito</label>
+            <input type="text" name="manip-requisito" value="${foundry.utils.escapeHTML(def?.requisito ?? "")}"
+                   placeholder="Ex: Remote Punch" style="width:100%">
+          </div>
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:4px;font-size:12px;color:#c8a84b">Descrição</label>
+          <div class="manip-desc-mount" style="min-height:170px"></div>
+        </div>
+      </div>`;
+
+    const buttons = [{
+      action: "ok", label: editando ? "Salvar" : "Criar", default: true, icon: "fas fa-check",
+      callback: (event, button, dialog) => {
+        const el = dialog.element;
+        return {
+          nome: el.querySelector("[name='manip-nome']")?.value?.trim() ?? "",
+          duracao: el.querySelector("[name='manip-duracao']")?.value?.trim() ?? "",
+          requisito: el.querySelector("[name='manip-requisito']")?.value?.trim() ?? "",
+          desc: el.querySelector("prose-mirror[name='manip-desc']")?.value ?? ""
+        };
+      }
+    }];
+    if ( editando ) buttons.push({ action: "del", label: "Remover", icon: "fas fa-trash", callback: () => "DELETE" });
+    buttons.push({ action: "cancel", label: "Cancelar", callback: () => null });
+
+    const res = await foundry.applications.api.DialogV2.wait({
+      window: { title: editando ? "Editar Manipulação" : "Manipulação de Habilidade", icon: "fas fa-hand-sparkles" },
+      content, buttons,
+      render: (event, dialog) => {
+        const editor = foundry.applications.elements.HTMLProseMirrorElement.create({
+          name: "manip-desc", value: def?.desc ?? ""
+        });
+        dialog.element.querySelector(".manip-desc-mount")?.replaceChildren(editor);
+      },
+      rejectClose: false
+    });
+
+    if ( res === null || res === undefined ) return;
+    const nova = foundry.utils.deepClone(lista);
+    if ( res === "DELETE" ) return this._onManipDelete(def.id);
+    if ( !res.nome ) { ui.notifications.warn("Dê um nome à manipulação."); return; }
+
+    if ( editando ) {
+      const i = nova.findIndex(m => m.id === def.id);
+      if ( i >= 0 ) nova[i] = { ...nova[i], ...res };
+    } else {
+      nova.push({ id: `manip-${foundry.utils.randomID(8)}`, ativa: false, ...res });
+    }
+    await this.actor.setFlag("hunter-system", "manipulacoes", nova);
+  }
+
+  /** Remove uma Manipulação de Habilidade. */
+  async _onManipDelete(id) {
+    const lista = this.actor.getFlag("hunter-system", "manipulacoes") ?? [];
+    await this.actor.setFlag("hunter-system", "manipulacoes", lista.filter(m => m.id !== id));
+  }
+
+  /** Liga/desliga uma manipulação, respeitando o limite = bônus de proficiência. */
+  async _onManipToggle(id) {
+    const lista = foundry.utils.deepClone(this.actor.getFlag("hunter-system", "manipulacoes") ?? []);
+    const m = lista.find(x => x.id === id);
+    if ( !m ) return;
+    if ( !m.ativa ) {
+      const limite = this.actor.system.attributes?.prof ?? 2;
+      const ativas = lista.filter(x => x.ativa).length;
+      if ( ativas >= limite ) {
+        ui.notifications.warn(`Máximo de ${limite} manipulação(ões) ativa(s) por vez (bônus de proficiência).`);
+        return;
+      }
+    }
+    m.ativa = !m.ativa;
+    await this.actor.setFlag("hunter-system", "manipulacoes", lista);
+  }
+
+  /** Envia uma Manipulação de Habilidade para o chat como um card (nome + descrição + duração + requisito). */
+  async _onManipChat(id) {
+    const lista = this.actor.getFlag("hunter-system", "manipulacoes") ?? [];
+    const m = lista.find(x => x.id === id);
+    if ( !m ) return;
+    const esc = foundry.utils.escapeHTML;
+    const TE = foundry.applications.ux.TextEditor.implementation;
+    const desc = m.desc
+      ? await TE.enrichHTML(m.desc, { rollData: this.actor.getRollData(), relativeTo: this.actor })
+      : "";
+    const metas = [];
+    if ( m.duracao )   metas.push(`<div class="jj-manip-chat-meta"><span class="lbl">Duração</span><span>${esc(m.duracao)}</span></div>`);
+    if ( m.requisito ) metas.push(`<div class="jj-manip-chat-meta"><span class="lbl">Requisito</span><span>${esc(m.requisito)}</span></div>`);
+    const content = `
+      <div class="jujutsu-card jj-manip-chat">
+        <header class="jj-manip-chat-head">
+          <i class="fas fa-hand-sparkles"></i>
+          <h3>${esc(m.nome || "Manipulação")}</h3>
+        </header>
+        ${desc ? `<div class="jj-manip-chat-desc">${desc}</div>` : ""}
+        ${metas.length ? `<div class="jj-manip-chat-metas">${metas.join("")}</div>` : ""}
+      </div>`;
+    return ChatMessage.implementation.create({
+      speaker: ChatMessage.implementation.getSpeaker({ actor: this.actor }),
+      content
+    });
   }
 
   async _onHatsuSaveTemplate() {
@@ -3839,6 +4069,7 @@ new foundry.applications.ux.ContextMenu.implementation(
     context.nenTrainingPoints = this.actor.system.curseResources?.trainingPoints ?? 0;
     context.nenLostTrainingPoints = this.actor.system.curseResources?.lostTrainingPoints ?? 0;
     context.nenNarratorTrainingPoints = this.actor.system.curseResources?.narratorTrainingPoints ?? 0;
+    context.nenIsGM = game.user.isGM;   // PT Narrador: só o narrador edita
     context.nenSpentTrainingPoints = this.actor.system.curseResources?.spentTrainingPoints ?? 0;
     context.nenAvailableTrainingPoints = getAvailableTrainingPoints(this.actor);
     context.nenGridRings = gridRings;
@@ -3906,6 +4137,8 @@ new foundry.applications.ux.ContextMenu.implementation(
   if ( action === "unlockManipulation" ) {
     return this._onUnlockManipulationAbility(target.dataset.ability, parseInt(target.dataset.cost ?? 0));
   }
+  if ( action === "enActivate" )   return this._onEnActivate(target.dataset.mode);
+  if ( action === "enDeactivate" ) return this._onEnDeactivate();
 
   if ( action === "intensiveTraining" ) {
     return this._onIntensiveTraining();
@@ -3958,6 +4191,11 @@ new foundry.applications.ux.ContextMenu.implementation(
   if ( action === "hatsu-toggle-mode" )     return this._onHatsuToggleMode(target.dataset.itemId, target.dataset.mode);
   if ( action === "hatsu-toggle-ultimato" ) return this._onHatsuToggleUltimato();
   if ( action === "hatsu-save-template" )   return this._onHatsuSaveTemplate();
+  if ( action === "manip-create" )          return this._onManipEdit(null);
+  if ( action === "manip-edit" )            return this._onManipEdit(target.dataset.id);
+  if ( action === "manip-del" )             return this._onManipDelete(target.dataset.id);
+  if ( action === "manip-toggle" )          return this._onManipToggle(target.dataset.id);
+  if ( action === "manip-chat" )            return this._onManipChat(target.dataset.id);
   if ( action === "jj-toggle-pin" )         return this._onTogglePinSidebar(target.dataset.pin);
   if ( action === "jj-toggle-sacrifice-hud" ) return this._onToggleSacrificeHud();
 
@@ -4026,7 +4264,7 @@ new foundry.applications.ux.ContextMenu.implementation(
   async _onUnlockManipulationAbility(abilityId, cost) {
     const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
     if ( cursePoints < cost ) {
-      ui.notifications.warn(`PM insuficientes! Você tem ${cursePoints} PM, precisa de ${cost}.`);
+      ui.notifications.warn(`PN insuficientes! Você tem ${cursePoints} PN, precisa de ${cost}.`);
       return;
     }
 
@@ -4039,8 +4277,14 @@ new foundry.applications.ux.ContextMenu.implementation(
       await this._grantLinkedTechniques(abilityDef.techniques);
     }
 
+    const entryGrid = this.actor.system.manipulation?.abilities?.[abilityId] ?? {};
     await this.actor.update({
-      [`system.manipulation.abilities.${abilityId}.unlocked`]: true,
+      // Entrada completa — updates parciais em entradas antigas são descartados em silêncio.
+      [`system.manipulation.abilities.${abilityId}`]: {
+        unlocked: true,
+        dcReduction: entryGrid.dcReduction ?? 0,
+        count: entryGrid.count ?? 0
+      },
       "system.manipulation.pointsInvested": currentInvested + cost,
       "system.curseResources.cursePoints": cursePoints - cost
     });
@@ -4049,6 +4293,18 @@ new foundry.applications.ux.ContextMenu.implementation(
   speaker: ChatMessage.getSpeaker({ actor: this.actor }),
   content: `<strong>${this.actor.name}</strong> desbloqueou a habilidade de manipulação: <strong>${abilityDef?.label ?? abilityId}</strong>!`
 });
+  }
+
+  /* -------------------------------------------- */
+
+  /** Ativa o En (cria a zona no token). mode: "total" (2 PA/turno) ou "terco" (⅓ alcance, grátis). */
+  async _onEnActivate(mode) {
+    return activateEn(this.actor, mode === "terco" ? "terco" : "total");
+  }
+
+  /** Desativa o En (remove a zona e para o dreno). */
+  async _onEnDeactivate() {
+    return deactivateEn(this.actor);
   }
 
   /* -------------------------------------------- */
@@ -4138,7 +4394,7 @@ new foundry.applications.ux.ContextMenu.implementation(
               <input type="radio" name="jj-training-choice" value="cursePoints" style="flex:0 0 auto;">
               <div>
                 <strong style="color:#ffa060;">💀 Pontos de Nen +4</strong>
-                <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PM → ${cursePoints + 4} PM</div>
+                <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PN → ${cursePoints + 4} PN</div>
               </div>
             </label>
 
@@ -4205,7 +4461,7 @@ new foundry.applications.ux.ContextMenu.implementation(
       const current = actor.system.curseResources?.cursePoints ?? 0;
       updates["system.curseResources.cursePoints"] = current + 4 * times;
       updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 4 * times;
-      chatMsg = `🏋️ <strong>${actor.name}</strong> completou <strong>${times}</strong> Treinamento(s) Intenso(s)! <strong>+${4 * times} Pontos de Nen</strong> (total: ${current + 4 * times} PM).`;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou <strong>${times}</strong> Treinamento(s) Intenso(s)! <strong>+${4 * times} Pontos de Nen</strong> (total: ${current + 4 * times} PN).`;
     }
 
     await actor.update(updates);
@@ -4288,31 +4544,19 @@ new foundry.applications.ux.ContextMenu.implementation(
    * Tenta conceder automaticamente técnicas vinculadas a partir do compêndio.
    */
   async _grantLinkedTechniques(techniqueNames) {
-    const itemPacks = game.packs.filter(p => p.metadata.type === "Item" && p.metadata.system === "hunter-system");
-    for ( const name of techniqueNames ) {
-      if ( this.actor.items.find(i => i.name === name) ) continue;
-      let item = null;
-      for ( const pack of itemPacks ) {
-        await pack.getIndex();
-        const entry = pack.index.find(i => i.name === name);
-        if ( !entry ) continue;
-        item = await pack.getDocument(entry._id);
-        if ( item ) break;
-      }
-      if ( !item ) continue;
-      await this.actor.createEmbeddedDocuments("Item", [item.toObject()]);
-      ui.notifications.info(`Técnica "${name}" adicionada automaticamente.`);
-    }
+    // Delegado ao helper compartilhado (match exato + normalizado) — ver manipulation-data.mjs.
+    return grantLinkedTechniques(this.actor, techniqueNames);
   }
 
   /* -------------------------------------------- */
 
   async _removeLinkedTechniques(techniqueNames) {
     for ( const name of techniqueNames ) {
-      const item = this.actor.items.find(i => i.name === name);
+      const alvo = normalizeTechniqueName(name);
+      const item = this.actor.items.find(i => normalizeTechniqueName(i.name) === alvo);
       if ( !item ) continue;
       await item.delete();
-      ui.notifications.info(`Técnica "${name}" removida.`);
+      ui.notifications.info(`Técnica "${item.name}" removida.`);
     }
   }
 
@@ -4395,14 +4639,19 @@ async _onUndoManipulationAbility(abilityId) {
   const cursePoints = this.actor.system.curseResources?.cursePoints ?? 0;
 
   await this.actor.update({
-    [`system.manipulation.abilities.${abilityId}.unlocked`]: false,
+    // Entrada completa — updates parciais em entradas antigas são descartados em silêncio.
+    [`system.manipulation.abilities.${abilityId}`]: {
+      unlocked: false,
+      dcReduction: this.actor.system.manipulation?.abilities?.[abilityId]?.dcReduction ?? 0,
+      count: 0
+    },
     "system.manipulation.pointsInvested": Math.max(0, invested - def.cost),
     "system.curseResources.cursePoints": cursePoints + def.cost
   });
 
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-    content: `↩️ <strong>${this.actor.name}</strong> desfez a habilidade: <strong>${def.label}</strong>. +${def.cost} PM devolvidos.`
+    content: `↩️ <strong>${this.actor.name}</strong> desfez a habilidade: <strong>${def.label}</strong>. +${def.cost} PN devolvidos.`
   });
 }
 
@@ -4548,7 +4797,7 @@ async _syncTrainingEffect(trainingId, rank) {
     // Avanço Instantâneo: gasta PM igual ao custo de PT
     if ( instant ) {
       if ( cursePoints < nextPtCost ) {
-        ui.notifications.warn(`PM insuficientes! Precisa de ${nextPtCost} PM.`);
+        ui.notifications.warn(`PN insuficientes! Precisa de ${nextPtCost} PN.`);
         return;
       }
       const newDC = currentDC + (def.dcIncrement ?? 5);
@@ -5861,23 +6110,13 @@ function _buildBreakdown(roll) {
     if ( actor ) {
       const targets = activity.consumption?.targets ?? [];
 
-      // Redução de PA do Seis Olhos
-      const seisOlhosItem = actor.items?.find(i => i.name === "Seis Olhos" && i.type === "feat");
-      const seisOlhosMode = actor.getFlag("hunter-system", "seisOlhosMode");
-      let paReduction = 0;
-      if ( seisOlhosItem && seisOlhosMode ) {
-        const prof    = actor.system.attributes?.prof ?? 2;
-        const halfProf = Math.max(1, Math.floor(prof / 2));
-        paReduction = seisOlhosMode === "full" ? prof : halfProf;
-      }
-
       for ( const target of targets ) {
         const isGerada = target.target === "energy.generated";
         const isTotal  = target.target === "energy.total";
         if ( !isGerada && !isTotal ) continue;
         const custoBase = Number(target.value ?? 0);
         if ( custoBase <= 0 ) continue;
-        const custo = Math.max(1, custoBase - paReduction);
+        const custo = custoBase;
         const campo = isGerada ? "system.energy.generated" : "system.energy.total";
         const atual = isGerada ? (actor.system?.energy?.generated ?? 0) : (actor.system?.energy?.total ?? 0);
         const label = isGerada ? "PA Gerada" : "PA Total";
@@ -7388,113 +7627,6 @@ function _setupFeatureSectionDrops(element, actor) {
       if ( !item || item.parent !== actor ) return;
       const hasFlag = item.getFlag("hunter-system", "featureSection");
       if ( hasFlag ) await item.unsetFlag("hunter-system", "featureSection");
-    });
-  });
-}
-
-/* ============================================================
-   SEIS OLHOS — Lógica de Active Effects
-   ============================================================ */
-
-async function _applySeiOlhosEffects(actor, mode) {
-  const prof = actor.system.attributes.prof ?? 2;
-
-  const EFFECT_IDS = {
-    sealed:  "jj-seis-olhos-sealed",
-    full:    "jj-seis-olhos-full",
-    psychic: "jj-seis-olhos-psychic"
-  };
-
-  for ( const id of Object.values(EFFECT_IDS) ) {
-    const existing = actor.effects.find(e => e.getFlag("hunter-system", "seisOlhosId") === id);
-    if ( existing ) await existing.delete();
-  }
-
-  const sealedSkillBonus = String(prof);
-  const fullSkillBonus   = String(prof * 2);
-
-  const sealedChanges = [
-    { key: "system.attributes.ac.bonus",       mode: 2, value: "1",              priority: 20 },
-    { key: "system.bonuses.mwak.attack",       mode: 2, value: "2",              priority: 20 },
-    { key: "system.bonuses.rwak.attack",       mode: 2, value: "2",              priority: 20 },
-    { key: "system.bonuses.msak.attack",       mode: 2, value: "2",              priority: 20 },
-    { key: "system.bonuses.rsak.attack",       mode: 2, value: "2",              priority: 20 },
-    { key: "system.skills.prc.bonuses.check",  mode: 2, value: sealedSkillBonus, priority: 20 },
-    { key: "system.skills.arc.bonuses.check",  mode: 2, value: sealedSkillBonus, priority: 20 },
-    { key: "system.skills.Cont.bonuses.check", mode: 2, value: sealedSkillBonus, priority: 20 }
-  ];
-
-  const fullChanges = [
-    { key: "system.attributes.ac.bonus",       mode: 2, value: "3",              priority: 20 },
-    { key: "system.bonuses.mwak.attack",       mode: 2, value: "4",              priority: 20 },
-    { key: "system.bonuses.rwak.attack",       mode: 2, value: "4",              priority: 20 },
-    { key: "system.bonuses.msak.attack",       mode: 2, value: "4",              priority: 20 },
-    { key: "system.bonuses.rsak.attack",       mode: 2, value: "4",              priority: 20 },
-    { key: "system.skills.prc.bonuses.check",  mode: 2, value: fullSkillBonus,   priority: 20 },
-    { key: "system.skills.arc.bonuses.check",  mode: 2, value: fullSkillBonus,   priority: 20 },
-    { key: "system.skills.Cont.bonuses.check", mode: 2, value: fullSkillBonus,   priority: 20 }
-  ];
-
-  if ( mode === "sealed" ) {
-    await actor.createEmbeddedDocuments("ActiveEffect", [{
-      name: "Seis Olhos (Selado)",
-      icon: "icons/magic/perception/eye-ringed-glow-angry-small-teal.webp",
-      origin: actor.uuid,
-      disabled: false,
-      changes: sealedChanges,
-      flags: { "hunter-system": { seisOlhosId: EFFECT_IDS.sealed } }
-    }]);
-  } else if ( mode === "full" ) {
-    await actor.createEmbeddedDocuments("ActiveEffect", [{
-      name: "Seis Olhos (Poder Completo)",
-      icon: "icons/magic/perception/eye-ringed-glow-angry-small-teal.webp",
-      origin: actor.uuid,
-      disabled: false,
-      changes: fullChanges,
-      flags: { "hunter-system": { seisOlhosId: EFFECT_IDS.full } }
-    }]);
-
-    await actor.createEmbeddedDocuments("ActiveEffect", [{
-      name: "Seis Olhos — Dano Psíquico",
-      icon: "icons/magic/death/skull-glowing-teal.webp",
-      origin: actor.uuid,
-      disabled: false,
-      changes: [],
-      duration: { rounds: 9999 },
-      flags: { "hunter-system": { seisOlhosId: EFFECT_IDS.psychic, psychicDamage: true } }
-    }]);
-
-    _registerSeiOlhosTurnHook(actor);
-  }
-}
-
-function _registerSeiOlhosTurnHook(actor) {
-  if ( actor._seisOlhosHookId ) Hooks.off("combatTurnChange", actor._seisOlhosHookId);
-
-  actor._seisOlhosHookId = Hooks.on("combatTurnChange", async (combat, prior, current) => {
-    const combatant = combat.combatants.get(current.combatantId);
-    if ( combatant?.actor?.id !== actor.id ) return;
-
-    const hasEffect = actor.effects.some(e =>
-      e.getFlag("hunter-system", "seisOlhosId") === "jj-seis-olhos-psychic"
-    );
-    if ( !hasEffect ) {
-      Hooks.off("combatTurnChange", actor._seisOlhosHookId);
-      actor._seisOlhosHookId = null;
-      return;
-    }
-
-    const roll = await new Roll("2d8").evaluate();
-    const dmg = roll.total;
-    const newHp = Math.max(0, (actor.system.attributes.hp.value ?? 0) - dmg);
-    await actor.update({ "system.attributes.hp.value": newHp });
-
-    _postDamageChat({
-      speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<div style="font-family:var(--dnd5e-font-roboto,sans-serif);padding:6px 10px;background:#0a0a18;border:1px solid #2a1a4a;border-radius:4px;">
-        <strong style="color:#9060d0">⬡ Seis Olhos — Poder Completo</strong><br>
-        <span style="color:#c0a0ff">${actor.name} sofre <strong>${dmg}</strong> de dano psíquico no início do turno.</span>
-      </div>`
     });
   });
 }

@@ -91,6 +91,13 @@ export default class HatsuTemplateSheet extends ItemSheet5e {
     context.tab = context.tabs.hatsu;
 
     const items = Array.from(await this.item.system.contents);
+
+    // Graus de técnica (0 = Auxiliar, 1-9) — mesma escala do system.level do spell.
+    const grauOptions = Array.fromRange(10).map(lvl => ({
+      value: lvl,
+      label: game.i18n.localize(CONFIG.DND5E.spellLevels?.[lvl] ?? String(lvl))
+    }));
+
     const slots = SLOTS.map(def => {
       const manifestacao = items.find(i => i.getFlag("hunter-system", "hatsu.slot") === def.id) ?? null;
       const tecnicas = items
@@ -123,10 +130,29 @@ export default class HatsuTemplateSheet extends ItemSheet5e {
 
       const reqsCols = requirements.length <= 1 ? 1 : requirements.length <= 4 ? 2 : 3;
 
+      // Duas colunas dentro da manifestação (mesmo padrão da ficha do personagem):
+      // técnicas com Grau (>=1) à esquerda, Auxiliares (grau 0) à direita. isVersatil e
+      // grauChoices (com "selected" já resolvido) vão em cada técnica — o <select> do
+      // chip não depende de contexto pai dentro dos #each aninhados (bug do Handlebars).
+      const tecnicasLite = tecnicas.map(t => {
+        const lite = _lite(t);
+        lite.isVersatil = isVersatil;
+        lite.grauChoices = grauOptions.map(g => ({ value: g.value, label: g.label, selected: g.value === lite.grau }));
+        return lite;
+      });
+      let tecnicasGrau = tecnicasLite.filter(t => (t.grau ?? 0) >= 1);
+      let tecnicasAux  = tecnicasLite.filter(t => (t.grau ?? 0) === 0);
+      // Sem técnicas de Grau (só Auxiliares): elas ocupam a coluna da esquerda para
+      // não flutuarem à direita numa manifestação Focada.
+      if ( !tecnicasGrau.length ) { tecnicasGrau = tecnicasAux; tecnicasAux = []; }
+
       return {
         ...def,
         manifestacao: _lite(manifestacao),
-        tecnicas: tecnicas.map(_lite),
+        tecnicas: tecnicasLite,
+        tecnicasGrau,
+        tecnicasAux,
+        hasTecnicas: tecnicasLite.length > 0,
         requirements,
         reqsCols,
         canAddReq: !!manifestacao && (requirements.length < 6),
@@ -134,12 +160,6 @@ export default class HatsuTemplateSheet extends ItemSheet5e {
         isVersatil
       };
     });
-
-    // Graus de técnica (0 = Auxiliar, 1-9) — mesma escala do system.level do spell.
-    const grauOptions = Array.fromRange(10).map(lvl => ({
-      value: lvl,
-      label: game.i18n.localize(CONFIG.DND5E.spellLevels?.[lvl] ?? String(lvl))
-    }));
 
     context.hatsu = { slots, categoryOptions: CATEGORIES, grauOptions };
     return context;
