@@ -539,16 +539,72 @@
 }
 .nen-ability-card.interactive:active { transform: translateY(0); }
 
-/* Principais — exclusiva desbloqueada */
+/* Principais — exclusiva desbloqueada: visto de cima, o card queima na cor da
+   categoria — um ANEL DE FOGO contorna a moldura inteira, girando e tremulando. */
+@property --nen-excl-ang {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .nen-ability-card.major.exclusive.unlocked {
-  border-color: rgba(180,100,220,0.55) !important;
-  background: rgba(180,100,220,0.08) !important;
-  box-shadow: 0 0 12px rgba(180,100,220,0.18) !important;
+  position: relative;
+  border-color: color-mix(in srgb, var(--cat-color, #c8a84b) 55%, transparent) !important;
+  background: color-mix(in srgb, var(--cat-color, #c8a84b) 8%, transparent) !important;
+  animation: nen-excl-calor 2.6s ease-in-out infinite;
 }
 
 .nen-ability-card.major.exclusive.unlocked .nen-ability-card-name {
-  color: rgba(210,160,255,0.95) !important;
-  text-shadow: 0 0 8px rgba(180,100,220,0.5) !important;
+  color: color-mix(in srgb, var(--cat-color, #c8a84b) 60%, white) !important;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--cat-color, #c8a84b) 50%, transparent) !important;
+}
+
+/* o anel: conic-gradient com bolsões quentes irregulares girando no aro da moldura
+   (mask deixa só o contorno) — duas camadas em sentidos opostos = fogo vivo */
+.nen-ability-card.major.exclusive.unlocked::before,
+.nen-ability-card.major.exclusive.unlocked::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 11px;
+  padding: 4px;
+  pointer-events: none;
+  background: conic-gradient(from var(--nen-excl-ang),
+    color-mix(in srgb, var(--cat-color, #c8a84b) 90%, white),
+    color-mix(in srgb, var(--cat-color, #c8a84b) 30%, transparent) 14%,
+    color-mix(in srgb, var(--cat-color, #c8a84b) 80%, white) 27%,
+    color-mix(in srgb, var(--cat-color, #c8a84b) 20%, transparent) 43%,
+    color-mix(in srgb, var(--cat-color, #c8a84b) 95%, white) 55%,
+    color-mix(in srgb, var(--cat-color, #c8a84b) 35%, transparent) 70%,
+    color-mix(in srgb, var(--cat-color, #c8a84b) 85%, white) 82%,
+    color-mix(in srgb, var(--cat-color, #c8a84b) 25%, transparent) 93%,
+    color-mix(in srgb, var(--cat-color, #c8a84b) 90%, white));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          mask-composite: exclude;
+  filter: blur(2.5px);
+  opacity: .8;
+  animation: nen-excl-giro 3.2s linear infinite;
+}
+.nen-ability-card.major.exclusive.unlocked::after {
+  inset: -1px;
+  padding: 2px;
+  border-radius: 9px;
+  filter: blur(1px);
+  opacity: .55;
+  animation: nen-excl-giro 2.1s linear infinite reverse;
+}
+
+@keyframes nen-excl-giro { to { --nen-excl-ang: 360deg; } }
+
+/* calor: brilho respirando irregular, sem direção (visto de cima não tem "pra cima") */
+@keyframes nen-excl-calor {
+  0%, 100% { box-shadow: 0 0 10px color-mix(in srgb, var(--cat-color, #c8a84b) 28%, transparent); }
+  21%      { box-shadow: 0 0 15px color-mix(in srgb, var(--cat-color, #c8a84b) 40%, transparent); }
+  39%      { box-shadow: 0 0 9px  color-mix(in srgb, var(--cat-color, #c8a84b) 24%, transparent); }
+  63%      { box-shadow: 0 0 17px color-mix(in srgb, var(--cat-color, #c8a84b) 44%, transparent); }
+  81%      { box-shadow: 0 0 12px color-mix(in srgb, var(--cat-color, #c8a84b) 32%, transparent); }
 }
 
 /* Principais — bloqueada */
@@ -593,14 +649,15 @@
 
 .nen-ability-card-name.muted { color: rgba(255,255,255,0.45); }
 
-/* Badge exclusiva */
+/* Badge exclusiva — discreto, no molde do badge de nível (o destaque são as chamas) */
 .nen-major-excl-badge {
-  font-size: 15px;
+  font-size: 9px;
+  font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
-  background: rgba(180,100,220,0.15);
-  border: 1px solid rgba(180,100,220,0.4);
-  color: rgba(200,140,255,0.9);
+  background: color-mix(in srgb, var(--cat-color, #c8a84b) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cat-color, #c8a84b) 40%, transparent);
+  color: color-mix(in srgb, var(--cat-color, #c8a84b) 65%, white);
   white-space: nowrap;
   flex-shrink: 0;
 }
