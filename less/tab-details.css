@@ -580,9 +580,11 @@ filigree-box.jj-foco-defensivo-box {
 /* Botões no molde dos chips do Foco combo (radius 7, fundo sutil, uma linha) */
 .jj-en-row { display: flex; align-items: stretch; gap: 8px; padding: 6px 10px 4px; }
 .jj-en-btn {
-  flex: 1 1 0; min-width: 0;
+  /* flex auto: cada botão toma espaço proporcional ao TEXTO (o Ativar é maior que o ⅓),
+     e o padding lateral garante a margem respirável entre a escrita e a borda */
+  flex: 1 1 auto; min-width: 0;
   display: flex; align-items: center; justify-content: center; gap: 5px;
-  padding: 7px 6px;
+  padding: 7px 12px;
   background: rgba(200, 168, 75, 0.08);
   border: 1px solid rgba(200, 168, 75, 0.3);
   border-radius: 7px;
