@@ -4,13 +4,28 @@
  *
  * Cada atividade (dano/cura/salvaguarda/redução) tem `system.jjScale`:
  *   - formula : incremento por nível (rolagem "2d8" ou valor fixo "5", inclusive "2d8+5")
- *   - cost    : PA por incremento
- *   - maxPA   : máximo de PA que pode ser gasto (0 = ilimitado)
+ *   - cost    : PA por incremento (0 = incrementos GRÁTIS; nº limitado por maxPA)
+ *   - maxPA   : máximo de PA que pode ser gasto (0 = ilimitado). Com custo 0, vira o
+ *               nº MÁXIMO de incrementos grátis (0 = teto de segurança SCALE_FREE_CAP).
  *
  * Ao rolar o valor, um dropdown lista cada nível (PA gasto → total resultante).
  * O PA sai do pool configurado no consumo da atividade (gerada ou total).
  * NÃO se aplica a jogadas de acerto (ataque mantém o modal de Explosão Ofensiva).
  */
+
+import { simplifyBonus } from "../../../utils.mjs";
+
+/** Teto de incrementos grátis quando cost=0 e maxPA=0 (evita dropdown infinito). */
+const SCALE_FREE_CAP = 30;
+
+/** Resolve o máx. PA da escala: número puro ou fórmula (@prof, @abilities.int.mod…)
+ *  avaliada contra os dados do ATOR. Vazio/0/não-determinístico → 0 (ilimitado). */
+function resolveMaxPA(scale, actor) {
+  const raw = scale?.maxPA;
+  if ( raw == null || raw === "" ) return 0;
+  const n = simplifyBonus(String(raw), actor?.getRollData?.() ?? {});
+  return Math.max(0, Math.trunc(Number(n) || 0));
+}
 
 /**
  * Multiplica uma fórmula simples por `k`, expandindo a contagem de dados.
@@ -80,7 +95,8 @@ export function getScaleOptions({ actor, activity, baseLabel = "", activationPai
   const formula = (scale?.formula ?? "").trim();
   if ( !formula ) return { available: false };
 
-  const cost  = Math.max(1, scale.cost ?? 1);
+  const cost  = Math.max(0, scale.cost ?? 1);
+  const maxPA = resolveMaxPA(scale, actor);   // número puro ou fórmula (@prof…) já resolvida
   const pool  = getScalePool(activity);
   const poolLabel = pool === "total" ? "PA Total" : "PA Gerada";
   const disponivel = actor.system?.energy?.[pool] ?? 0;
@@ -89,9 +105,13 @@ export function getScaleOptions({ actor, activity, baseLabel = "", activationPai
   // reserva-a do total). Cada opção do dropdown soma a ativação no rótulo.
   const availableForInc = activationPaid ? disponivel : Math.max(0, disponivel - activationCost);
   // maxPA é o TOTAL gasto (ativação + incrementos) → os incrementos só podem usar (maxPA - ativação)
-  const capByMax = (scale.maxPA && scale.maxPA > 0) ? Math.max(0, scale.maxPA - activationCost) : Infinity;
+  const capByMax = (maxPA > 0) ? Math.max(0, maxPA - activationCost) : Infinity;
   const limiteInc = Math.min(capByMax, availableForInc);
-  const maxIncrementos = Math.max(0, Math.floor(limiteInc / cost));
+  // cost > 0: nº de incrementos = PA disponível ÷ custo. cost = 0: incrementos GRÁTIS
+  // (o PA não limita) → o nº vem de maxPA (aqui = máx. de incrementos), com teto de segurança.
+  const maxIncrementos = cost > 0
+    ? Math.max(0, Math.floor(limiteInc / cost))
+    : (maxPA > 0 ? maxPA : SCALE_FREE_CAP);
 
   const opts = [];
   for ( let k = 0; k <= maxIncrementos; k++ ) {
@@ -105,7 +125,7 @@ export function getScaleOptions({ actor, activity, baseLabel = "", activationPai
 
   return {
     available: true, optionsHtml: opts.join(""),
-    pool, poolLabel, cost, formula, disponivel, activationCost, maxIncrementos, maxPA: scale.maxPA ?? 0
+    pool, poolLabel, cost, formula, disponivel, activationCost, maxIncrementos, maxPA
   };
 }
 
@@ -121,7 +141,8 @@ export function getScaleOptions({ actor, activity, baseLabel = "", activationPai
 export async function applyScaleChoice({ actor, activity, incrementos, activationPaid = true }) {
   const scale = activity?.jjScale;
   const formula = (scale?.formula ?? "").trim();
-  const cost = Math.max(1, scale?.cost ?? 1);
+  const cost = Math.max(0, scale?.cost ?? 1);
+  const maxPA = resolveMaxPA(scale, actor);                    // número ou fórmula (@prof…) resolvida
   const realActivation = getActivationCost(activity);          // p/ o teto total maxPA
   const deductActivation = activationPaid ? 0 : realActivation; // p/ a dedução de fato
   let incr = Math.max(0, Math.floor(Number(incrementos) || 0));
@@ -138,10 +159,16 @@ export async function applyScaleChoice({ actor, activity, incrementos, activatio
   // Reclampa os incrementos por: PA restante (após reservar a ativação a deduzir)
   // E pelo teto maxPA, que é o TOTAL (ativação + incrementos) → (maxPA - ativação real).
   const dispInc = atual - deductActivation;
-  const capByMax = (scale?.maxPA && scale.maxPA > 0) ? Math.max(0, scale.maxPA - realActivation) : Infinity;
+  const capByMax = (maxPA > 0) ? Math.max(0, maxPA - realActivation) : Infinity;
   const capInc = Math.min(capByMax, dispInc);
-  if ( formula ) incr = Math.min(incr, Math.floor(capInc / cost));
-  else incr = 0;
+  // cost 0 = grátis: o nº de incrementos não é limitado por PA — só por maxPA (máx. de
+  // incrementos) ou pelo teto de segurança. cost > 0: PA disponível ÷ custo.
+  if ( formula ) {
+    const capCount = cost > 0
+      ? Math.floor(capInc / cost)
+      : (maxPA > 0 ? maxPA : SCALE_FREE_CAP);
+    incr = Math.min(incr, capCount);
+  } else incr = 0;
 
   const incrPA = incr * cost;
   const paGasto = deductActivation + incrPA;

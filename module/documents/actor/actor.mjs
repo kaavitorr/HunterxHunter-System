@@ -2461,12 +2461,13 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     const energy = this.system.energy;
     if ( !ed || !energy ) return;
     const max = energy.max;
-    const conMod = this.system.abilities?.con?.mod ?? 0;
+    // aura recupera com mod de ESPÍRITO (int), não CON (CON é dos dados de vida)
+    const espMod = this.system.abilities?.int?.mod ?? 0;
     let diceRolled = 0;
     const rolls = [];
 
     while ( (this.system.energy.total + threshold) <= max && this.system.energyDice.value > 0 ) {
-      const formula = conMod >= 0 ? `${ed.denomination} + ${conMod}` : `${ed.denomination} - ${Math.abs(conMod)}`;
+      const formula = espMod >= 0 ? `${ed.denomination} + ${espMod}` : `${ed.denomination} - ${Math.abs(espMod)}`;
       const roll = await new Roll(formula).evaluate();
       rolls.push(roll);
       const recovered = Math.max(0, roll.total);
@@ -2485,7 +2486,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
       for ( const roll of rolls ) {
         await roll.toMessage({
           speaker: ChatMessage.getSpeaker({ actor: this, alias: this.name }),
-          flavor: `${this.name} recupera PA de Energia Amaldiçoada (${ed.denomination} + mod. CON)`
+          flavor: `${this.name} recupera PA de Energia Amaldiçoada (${ed.denomination} + mod. ESP)`
         });
       }
     }

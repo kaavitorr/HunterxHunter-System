@@ -131,18 +131,18 @@ export default class ShortRestDialog extends BaseRestDialog {
       diceCount = Math.min(quantity, ed.value);
     }
 
-    // Monta fórmula única com mod CON incluído para rolar todos os dados de uma vez
-    const conMod = actor.system.abilities?.con?.mod ?? 0;
-    const conPart = conMod >= 0 ? ` + ${conMod}` : ` - ${Math.abs(conMod)}`;
-    // Cada dado inclui mod CON: ex "d6 + 2 + d6 + 2"
-    const formula = Array(diceCount).fill(`${ed.denomination}${conPart}`).join(" + ");
+    // Monta fórmula única com mod de ESPÍRITO (int) — aura recupera por Espírito, não CON
+    const espMod = actor.system.abilities?.int?.mod ?? 0;
+    const espPart = espMod >= 0 ? ` + ${espMod}` : ` - ${Math.abs(espMod)}`;
+    // Cada dado inclui o mod: ex "d6 + 2 + d6 + 2"
+    const formula = Array(diceCount).fill(`${ed.denomination}${espPart}`).join(" + ");
     const roll = await new Roll(formula).evaluate();
     diceSpent = diceCount;
 
     // Envia o roll pro chat igual ao dado de vida
     await roll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),
-      flavor: `${actor.name} recupera Pontos de Aura (${diceSpent}× ${ed.denomination} + mod. CON)`
+      flavor: `${actor.name} recupera Pontos de Aura (${diceSpent}× ${ed.denomination} + mod. ESP)`
     });
 
     // Aplica a recuperação (mínimo 0 por dado)

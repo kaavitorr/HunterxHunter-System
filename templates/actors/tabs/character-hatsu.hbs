@@ -8,11 +8,18 @@
       <input type="text" class="hatsu-name-input" name="flags.hunter-system.hatsuName"
              value="{{ hatsu.name }}" placeholder="Nome do Hatsu" />
     </div>
-    <button type="button" class="hatsu-save-template-btn" data-action="hatsu-save-template"
-            data-tooltip="Exportar Hatsu atual como Molde (arraste para outra ficha para instalar)">
-      <i class="fas fa-bookmark" inert></i>
-      <span>Salvar Molde</span>
-    </button>
+    <div class="hatsu-molde-actions">
+      <button type="button" class="hatsu-save-template-btn" data-action="hatsu-import-json"
+              data-tooltip="Importar um Molde a partir de um JSON (exportado por 'Salvar Molde' → Export Data) direto nesta ficha">
+        <i class="fas fa-file-import" inert></i>
+        <span>Importar JSON</span>
+      </button>
+      <button type="button" class="hatsu-save-template-btn" data-action="hatsu-save-template"
+              data-tooltip="Exportar Hatsu atual como Molde (arraste para outra ficha para instalar)">
+        <i class="fas fa-bookmark" inert></i>
+        <span>Salvar Molde</span>
+      </button>
+    </div>
   </div>
 
   {{!-- ═════════════════ PAINEL DE PROFICIÊNCIA ═════════════════ --}}
