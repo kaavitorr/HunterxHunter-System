@@ -66,12 +66,19 @@
   outline: none;
 }
 
+.hatsu-molde-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .hatsu-save-template-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-width: 170px;
+  min-width: 150px;
   padding: 6px 14px;
   background: #16162a;
   border: 1px solid #2c2c44;
@@ -377,10 +384,14 @@
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  padding: 2px 8px;
+  padding: 3px 12px;
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease;
 }
+/* folga extra nas PONTAS externas: a pílula (radius 999px) curva pra dentro e
+   comeria o respiro do texto do 1º/último botão */
+.hatsu-mode-btn:first-child { padding-left: 14px; }
+.hatsu-mode-btn:last-child  { padding-right: 14px; }
 .hatsu-mode-btn + .hatsu-mode-btn { border-left: 1px solid #24243a; }
 .hatsu-mode-btn:hover { color: #c0c0e0; }
 .hatsu-mode-btn.active {

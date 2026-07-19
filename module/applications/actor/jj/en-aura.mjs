@@ -97,14 +97,25 @@ export async function deactivateEn(actor, { silent = false } = {}) {
 
 // A zona segue o token quando ele se move.
 Hooks.on("updateToken", async (tokenDoc, changes, options, userId) => {
-  if ( userId !== game.userId ) return;
-  if ( !("x" in changes || "y" in changes) ) return;
-  const actor = tokenDoc.actor;
-  if ( !actor?.getFlag(SCOPE, "enAtivo") ) return;
-  const tplId = actor.getFlag(SCOPE, "enTemplateId");
+  if ( !("x" in changes || "y" in changes) ) return;                 // só mudança de posição
+  // A flag do En vive no ator que ativou. Em token NÃO-vinculado, tokenDoc.actor é o
+  // ator-delta (sem a flag) → checa também o ator-base.
+  const enActor = [tokenDoc.actor, tokenDoc.baseActor].find(a => a?.getFlag(SCOPE, "enAtivo"));
+  if ( !enActor ) return;
+  // Único escritor COM PERMISSÃO: no v14 só o autor do MeasuredTemplate (ou o GM) pode
+  // atualizá-lo. O Narrador ativo pode editar qualquer template → deixa ELE mover a zona
+  // (o hook dispara em todos os clientes). Sem GM online, quem moveu (autor, se ativou o
+  // próprio En) faz o update. Antes: só o cliente que moveu tentava, e se ele não fosse o
+  // autor do template (ex.: GM ativou pro jogador) o update era NEGADO em silêncio.
+  const activeGM = game.users.activeGM;
+  if ( activeGM ) { if ( activeGM.id !== game.user.id ) return; }
+  else if ( userId !== game.userId ) return;
+
+  const tplId = enActor.getFlag(SCOPE, "enTemplateId");
   const scene = tokenDoc.parent;
   if ( !scene || !tplId || !scene.getEmbeddedDocument("MeasuredTemplate", tplId) ) return;
-  const c = tokenDoc.object?.center ?? {
+  // centro pela posição ATUAL do documento (v14: getCenterPoint reflete o x/y já atualizado)
+  const c = tokenDoc.getCenterPoint?.() ?? tokenDoc.object?.center ?? {
     x: tokenDoc.x + (tokenDoc.width * (scene.grid?.size ?? 100)) / 2,
     y: tokenDoc.y + (tokenDoc.height * (scene.grid?.size ?? 100)) / 2
   };

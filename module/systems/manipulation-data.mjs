@@ -406,9 +406,10 @@ export const PRINCIPLES_DATA = {
     description: "Aplicação avançada de Zetsu. Esconde literalmente toda a presença de aura do indivíduo.",
     techniques: ["Ocultação Completa"],
     passive: "Nenhuma",
-    // custo 6 — igual à roda (TREE_DATA) e à descrição; 3 aqui causava exploit:
-    // desbloquear cobrava 3 (esta fonte) e desfazer devolvia 6 (roda) = +3 PN infinitos.
-    unlockRequires: { stage: "expert", principles: ["zetsu"], cost: 6 }
+    // custo 3 — mesma faixa de Shu/En (advanced · expert). As DUAS fontes (esta e a
+    // roda TREE_DATA) TÊM que bater: o desbloqueio cobra pela roda e o desfazer estorna
+    // por esta; se divergirem, vira farm de PN infinito.
+    unlockRequires: { stage: "expert", principles: ["zetsu"], cost: 3 }
   },
   en: {
     label: "En",
@@ -1030,10 +1031,10 @@ export const TREE_DATA = [
         ]
       },
       {
-        id: "in", label: "In", type: "advanced", cost: 6, req: { pr: ["zetsu"] },
+        id: "in", label: "In", type: "advanced", cost: 3, req: { pr: ["zetsu"] },
         reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.fAkJ48umoWpTUtfO",
         passive: "Nenhuma.",
-        desc: "Aplicação avançada de Zetsu. Esconde literalmente toda a presença de aura. Principal uso: tornar o Hatsu invisível aos inimigos.\n\nRequisito: Zetsu · Estágio Perito · 6 PN.\nTécnicas: In – Ocultação Completa.",
+        desc: "Aplicação avançada de Zetsu. Esconde literalmente toda a presença de aura. Principal uso: tornar o Hatsu invisível aos inimigos.\n\nRequisito: Zetsu · Estágio Perito · 3 PN.\nTécnicas: In – Ocultação Completa.",
         abilities: [
           { id: "ocultacao", label: "Ocultação",    cost: 6,  stage: "expert", req: [],
             reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.o1W5rSuj3beI8aaO",

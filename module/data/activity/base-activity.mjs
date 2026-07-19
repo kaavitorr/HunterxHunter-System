@@ -70,8 +70,8 @@ export default class BaseActivityData extends foundry.abstract.DataModel {
       jjScale: new SchemaField({
         enabled: new BooleanField(),   // checkbox de exibição (UI) — some o bloco quando vazio
         formula: new FormulaField({ label: "Escala — incremento (rolagem/flat)" }),
-        cost: new NumberField({ integer: true, nullable: false, min: 1, initial: 1, label: "Escala — custo por incremento (PA)" }),
-        maxPA: new NumberField({ integer: true, nullable: false, min: 0, initial: 0, label: "Escala — máx. PA gasto (0 = ilimitado)" })
+        cost: new NumberField({ integer: true, nullable: false, min: 0, initial: 1, label: "Escala — custo por incremento (PA); 0 = grátis" }),
+        maxPA: new FormulaField({ deterministic: true, initial: "0", label: "Escala — máx. PA gasto (0 = ilimitado; aceita fórmula, ex: @prof)" })
       }),
       // Custo Constante / Concentração — manutenção de PA por turno enquanto a
       // técnica estiver ativa (liga ao usar; desliga pelo HUD de combate).

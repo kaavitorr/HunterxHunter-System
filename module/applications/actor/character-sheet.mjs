@@ -34,6 +34,11 @@ const TextEditor = foundry.applications.ux.TextEditor.implementation;
  * @import { FacilityOccupants } from "../../data/item/_types.mjs";
  */
 
+/** IDs de atores com o efeito de proficiência Hatsu em sincronização AGORA — trava de
+ *  reentrância (criar o efeito dispara re-render que reentra antes do setFlag → corrida
+ *  de "apagar o que já foi apagado"). Módulo-scope pra valer entre character/npc sheets. */
+const _hatsuSyncingActors = new Set();
+
 /**
  * Extension of base actor sheet for characters.
  */
@@ -3542,19 +3547,34 @@ new foundry.applications.ux.ContextMenu.implementation(
       ui.notifications.warn("Este Molde Hatsu está vazio.");
       return;
     }
+    await this._installHatsuItems(contents.map(i => i.toObject()));
+  }
+
+  /**
+   * Instala um conjunto de manifestações/técnicas (dados brutos de itens) nesta ficha:
+   * confirma, limpa o vínculo com o molde, libera os slots já ocupados e cria os itens.
+   * Fonte compartilhada por "arrastar molde" e "importar JSON".
+   * @param {object[]} rawItems  Item datas (spell) com flags hunter-system.hatsu.
+   */
+  async _installHatsuItems(rawItems) {
+    const itemsData = (rawItems ?? []).map(raw => {
+      const data = foundry.utils.deepClone(raw);
+      delete data._id;
+      // vínculo com o molde de origem não deve ir para a ficha
+      if ( data.flags?.["hunter-system"] ) delete data.flags["hunter-system"].hatsuTemplate;
+      return data;
+    }).filter(d => d?.type === "spell");   // só manifestações/técnicas (spell) entram
+
+    if ( !itemsData.length ) {
+      ui.notifications.warn("Nenhuma manifestação/técnica válida para instalar.");
+      return;
+    }
 
     const confirmed = await foundry.applications.api.DialogV2.confirm({
       window: { title: "Instalar Molde Hatsu" },
-      content: `<p>Isso vai adicionar <strong>${contents.length}</strong> item(ns) de Hatsu nesta ficha, substituindo manifestações que já ocupem os mesmos slots. Continuar?</p>`
+      content: `<p>Isso vai adicionar <strong>${itemsData.length}</strong> item(ns) de Hatsu nesta ficha, substituindo manifestações que já ocupem os mesmos slots. Continuar?</p>`
     });
     if ( !confirmed ) return;
-
-    const itemsData = contents.map(i => {
-      const data = i.toObject();
-      delete data._id;
-      if ( data.flags?.["hunter-system"] ) delete data.flags["hunter-system"].hatsuTemplate;
-      return data;
-    });
 
     // Slots de manifestação já ocupados no ator: precisam ser liberados antes de instalar o molde,
     // senão dois itens ficam com a mesma flag hatsu.slot e um deles some da ficha sem ser removido.
@@ -3573,6 +3593,55 @@ new foundry.applications.ux.ContextMenu.implementation(
       console.error(err);
       ui.notifications.error("Não foi possível instalar o Molde Hatsu.");
     }
+  }
+
+  /**
+   * Importa um Molde Hatsu a partir de um JSON (o mesmo gerado por "Salvar Molde" → Export Data,
+   * que empacota as manifestações/técnicas em flags.hunter-system.hatsuBundle) direto nesta ficha,
+   * sem passar por um item-molde. Aceita: o objeto do molde com hatsuBundle, um array de itens,
+   * ou um único item spell.
+   */
+  async _onHatsuImportJSON() {
+    const esc = foundry.utils.escapeHTML;
+    const res = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Importar Molde Hatsu (JSON)", icon: "fas fa-file-import" },
+      position: { width: 560 },
+      content: `
+        <p class="hint" style="margin-top:0">Cole o <b>JSON de um Molde</b> (exportado pelo botão Salvar Molde → clique direito no item → <i>Export Data</i>) ou escolha o arquivo. As manifestações e técnicas entram direto nesta ficha.</p>
+        <div class="form-group"><label>Arquivo .json</label>
+          <input type="file" name="arquivo" accept="application/json,.json"></div>
+        <div class="form-group"><label>…ou cole o JSON aqui</label>
+          <textarea name="json" rows="8" placeholder='{ "type": "hatsuTemplate", ... }'></textarea></div>`,
+      buttons: [
+        { action: "importar", label: "Importar", icon: "fas fa-file-import", default: true,
+          callback: (ev, b) => ({ texto: b.form.elements.json.value, file: b.form.elements.arquivo.files?.[0] ?? null }) },
+        { action: "cancelar", label: "Cancelar" }
+      ],
+      rejectClose: false
+    }).catch(() => null);
+    if ( !res || res === "cancelar" ) return;
+
+    let texto = res.texto?.trim() ?? "";
+    if ( res.file ) {
+      try { texto = await res.file.text(); }
+      catch { return void ui.notifications.error("Não foi possível ler o arquivo."); }
+    }
+    if ( !texto ) return void ui.notifications.warn("Nenhum JSON informado.");
+
+    let data;
+    try { data = JSON.parse(texto); }
+    catch { return void ui.notifications.error("JSON inválido — verifique o conteúdo."); }
+
+    // Extrai as manifestações/técnicas: bundle do molde, array direto, ou item único.
+    const bundle = foundry.utils.getProperty(data, "flags.hunter-system.hatsuBundle");
+    const rawItems = Array.isArray(bundle) ? bundle
+      : Array.isArray(data) ? data
+      : (data?.type === "spell") ? [data]
+      : null;
+    if ( !rawItems?.length ) {
+      return void ui.notifications.warn("Esse JSON não parece um Molde Hatsu (sem manifestações/técnicas).");
+    }
+    await this._installHatsuItems(rawItems);
   }
 
   async _onHatsuReqAdd(itemId) {
@@ -3709,43 +3778,67 @@ new foundry.applications.ux.ContextMenu.implementation(
    * Cria/atualiza/remove conforme necessário, evitando loops via flag-cache.
    */
   async _syncHatsuProficiencyEffect() {
+    // Trava de reentrância no mesmo cliente: criar/apagar o efeito dispara re-render,
+    // que reentra aqui antes do setFlag → duas passagens leem o mesmo marcador e a 2ª
+    // tenta apagar o que a 1ª já apagou ("ActiveEffect does not exist"). Módulo-scope
+    // pra cobrir também a delegação do npc-sheet e duas sheets do mesmo ator.
+    const actorId = this.actor.id;
+    if ( _hatsuSyncingActors.has(actorId) ) return;
+
     const tier = this._calcHatsuTier();
     const stored = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
-    if ( tier === stored ) return; // sem mudança, nada a fazer
+    const markers = this.actor.effects.filter(e => e.getFlag("hunter-system", "hatsuTierMarker"));
+    // Estado correto = 0 markers (none) ou EXATAMENTE 1 do tier atual. Se já estiver
+    // certo e o flag bater, nada a fazer. Reconcilia inclusive duplicatas que uma
+    // corrida entre clientes (GM + jogador, ambos donos) possa ter deixado.
+    const jaCorreto = tier === "none"
+      ? markers.length === 0
+      : markers.length === 1 && markers[0].getFlag("hunter-system", "hatsuProficiencia") === tier;
+    if ( tier === stored && jaCorreto ) return;
 
-    const TIER_DATA = {
-      otimo:     { label: "Ótimo",     icon: "icons/svg/aura.svg",      auraDie: "d6"  },
-      excelente: { label: "Excelente", icon: "icons/svg/upgrade.svg",   auraDie: "d8"  },
-      genial:    { label: "Genial",    icon: "icons/svg/sun.svg",       auraDie: "d10" },
-      ultimato:  { label: "Ultimato",  icon: "icons/svg/explosion.svg", auraDie: "d12" }
-    };
+    _hatsuSyncingActors.add(actorId);
+    try {
+      const TIER_DATA = {
+        otimo:     { label: "Ótimo",     icon: "icons/svg/aura.svg",      auraDie: "d6"  },
+        excelente: { label: "Excelente", icon: "icons/svg/upgrade.svg",   auraDie: "d8"  },
+        genial:    { label: "Genial",    icon: "icons/svg/sun.svg",       auraDie: "d10" },
+        ultimato:  { label: "Ultimato",  icon: "icons/svg/explosion.svg", auraDie: "d12" }
+      };
 
-    // Remove qualquer marker existente
-    const old = this.actor.effects.filter(e => e.getFlag("hunter-system", "hatsuTierMarker"));
-    if ( old.length ) {
-      await this.actor.deleteEmbeddedDocuments("ActiveEffect", old.map(e => e.id));
+      // Remove markers existentes — só os que AINDA estão na coleção (defensivo contra
+      // corrida) e engolindo o "does not exist" caso um suma no meio do caminho.
+      const ids = this.actor.effects
+        .filter(e => e.getFlag("hunter-system", "hatsuTierMarker"))
+        .map(e => e.id)
+        .filter(id => this.actor.effects.has(id));
+      if ( ids.length ) {
+        try { await this.actor.deleteEmbeddedDocuments("ActiveEffect", ids); }
+        catch ( err ) { console.warn("hunter-system | marker Hatsu já removido:", err?.message ?? err); }
+      }
+
+      // Cria novo se tier !== "none"
+      if ( tier !== "none" ) {
+        const def = TIER_DATA[tier];
+        const changes = [
+          // Passo de dado de aura por proficiência
+          { key: "system.energyDice.denomination", mode: 5, value: def.auraDie, priority: 20 }
+        ];
+        await ActiveEffect.implementation.create({
+          name: `Proficiência Hatsu: ${def.label}`,
+          icon: def.icon,
+          flags: {
+            "hunter-system": { hatsuTierMarker: true, hatsuProficiencia: tier }
+          },
+          changes,
+          disabled: false,
+          transfer: false
+        }, { parent: this.actor });
+      }
+
+      if ( stored !== tier ) await this.actor.setFlag("hunter-system", "hatsuActiveTier", tier);
+    } finally {
+      _hatsuSyncingActors.delete(actorId);
     }
-
-    // Cria novo se tier !== "none"
-    if ( tier !== "none" ) {
-      const def = TIER_DATA[tier];
-      const changes = [
-        // Passo de dado de aura por proficiência
-        { key: "system.energyDice.denomination", mode: 5, value: def.auraDie, priority: 20 }
-      ];
-      await ActiveEffect.implementation.create({
-        name: `Proficiência Hatsu: ${def.label}`,
-        icon: def.icon,
-        flags: {
-          "hunter-system": { hatsuTierMarker: true, hatsuProficiencia: tier }
-        },
-        changes,
-        disabled: false,
-        transfer: false
-      }, { parent: this.actor });
-    }
-
-    await this.actor.setFlag("hunter-system", "hatsuActiveTier", tier);
   }
 
   /**
@@ -4191,6 +4284,7 @@ new foundry.applications.ux.ContextMenu.implementation(
   if ( action === "hatsu-toggle-mode" )     return this._onHatsuToggleMode(target.dataset.itemId, target.dataset.mode);
   if ( action === "hatsu-toggle-ultimato" ) return this._onHatsuToggleUltimato();
   if ( action === "hatsu-save-template" )   return this._onHatsuSaveTemplate();
+  if ( action === "hatsu-import-json" )     return this._onHatsuImportJSON();
   if ( action === "manip-create" )          return this._onManipEdit(null);
   if ( action === "manip-edit" )            return this._onManipEdit(target.dataset.id);
   if ( action === "manip-del" )             return this._onManipDelete(target.dataset.id);
