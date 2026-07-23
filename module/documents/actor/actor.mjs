@@ -192,7 +192,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
 
     for ( const effect of this.effects ) {
       if ( !effect.statuses.has(CONFIG.specialStatusEffects.CONCENTRATING) ) continue;
-      const data = effect.getFlag("hunter-system", "item");
+      const data = effect.flags?.HunterLegacy?.item;   // concentração grava o item em HunterLegacy
       concentration.effects.add(effect);
       if ( data ) {
         let item = this.items.get(data.id);
@@ -362,7 +362,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
   *allApplicableEffects() {
     for ( const effect of super.allApplicableEffects() ) {
       if ( effect.type === "enchantment" ) continue;
-      if ( effect.parent?.getFlag("hunter-system", "riders.effect")?.includes(effect.id) ) continue;
+      if ( effect.parent?.flags?.HunterLegacy?.riders?.effect?.includes(effect.id) ) continue;
       yield effect;
     }
   }
@@ -1087,7 +1087,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     else if ( target instanceof ActiveEffect5e ) effect = effects.has(target) ? target : null;
     else if ( target instanceof Item5e ) {
       effect = effects.find(e => {
-        const data = e.getFlag("hunter-system", "item") ?? {};
+        const data = e.flags?.HunterLegacy?.item ?? {};   // concentração grava o item em HunterLegacy
         return (data.id === target._id) || (data.data?._id === target._id);
       });
     }
@@ -1297,8 +1297,8 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     const rollConfig = foundry.utils.mergeObject({
       advantage, disadvantage,
       ability: relevant?.ability ?? (type === "skill" ? skillConfig.ability : toolConfig?.ability),
-      halflingLucky: this.getFlag("hunter-system", "halflingLucky"),
-      reliableTalent: (relevant?.value >= 1) && this.getFlag("hunter-system", "reliableTalent")
+      halflingLucky: this.flags?.HunterLegacy?.halflingLucky,
+      reliableTalent: (relevant?.value >= 1) && this.flags?.HunterLegacy?.reliableTalent
     }, config);
     rollConfig.hookNames = [...(config.hookNames ?? []), type, "abilityCheck", "d20Test"];
     rollConfig.rolls = [CONFIG.Dice.D20Roll.mergeConfigs({
@@ -1508,7 +1508,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
     };
 
     const rollConfig = foundry.utils.mergeObject({
-      halflingLucky: this.getFlag("hunter-system", "halflingLucky")
+      halflingLucky: this.flags?.HunterLegacy?.halflingLucky
     }, config);
     rollConfig.hookNames = [...(config.hookNames ?? []), name, "d20Test"];
     rollConfig.rolls = [
@@ -1803,7 +1803,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
    */
   getInitiativeRollConfig(options={}) {
     const init = this.system.attributes?.init;
-    const flags = this.flags.JujutsuLegacy ?? {};
+    const flags = this.flags.HunterLegacy ?? {};   // characterFlags (halflingLucky p/ iniciativa) vivem em HunterLegacy
     const abilityId = init?.ability || CONFIG.DND5E.defaultAbilities.initiative;
     const ability = this.system.abilities?.[abilityId];
 
@@ -1994,7 +1994,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
         speaker: ChatMessage.implementation.getSpeaker({actor: this}),
         flavor,
         title: `${flavor}: ${this.name}`,
-        "flags.JujutsuLegacy.roll": {type: "hitDie"}
+        "flags.dnd5e.roll": {type: "hitDie"}
       }
     }, message);
 
@@ -2069,7 +2069,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
       title: `${flavor}: ${this.name}`,
       flavor,
       speaker: ChatMessage.implementation.getSpeaker({ actor: this }),
-      "flags.JujutsuLegacy.roll": { type: "hitPoints" }
+      "flags.dnd5e.roll": { type: "hitPoints" }
     };
 
     /**
@@ -2122,7 +2122,7 @@ export default class Actor5e extends SystemDocumentMixin(Actor) {
       title: `${flavor}: ${this.name}`,
       flavor,
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      "flags.JujutsuLegacy.roll": { type: "hitPoints" }
+      "flags.dnd5e.roll": { type: "hitPoints" }
     };
 
     /**

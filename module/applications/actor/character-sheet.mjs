@@ -1,4 +1,4 @@
-import { formatNumber } from "../../utils.mjs";
+import { formatNumber, staticID } from "../../utils.mjs";
 import AdvancementManager from "../advancement/advancement-manager.mjs";
 import EnergyGenerationDialog from "./energy-generation-dialog.mjs";
 import { EnergySystem } from "../../systems/energy.mjs";
@@ -21,10 +21,11 @@ import "./jj/gm-resource-hud.mjs";   // HUD do Narrador — mesmo caminho de car
 import { reducaoDoGigante } from "./jj/categoria-aprimorador.mjs";   // regras automáticas do Aprimorador (nv 3/6)
 import "./jj/categoria-manipulador.mjs";                              // Aura Controlada (Manipulador nv 2/5/8) — hooks próprios
 import { activateEn, deactivateEn } from "./jj/en-aura.mjs";          // Automação do En (zona no token + dreno de PA) — registra hooks
-import { condicaoDe, injetarBotaoCondicao, rolarSalvaguardaCondicao } from "../../systems/condicao-atividade.mjs"; // Condição no Alvo
+import { condicaoDe, cdCondicao, injetarBotaoCondicao, rolarSalvaguardaCondicao } from "../../systems/condicao-atividade.mjs"; // Condição no Alvo
 import "./jj/heal-limit.mjs";
 import { chooseJJScale, applyScaleChoice, promptJJScale } from "./jj/jj-scale.mjs";
 import { resetHealLimitsByTechnique } from "./jj/heal-limit.mjs";
+import AbilityTemplate from "../../canvas/ability-template.mjs";
 
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
@@ -2749,7 +2750,15 @@ new foundry.applications.ux.ContextMenu.implementation(
     // (Shape correto: a chave do objeto é o id e o pré-requisito mora em requires.abilities —
     // a versão antiga lia ab.id/ab.req, que não existem, e nunca bloqueava nada.)
     const blockerAbilities = Object.entries(MANIPULATION_ABILITIES)
-      .filter(([abId, ab]) => unlockedAbilities.has(abId) && (ab.requires?.abilities ?? []).includes(abilityId))
+      .filter(([abId, ab]) => {
+        if ( !unlockedAbilities.has(abId) ) return false;
+        // Desfazer abilityId só bloqueia se, em algum requisito, ele for o ÚNICO
+        // satisfeito do grupo (num grupo OU, se outra alternativa segue ativa, libera).
+        return (ab.requires?.abilities ?? []).some(req => {
+          const group = Array.isArray(req) ? req : [req];
+          return group.includes(abilityId) && !group.some(r => r !== abilityId && unlockedAbilities.has(r));
+        });
+      })
       .map(([, ab]) => ab);
 
     const blockers = [
@@ -3774,27 +3783,48 @@ new foundry.applications.ux.ContextMenu.implementation(
   }
 
   /**
+   * ID estável (fixo) do marker de proficiência Hatsu. Mesmo padrão de BLOODIED/EXHAUSTION:
+   * fixa o `_id` do efeito em vez de gerar um novo a cada tier, o que permite
+   * atualizá-lo in-place (update) ao trocar de tier em vez de delete+create — eliminando a
+   * janela de corrida que causava "ActiveEffect does not exist!" entre clientes.
+   */
+  static HATSU_PROFICIENCY_MARKER_ID = staticID("hunterhatsuprof");
+
+  /**
    * Sincroniza o Active Effect "Proficiência Hatsu: <tier>" com o tier calculado.
-   * Cria/atualiza/remove conforme necessário, evitando loops via flag-cache.
+   * Usa um `_id` fixo → update-or-create em vez de delete+create, evitando a corrida
+   * "apagar o que já foi apagado" entre clientes (GM + jogador, ambos donos) e o
+   * re-render encadeado do próprio create.
    */
   async _syncHatsuProficiencyEffect() {
-    // Trava de reentrância no mesmo cliente: criar/apagar o efeito dispara re-render,
-    // que reentra aqui antes do setFlag → duas passagens leem o mesmo marcador e a 2ª
-    // tenta apagar o que a 1ª já apagou ("ActiveEffect does not exist"). Módulo-scope
-    // pra cobrir também a delegação do npc-sheet e duas sheets do mesmo ator.
     const actorId = this.actor.id;
     if ( _hatsuSyncingActors.has(actorId) ) return;
 
     const tier = this._calcHatsuTier();
     const stored = this.actor.getFlag("hunter-system", "hatsuActiveTier") ?? "none";
-    const markers = this.actor.effects.filter(e => e.getFlag("hunter-system", "hatsuTierMarker"));
-    // Estado correto = 0 markers (none) ou EXATAMENTE 1 do tier atual. Se já estiver
-    // certo e o flag bater, nada a fazer. Reconcilia inclusive duplicatas que uma
-    // corrida entre clientes (GM + jogador, ambos donos) possa ter deixado.
-    const jaCorreto = tier === "none"
-      ? markers.length === 0
-      : markers.length === 1 && markers[0].getFlag("hunter-system", "hatsuProficiencia") === tier;
-    if ( tier === stored && jaCorreto ) return;
+    // `CharacterActorSheet` (não `this.constructor`): este método é delegado pela npc-sheet
+    // via .call(this), onde this.constructor === NPCActorSheet — que não estende
+    // CharacterActorSheet, então this.constructor.HATSU_PROFICIENCY_MARKER_ID seria undefined,
+    // fazendo cada render tratar o marker real como "legado" e apagá-lo → loop delete/create.
+    const MARKER_ID = CharacterActorSheet.HATSU_PROFICIENCY_MARKER_ID;
+    if ( !MARKER_ID ) return;   // defesa: nunca prossegue sem id canônico (evita apagar tudo)
+
+    // Marker canônico (id fixo) + qualquer marker legado (id aleatório de versões
+    // anteriores), que migramos/removemos uma única vez.
+    const canonical = this.actor.effects.get(MARKER_ID) ?? null;
+    const legacy = this.actor.effects.filter(e =>
+      (e.id !== MARKER_ID) && e.getFlag("hunter-system", "hatsuTierMarker"));
+
+    // Nothing to do when state already matches (canonical exists & tier ok, or none & gone)
+    if ( tier === "none" && !canonical && !legacy.length ) {
+      if ( stored !== "none" ) await this.actor.setFlag("hunter-system", "hatsuActiveTier", "none");
+      return;
+    }
+    const canonicalTier = canonical?.getFlag("hunter-system", "hatsuProficiencia");
+    if ( tier !== "none" && canonical && (canonicalTier === tier) && !legacy.length ) {
+      if ( stored !== tier ) await this.actor.setFlag("hunter-system", "hatsuActiveTier", tier);
+      return;
+    }
 
     _hatsuSyncingActors.add(actorId);
     try {
@@ -3805,34 +3835,50 @@ new foundry.applications.ux.ContextMenu.implementation(
         ultimato:  { label: "Ultimato",  icon: "icons/svg/explosion.svg", auraDie: "d12" }
       };
 
-      // Remove markers existentes — só os que AINDA estão na coleção (defensivo contra
-      // corrida) e engolindo o "does not exist" caso um suma no meio do caminho.
-      const ids = this.actor.effects
-        .filter(e => e.getFlag("hunter-system", "hatsuTierMarker"))
-        .map(e => e.id)
-        .filter(id => this.actor.effects.has(id));
-      if ( ids.length ) {
-        try { await this.actor.deleteEmbeddedDocuments("ActiveEffect", ids); }
-        catch ( err ) { console.warn("hunter-system | marker Hatsu já removido:", err?.message ?? err); }
+      // Limpa markers legados (ids aleatórios de versões antigas) — só os que ainda
+      // estão na coleção e engolindo o "does not exist" caso outro cliente já apagou.
+      if ( legacy.length ) {
+        const legacyIds = legacy.map(e => e.id).filter(id => this.actor.effects.has(id));
+        if ( legacyIds.length ) {
+          try { await this.actor.deleteEmbeddedDocuments("ActiveEffect", legacyIds); }
+          catch ( err ) { console.warn("hunter-system | marker Hatsu legado já removido:", err?.message ?? err); }
+        }
       }
 
-      // Cria novo se tier !== "none"
+      // Update-or-create do marker canônico (id fixo): troca de tier vira update atômico,
+      // não delete+create → sem janela de corrida nem re-render encadeado destrutivo.
       if ( tier !== "none" ) {
         const def = TIER_DATA[tier];
         const changes = [
           // Passo de dado de aura por proficiência
           { key: "system.energyDice.denomination", mode: 5, value: def.auraDie, priority: 20 }
         ];
-        await ActiveEffect.implementation.create({
+        const updateData = {
           name: `Proficiência Hatsu: ${def.label}`,
           icon: def.icon,
-          flags: {
-            "hunter-system": { hatsuTierMarker: true, hatsuProficiencia: tier }
-          },
           changes,
-          disabled: false,
-          transfer: false
-        }, { parent: this.actor });
+          flags: { "hunter-system": { hatsuTierMarker: true, hatsuProficiencia: tier } }
+        };
+        if ( canonical && this.actor.effects.has(MARKER_ID) ) {
+          try { await this.actor.updateEmbeddedDocuments("ActiveEffect", [{ _id: MARKER_ID, ...updateData }]); }
+          catch ( err ) { console.warn("hunter-system | falha ao atualizar marker Hatsu:", err?.message ?? err); }
+        } else {
+          try {
+            await ActiveEffect.implementation.create({
+              _id: MARKER_ID,
+              name: updateData.name,
+              icon: updateData.icon,
+              flags: updateData.flags,
+              changes: updateData.changes,
+              disabled: false,
+              transfer: false
+            }, { parent: this.actor, keepId: true });
+          } catch ( err ) { console.warn("hunter-system | falha ao criar marker Hatsu:", err?.message ?? err); }
+        }
+      } else if ( canonical && this.actor.effects.has(MARKER_ID) ) {
+        // tier === "none": remove o marker canônico
+        try { await this.actor.deleteEmbeddedDocuments("ActiveEffect", [MARKER_ID]); }
+        catch ( err ) { console.warn("hunter-system | marker Hatsu já removido:", err?.message ?? err); }
       }
 
       if ( stored !== tier ) await this.actor.setFlag("hunter-system", "hatsuActiveTier", tier);
@@ -4487,8 +4533,8 @@ new foundry.applications.ux.ContextMenu.implementation(
                           cursor:pointer;">
               <input type="radio" name="jj-training-choice" value="cursePoints" style="flex:0 0 auto;">
               <div>
-                <strong style="color:#ffa060;">💀 Pontos de Nen +4</strong>
-                <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PN → ${cursePoints + 4} PN</div>
+                <strong style="color:#ffa060;">💀 Pontos de Nen +1</strong>
+                <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PN → ${cursePoints + 1} PN</div>
               </div>
             </label>
 
@@ -4553,9 +4599,9 @@ new foundry.applications.ux.ContextMenu.implementation(
       if ( aplicados < times ) ui.notifications.warn(`Só ${aplicados} treino(s) de PA Gerada couberam (limite de 20).`);
     } else if ( mode === "cursePoints" ) {
       const current = actor.system.curseResources?.cursePoints ?? 0;
-      updates["system.curseResources.cursePoints"] = current + 4 * times;
-      updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 4 * times;
-      chatMsg = `🏋️ <strong>${actor.name}</strong> completou <strong>${times}</strong> Treinamento(s) Intenso(s)! <strong>+${4 * times} Pontos de Nen</strong> (total: ${current + 4 * times} PN).`;
+      updates["system.curseResources.cursePoints"] = current + times;
+      updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + times;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou <strong>${times}</strong> Treinamento(s) Intenso(s)! <strong>+${times} Ponto(s) de Nen</strong> (total: ${current + times} PN).`;
     }
 
     await actor.update(updates);
@@ -4595,10 +4641,10 @@ new foundry.applications.ux.ContextMenu.implementation(
       },
       cursePoints: {
         label: "Pontos de Nen",
-        amount: 4,
+        amount: 1,
         undo: (it) => ({
-          "system.curseResources.cursePoints": Math.max(0, (actor.system.curseResources?.cursePoints ?? 0) - 4),
-          "system.energy.intensiveTraining.cursePoints": Math.max(0, (it.cursePoints ?? 0) - 4)
+          "system.curseResources.cursePoints": Math.max(0, (actor.system.curseResources?.cursePoints ?? 0) - 1),
+          "system.energy.intensiveTraining.cursePoints": Math.max(0, (it.cursePoints ?? 0) - 1)
         })
       }
     };
@@ -5267,6 +5313,25 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
   });
 })();
 
+/**
+ * Abre o preview de colocação da ÁREA (MeasuredTemplate) configurada na activity.
+ * O veto de preUseActivity pula o use() nativo — e com ele o _finalizeUsage, que é
+ * quem chama a colocação de template. Aqui disparamos a MESMA ferramenta nativa
+ * (AbilityTemplate.fromActivity + drawPreview), com a mesma condição do
+ * _prepareUsageConfig: há forma de área configurada e o prompt não foi desligado.
+ */
+async function _placeActivityTemplate(activity) {
+  if ( !canvas?.ready ) return;
+  if ( !activity?.target?.template?.type || !activity.target?.prompt ) return;
+  try {
+    for ( const template of AbilityTemplate.fromActivity(activity) ) {
+      await template.drawPreview();
+    }
+  } catch(err) {
+    console.error("Hunter | Falha ao colocar a área da técnica:", err);
+  }
+}
+
 (function _registerJujutsuChatCard() {
 
   // ── HOOK PRINCIPAL: intercepta o uso de qualquer atividade ──────────────────
@@ -5420,6 +5485,27 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
         speaker: ChatMessage.getSpeaker({ actor }),
         content: `🔗 <strong>${actor.name}</strong> (invocação) gastou <strong>${reservaRecurso.need} ${reservaRecurso.name}</strong> de <strong>${payer.name}</strong>.`
       });
+
+      // Consumo NATIVO dos alvos que NÃO são PA (munição/material, usos de item ou
+      // atividade…). A PA e o recurso customizado já foram tratados acima; como
+      // vetamos o use() nativo no hook, o pipeline padrão do dnd5e nunca roda, então
+      // delegamos só o resto do consumo a ele — é o que faz a Bola/Bala ser de fato
+      // descontada do inventário ao atirar. Fica por último de propósito: se faltar
+      // PA, o laço acima já abortou (return) e nenhuma munição é gasta à toa.
+      const alvosConsumo = activity.consumption?.targets ?? [];
+      const ehPA = i => (alvosConsumo[i]?.target === "energy.generated")
+        || (alvosConsumo[i]?.target === "energy.total");
+      const usageConfig = activity._prepareUsageConfig({ create: false });
+      const recursosNaoPA = (usageConfig.consume?.resources ?? []).filter(i => !ehPA(i));
+      if ( recursosNaoPA.length ) {
+        usageConfig.consume.resources = recursosNaoPA;
+        usageConfig.consume.action = false;      // ativação/ação não se aplica ao fluxo custom
+        usageConfig.consume.spellSlot = false;
+        // consume() aplica updates.item (updateEmbeddedDocuments) e, se insuficiente,
+        // já exibe o aviso do dnd5e e retorna false sem descontar nada.
+        try { await activity.consume(usageConfig, {}); }
+        catch(err) { console.error("Hunter | falha ao consumir recurso não-PA do ataque:", err); }
+      }
     }
 
     // Dados de dano da activity
@@ -5472,6 +5558,9 @@ async function _applyPVEDamage(actor, amount, cardMeta = null) {
     };
     ChatMessage.applyRollMode(chatData, rollMode);
     await ChatMessage.create(chatData);
+
+    // Área configurada → preview de colocação no mapa (o veto do use() pula o nativo)
+    await _placeActivityTemplate(activity);
   }
 
   // ── RENDERIZAR HTML DO CARD ──────────────────────────────────────────────────
@@ -6222,6 +6311,20 @@ function _buildBreakdown(roll) {
         paAtivacao += custo;
         poolLabel   = (poolLabel === null || poolLabel === label) ? label : "PA";
       }
+
+      // Consumo NATIVO dos alvos não-PA (munição/material, usos de item/atividade…),
+      // mesmo tratamento de _postJujutsuCard: delegamos ao pipeline do dnd5e já que
+      // vetamos o use() nativo. Fica após a PA para não gastar munição se a PA faltar.
+      const ehPA = i => (targets[i]?.target === "energy.generated") || (targets[i]?.target === "energy.total");
+      const usageConfig = activity._prepareUsageConfig({ create: false });
+      const recursosNaoPA = (usageConfig.consume?.resources ?? []).filter(i => !ehPA(i));
+      if ( recursosNaoPA.length ) {
+        usageConfig.consume.resources = recursosNaoPA;
+        usageConfig.consume.action = false;
+        usageConfig.consume.spellSlot = false;
+        try { await activity.consume(usageConfig, {}); }
+        catch(err) { console.error("Hunter | falha ao consumir recurso não-PA:", err); }
+      }
     }
 
     const description = item.system.description?.value ?? "";
@@ -6255,6 +6358,9 @@ function _buildBreakdown(roll) {
       content,
       flags: { "hunter-system": { jujutsuExtraCard: true, cardData } }
     });
+
+    // Área configurada → preview de colocação no mapa (o veto do use() pula o nativo)
+    await _placeActivityTemplate(activity);
   }
 
   // ── CONFIG POR TIPO ──────────────────────────────────────────────────────────
@@ -6265,6 +6371,16 @@ function _buildBreakdown(roll) {
     } else if ( type === "heal" ) {
       return { typeLabel: "Cura", btnLabel: "Rolar Cura", btnIcon: "fa-heart", btnColor: "#40a060" };
     } else if ( type === "save" ) {
+      // Sem dano + condição: a única salvaguarda pedida é a DA CONDIÇÃO — o botão
+      // anuncia o atributo/CD dela (ou "Aplicar" quando é sem salvaguarda).
+      const cfgCond = condicaoDe(activity);
+      if ( cfgCond && !(activity.damage?.parts ?? []).length ) {
+        if ( cfgCond.semSalvaguarda ) {
+          return { typeLabel: "Condição", btnLabel: "Aplicar condição", btnIcon: "fa-link", btnColor: "#6040c0" };
+        }
+        const abrev = game.i18n.localize(CONFIG.DND5E.abilities[cfgCond.ability]?.abbreviation ?? cfgCond.ability).toUpperCase();
+        return { typeLabel: "Salvaguarda", btnLabel: `Salv. ${abrev} · CD ${cdCondicao(activity, actor)}`, btnIcon: "fa-shield-halved", btnColor: "#6040c0" };
+      }
       const dc = activity.save?.dc?.value ?? activity.save?.dc ?? "?";
       return { typeLabel: "Salvaguarda", btnLabel: `Salv. CD ${dc}`, btnIcon: "fa-shield-halved", btnColor: "#6040c0" };
     } else if ( type === "check" ) {
@@ -6472,6 +6588,15 @@ function _buildBreakdown(roll) {
       }
 
     } else if ( type === "save" ) {
+      // Sem DANO configurado + condição configurada → pede UMA salvaguarda só: a da
+      // condição (a de dano não teria efeito nenhum). Rola pros alvos mirados (ou
+      // selecionados) e aplica em quem falhar; a CD herda a da atividade quando a
+      // condição não tem CD própria (cdCondicao).
+      if ( !(activity?.damage?.parts ?? []).length && condicaoDe(activity) ) {
+        await rolarSalvaguardaCondicao({ activity, actor, card, message });
+        return;
+      }
+
       // No V14, activity.save.ability é um Set — usar .first()
       const abilitySet   = activity?.save?.ability;
       const ability      = (abilitySet instanceof Set ? abilitySet.first() : null)

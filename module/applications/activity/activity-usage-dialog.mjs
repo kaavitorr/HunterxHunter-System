@@ -204,7 +204,7 @@ export default class ActivityUsageDialog extends Dialog5e {
     }];
     if ( this.config.concentration?.begin ) {
       const existingConcentration = Array.from(this.actor.concentration.effects).map(effect => {
-        const data = effect.getFlag("hunter-system", "item");
+        const data = effect.flags?.HunterLegacy?.item;   // concentração grava o item em HunterLegacy (active-effect.mjs ~716)
         return {
           value: effect.id,
           label: data?.data?.name ?? this.actor.items.get(data?.id)?.name

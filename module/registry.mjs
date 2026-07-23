@@ -300,8 +300,8 @@ class MessageRegistry {
    * @param {ChatMessage5e} message  Message to add to the registry.
    */
   static track(message) {
-    const origin = message.getFlag("hunter-system", "originatingMessage");
-    const type = message.getFlag("hunter-system", "roll.type");
+    const origin = message.flags?.dnd5e?.originatingMessage;   // acesso direto: "dnd5e" não é escopo registrado no fork (getFlag lança)
+    const type = message.flags?.dnd5e?.roll?.type;
     if ( !origin || !type ) return;
     if ( !MessageRegistry.#messages.has(origin) ) MessageRegistry.#messages.set(origin, new Map());
     const originMap = MessageRegistry.#messages.get(origin);
@@ -316,8 +316,8 @@ class MessageRegistry {
    * @param {ChatMessage5e} message  Message to remove from the registry.
    */
   static untrack(message) {
-    const origin = message.getFlag("hunter-system", "originatingMessage");
-    const type = message.getFlag("hunter-system", "roll.type");
+    const origin = message.flags?.dnd5e?.originatingMessage;   // acesso direto: "dnd5e" não é escopo registrado no fork (getFlag lança)
+    const type = message.flags?.dnd5e?.roll?.type;
     MessageRegistry.#messages.get(origin)?.get(type)?.delete(message.id);
   }
 }

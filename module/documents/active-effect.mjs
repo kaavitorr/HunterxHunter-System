@@ -469,7 +469,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
   async createRiderConditions() {
     const riders = new Set();
 
-    for ( const status of this.getFlag("hunter-system", "riders.statuses") ?? [] ) {
+    for ( const status of this.flags?.HunterLegacy?.riders?.statuses ?? [] ) {   // rider statuses vivem em HunterLegacy
       riders.add(status);
     }
 
@@ -756,7 +756,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
       hint: game.i18n.localize("DND5E.CONDITIONS.RiderConditions.hint")
     }, {
       name: "flags.HunterLegacy.riders.statuses",
-      value: app.document.getFlag("hunter-system", "riders.statuses") ?? [],
+      value: app.document.flags?.HunterLegacy?.riders?.statuses ?? [],   // lê onde o form grava (HunterLegacy)
       options: CONFIG.statusEffects.map(se => ({ value: se.id, label: se.name })),
       disabled: !context.editable
     });
@@ -863,7 +863,7 @@ export default class ActiveEffect5e extends DependentDocumentMixin(ActiveEffect)
       return;
     }
     const choices = effects.reduce((acc, effect) => {
-      const data = effect.getFlag("hunter-system", "item");
+      const data = effect.flags?.HunterLegacy?.item;   // concentração grava o item em HunterLegacy
       acc[effect.id] = data?.name ?? actor.items.get(data?.id)?.name ?? game.i18n.localize("DND5E.ConcentratingItemless");
       return acc;
     }, {});

@@ -387,7 +387,7 @@ export default class ItemSheet5e extends PrimarySheetMixin(DocumentSheet5e) {
   async _prepareEffectsContext(context, options) {
     const effectMap = {};
     const riders = [];
-    const riderIds = new Set(this.item.getFlag("hunter-system", "riders.effect") ?? []);
+    const riderIds = new Set(this.item.flags?.HunterLegacy?.riders?.effect ?? []);   // migração grava riders.effect em HunterLegacy
     context.tab = context.tabs.effects;
     context.effects = EffectsElement.prepareCategories(this.item.effects, { parent: this.item });
     for ( const category of Object.values(context.effects) ) {

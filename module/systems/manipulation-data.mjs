@@ -138,7 +138,8 @@ export const MANIPULATION_ABILITIES = {
     cost: 3,
     description: "Desde que você possua Aura Assassina ou Despertar Aura, você pode pegar essa habilidade e liberar acesso ao seu Hatsu de acordo com o Manual Shingen-Ryu.",
     techniques: [],
-    requires: { stage: "beginner", abilities: ["auraAssassina"], principle: "hatsu" }
+    // grupo OU: Aura Assassina OU Despertar Aura (basta uma)
+    requires: { stage: "beginner", abilities: [["auraAssassina", "despertarAura"]], principle: "hatsu" }
   },
 
   // ── GYO ─────────────────────────────────────────────────
@@ -709,10 +710,13 @@ export function canUnlockAbility(abilityId, actor) {
     return { can: false, reason: `Requer estágio ${STAGE_LABELS[reqStage]}` };
   }
 
-  // Habilidades pré-requisito
+  // Habilidades pré-requisito. Cada entrada de `abilities` é uma exigência: string =
+  // obrigatória (E); sub-array = grupo OU (basta UMA das listadas estar desbloqueada).
   for ( const req of (abilityDef.requires.abilities ?? []) ) {
-    if ( !unlockedAbilities[req]?.unlocked ) {
-      return { can: false, reason: `Requer: ${MANIPULATION_ABILITIES[req]?.label ?? req}` };
+    const group = Array.isArray(req) ? req : [req];
+    if ( !group.some(r => unlockedAbilities[r]?.unlocked) ) {
+      const label = group.map(r => MANIPULATION_ABILITIES[r]?.label ?? r).join(" ou ");
+      return { can: false, reason: `Requer: ${label}` };
     }
   }
 
@@ -986,7 +990,7 @@ export const TREE_DATA = [
           { id: "despertarAura",      label: "Despertar Aura",      cost: 6, stage: "beginner", req: [],
             desc: "Você pode tocar uma criatura usando sua ação para abrir seus nós de aura. Realize um Teste de Atributo de Espírito (Nen) CD 16. Em caso de falha, ela recebe o dobro do dano do Aura Assassina.\n\nRequisito: Hatsu · 6 Pontos de Nen.",
             reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.4V5U5LAnXTHSK7Uo" },
-          { id: "habilidadeEspecial", label: "Habilidade Especial", cost: 3, stage: "beginner", req: ["auraAssassina"],
+          { id: "habilidadeEspecial", label: "Habilidade Especial", cost: 3, stage: "beginner", req: [["auraAssassina", "despertarAura"]],
             reference: "Compendium.hunter-system.conteudo.JournalEntry.NTLmGaxbRETZzwYX.JournalEntryPage.jJyINc1pObzIzdIx",
             desc: "Desde que você possua Aura Assassina ou Despertar Aura, você pode liberar acesso ao seu Hatsu de acordo com o Manual Shingen-Ryu.\n\nRequisito: Aura Assassina · 3 Pontos de Nen." },
         ]
