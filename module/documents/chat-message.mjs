@@ -206,7 +206,7 @@ export default class ChatMessage5e extends ChatMessage {
     const originatingMessage = this.getOriginatingMessage();
     const displayChallenge = originatingMessage?.shouldDisplayChallenge;
     const displayAttackResult = game.user.isGM || (game.settings.get("hunter-system", "attackRollVisibility") !== "none");
-    const forceSuccess = this.flags.HunterLegacy?.roll?.forceSuccess === true;
+    const forceSuccess = this.flags.dnd5e?.roll?.forceSuccess === true;
 
     /**
      * Create an icon to indicate success or failure.
@@ -237,8 +237,8 @@ export default class ChatMessage5e extends ChatMessage {
       const total = totals[index];
       if ( !total ) continue;
       // Only attack rolls and death saves can crit or fumble.
-      const canCrit = ["attack", "death"].includes(this.getFlag("hunter-system", "roll.type"));
-      const isAttack = this.getFlag("hunter-system", "roll.type") === "attack";
+      const canCrit = ["attack", "death"].includes(this.flags.dnd5e?.roll?.type);
+      const isAttack = this.flags.dnd5e?.roll?.type === "attack";
       const showResult = isAttack ? displayAttackResult : displayChallenge;
       if ( d.options.target && showResult ) {
         if ( d20Roll.isSuccess || forceSuccess ) total.classList.add("success");
@@ -337,7 +337,7 @@ export default class ChatMessage5e extends ChatMessage {
     });
 
     // Enriched roll flavor
-    const roll = this.getFlag("hunter-system", "roll");
+    const roll = this.flags.dnd5e?.roll;
     const item = this.getAssociatedItem();
     const activity = this.getAssociatedActivity();
     if ( this.isContentVisible && item && roll ) {
@@ -551,7 +551,7 @@ export default class ChatMessage5e extends ChatMessage {
     `;
     html.querySelector(".message-content").appendChild(roll);
 
-    const damageOnSave = this.getFlag("hunter-system", "roll.damageOnSave");
+    const damageOnSave = this.flags.dnd5e?.roll?.damageOnSave;
     if ( damageOnSave ) {
       const p = document.createElement("p");
       p.classList.add("supplement");
@@ -636,7 +636,7 @@ export default class ChatMessage5e extends ChatMessage {
    */
   _enrichSaveTooltip(html) {
     const actor = this.getAssociatedActor();
-    const roll = this.getFlag("hunter-system", "roll");
+    const roll = this.flags.dnd5e?.roll;
     if ( !actor?.system.isNPC || (roll?.type !== "save") || this.rolls.some(r => r.isSuccess) ) return;
 
     const content = document.createElement("div");
@@ -1012,6 +1012,6 @@ export default class ChatMessage5e extends ChatMessage {
    * @type {ChatMessage5e}
    */
   getOriginatingMessage() {
-    return game.messages.get(this.getFlag("hunter-system", "originatingMessage")) ?? this;
+    return game.messages.get(this.flags.dnd5e?.originatingMessage) ?? this;
   }
 }

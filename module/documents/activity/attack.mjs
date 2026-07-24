@@ -68,7 +68,7 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
 
   /** @override */
   async _triggerSubsequentActions(config, results) {
-    this.rollAttack({ event: config.event }, {}, { data: { "flags.HunterLegacy.originatingMessage": results.message?.id } });
+    this.rollAttack({ event: config.event }, {}, { data: { "flags.dnd5e.originatingMessage": results.message?.id } });
   }
 
   /* -------------------------------------------- */
@@ -94,9 +94,9 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
     const rollConfig = foundry.utils.mergeObject({
       ammunition: this.item.getFlag("hunter-system", `last.${this.id}.ammunition`),
       attackMode: this.item.getFlag("hunter-system", `last.${this.id}.attackMode`),
-      elvenAccuracy: this.actor?.getFlag("hunter-system", "elvenAccuracy")
+      elvenAccuracy: this.actor?.flags?.HunterLegacy?.elvenAccuracy
         && CONFIG.DND5E.characterFlags.elvenAccuracy.abilities.includes(this.ability),
-      halflingLucky: this.actor?.getFlag("hunter-system", "halflingLucky"),
+      halflingLucky: this.actor?.flags?.HunterLegacy?.halflingLucky,
       mastery: this.item.getFlag("hunter-system", `last.${this.id}.mastery`),
       target: targets.length === 1 ? targets[0].ac : undefined
     }, config);
@@ -166,7 +166,7 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
     if ( !rolls.length ) return null;
     for ( const key of ["ammunition", "attackMode", "mastery"] ) {
       if ( !rolls[0].options[key] ) continue;
-      foundry.utils.setProperty(messageConfig.data, `flags.HunterLegacy.roll.${key}`, rolls[0].options[key]);
+      foundry.utils.setProperty(messageConfig.data, `flags.dnd5e.roll.${key}`, rolls[0].options[key]);
     }
     await CONFIG.Dice.D20Roll.buildPost(rolls, rollConfig, messageConfig);
 
@@ -214,7 +214,7 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
       const messageId = messageConfig.data?.flags?.dnd5e?.originatingMessage
         ?? rollConfig.event?.target.closest("[data-message-id]")?.dataset.messageId;
       const attackMessage = dnd5e.registry.messages.get(messageId, "attack")?.pop();
-      await attackMessage?.setFlag("hunter-system", "roll.ammunitionData", data);
+      await attackMessage?.update({ "flags.dnd5e.roll.ammunitionData": data });   // update pontilhado: setFlag("dnd5e") lança no fork
       await this.actor.deleteEmbeddedDocuments("Item", [ammoUpdate.id]);
     }
     else if ( canUpdate && ammoUpdate ) await this.actor?.updateEmbeddedDocuments("Item", [
@@ -286,16 +286,16 @@ export default class AttackActivity extends ActivityMixin(BaseAttackActivityData
    */
   static #rollDamage(event, target, message) {
     const lastAttack = message.getAssociatedRolls("attack").pop();
-    const attackMode = lastAttack?.getFlag("hunter-system", "roll.attackMode");
+    const attackMode = lastAttack?.flags?.dnd5e?.roll?.attackMode;
 
     // Fetch the ammunition used with the last attack roll
     let ammunition;
     const actor = lastAttack?.getAssociatedActor();
     if ( actor ) {
-      const storedData = lastAttack.getFlag("hunter-system", "roll.ammunitionData");
+      const storedData = lastAttack.flags?.dnd5e?.roll?.ammunitionData;
       ammunition = storedData
         ? new Item.implementation(storedData, { parent: actor })
-        : actor.items.get(lastAttack.getFlag("hunter-system", "roll.ammunition"));
+        : actor.items.get(lastAttack.flags?.dnd5e?.roll?.ammunition);
     }
 
     const isCritical = lastAttack?.rolls[0]?.isCritical;

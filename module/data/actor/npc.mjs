@@ -665,10 +665,10 @@ export default class NPCData extends CreatureTemplate {
    */
   async resistSave(message) {
     if ( this.resources.legres.value === 0 ) throw new Error("No legendary resistances remaining.");
-    if ( message.flags.JujutsuLegacy?.roll?.type !== "save" ) throw new Error("Chat message must contain a save roll.");
-    if ( message.flags.JujutsuLegacy?.roll?.forceSuccess ) throw new Error("Save has already been resisted.");
+    if ( message.flags.dnd5e?.roll?.type !== "save" ) throw new Error("Chat message must contain a save roll.");
+    if ( message.flags.dnd5e?.roll?.forceSuccess ) throw new Error("Save has already been resisted.");
     await this.parent.update({ "system.resources.legres.spent": this.resources.legres.spent + 1 });
-    await message.setFlag("hunter-system", "roll.forceSuccess", true);
+    await message.update({ "flags.dnd5e.roll.forceSuccess": true });   // update pontilhado: setFlag("dnd5e") lança no fork
   }
 
   /* -------------------------------------------- */

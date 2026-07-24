@@ -158,7 +158,7 @@ export default class ConsumableData extends ItemDataModel.mixin(
    * @returns {number}
    */
   get proficiencyMultiplier() {
-    const isProficient = this.parent?.actor?.getFlag("hunter-system", "tavernBrawlerFeat");
+    const isProficient = this.parent?.actor?.flags?.HunterLegacy?.tavernBrawlerFeat;   // characterFlag vive em HunterLegacy
     return isProficient ? 1 : 0;
   }
 

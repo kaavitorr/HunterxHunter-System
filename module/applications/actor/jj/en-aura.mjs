@@ -55,11 +55,17 @@ export async function activateEn(actor, mode = "total") {
   if ( mode === "total" && !(await payEnUpkeep(actor, "ativar")) ) return;
 
   const radius = enRadius(actor, mode);
+  // author = dono (jogador) do ator: no v14 só o autor ou um GM podem editar o
+  // MeasuredTemplate. Se o GM ativa o En pro jogador e depois sai, sem isso a zona
+  // travaria (o jogador não conseguiria movê-la). Cai pro ativador se não houver dono.
+  const dono = game.users.find(u => !u.isGM && u.active && actor.testUserPermission(u, "OWNER"))
+    ?? game.users.find(u => !u.isGM && actor.testUserPermission(u, "OWNER"));
   const [tpl] = await canvas.scene.createEmbeddedDocuments("MeasuredTemplate", [{
     t: "circle",
     x: token.center.x, y: token.center.y,
     distance: radius, direction: 0, angle: 0,
     borderColor: AURA_COLOR, fillColor: AURA_COLOR,
+    author: dono?.id ?? game.user.id,
     flags: { [SCOPE]: { enAura: actor.id } }
   }]);
 
@@ -113,7 +119,9 @@ Hooks.on("updateToken", async (tokenDoc, changes, options, userId) => {
 
   const tplId = enActor.getFlag(SCOPE, "enTemplateId");
   const scene = tokenDoc.parent;
-  if ( !scene || !tplId || !scene.getEmbeddedDocument("MeasuredTemplate", tplId) ) return;
+  const tpl = tplId ? scene?.getEmbeddedDocument("MeasuredTemplate", tplId) : null;
+  if ( !scene || !tpl ) return;
+  if ( !tpl.canUserModify(game.user, "update") ) return;   // v14: sem permissão → não tenta (evita erro a cada passo)
   // centro pela posição ATUAL do documento (v14: getCenterPoint reflete o x/y já atualizado)
   const c = tokenDoc.getCenterPoint?.() ?? tokenDoc.object?.center ?? {
     x: tokenDoc.x + (tokenDoc.width * (scene.grid?.size ?? 100)) / 2,
@@ -124,11 +132,16 @@ Hooks.on("updateToken", async (tokenDoc, changes, options, userId) => {
 
 // Dreno de 2 PA no início de cada turno (modo total). ⅓ não custa.
 Hooks.on("updateCombat", async (combat, changed, options, userId) => {
-  if ( userId !== game.userId ) return;
   if ( !("turn" in changed || "round" in changed) ) return;
   const actor = combat.combatant?.actor;
   if ( !actor?.getFlag(SCOPE, "enAtivo") ) return;
   if ( actor.getFlag(SCOPE, "enModo") === "terco" ) return;   // ⅓ do alcance = sem custo
+  // Único escritor: GM ativo (pode editar qualquer ator) ou, sem GM, o dono ativo do
+  // combatente. Antes o gate era `userId === game.userId` (quem AVANÇOU o turno) — se esse
+  // cliente não possuísse o próximo combatente, o `actor.update` era negado e o dreno sumia.
+  const activeGM = game.users.activeGM;
+  const escritor = activeGM ?? game.users.find(u => !u.isGM && u.active && actor.testUserPermission(u, "OWNER"));
+  if ( !escritor || escritor.id !== game.user.id ) return;
   // Início de turno = em combate → sai da Aura Gerada.
   const cur = actor.system.energy?.generated ?? 0;
   if ( cur < 2 ) {

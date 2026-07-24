@@ -341,7 +341,7 @@ export default class BaseActorSheet extends PrimarySheetMixin(
       classes: Object.values(this.document.classes)
         .map(cls => ({ value: cls.id, label: cls.name }))
         .sort((lhs, rhs) => lhs.label.localeCompare(rhs.label, game.i18n.lang)),
-      data: source.flags?.dnd5e ?? {},
+      data: source.flags?.HunterLegacy ?? {},   // characterFlags vivem em HunterLegacy (mesmo escopo do write, linha ~350)
       disabled: this._mode === this.constructor.MODES.PLAY
     };
 
@@ -1613,12 +1613,12 @@ export default class BaseActorSheet extends PrimarySheetMixin(
   _processFormData(event, form, formData) {
     const submitData = super._processFormData(event, form, formData);
 
-    // Remove any flags that are false-ish
-    for ( const [key, value] of Object.entries(submitData.flags?.dnd5e ?? {}) ) {
+    // Remove any flags that are false-ish (characterFlags no escopo HunterLegacy)
+    for ( const [key, value] of Object.entries(submitData.flags?.HunterLegacy ?? {}) ) {
       if ( value ) continue;
 
-      // Keep the flag for synthetic actor overrides
-      if ( this.actor.isToken && this.actor.parent.baseActor.getFlag("hunter-system", key) ) continue;
+      // Keep the flag for synthetic actor overrides (leitura direta: HunterLegacy não é escopo registrado)
+      if ( this.actor.isToken && this.actor.parent.baseActor.flags?.HunterLegacy?.[key] ) continue;
 
       delete submitData.flags.HunterLegacy[key];
       if ( foundry.utils.hasProperty(this.document._source, `flags.HunterLegacy.${key}`) ) {

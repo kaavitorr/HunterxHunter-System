@@ -60,7 +60,7 @@ export default class HealActivity extends ActivityMixin(BaseHealActivityData) {
 
   /** @override */
   async _triggerSubsequentActions(config, results) {
-    this.rollDamage({ event: config.event }, {}, { data: { "flags.HunterLegacy.originatingMessage": results.message?.id } });
+    this.rollDamage({ event: config.event }, {}, { data: { "flags.dnd5e.originatingMessage": results.message?.id } });
   }
 
   /* -------------------------------------------- */
@@ -78,7 +78,7 @@ export default class HealActivity extends ActivityMixin(BaseHealActivityData) {
     }
 
     const messageConfig = foundry.utils.mergeObject({
-      ["data.flags.HunterLegacy.roll.type"]: "healing"
+      ["data.flags.dnd5e.roll.type"]: "healing"
     }, message);
     // jjApplyHealCap: pede para o getDamageConfig capar a cura ao saldo na rolagem.
     const rollConfig = lim.enabled ? { ...config, jjApplyHealCap: true } : config;

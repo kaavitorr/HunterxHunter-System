@@ -76,7 +76,7 @@ export default class SaveActivity extends ActivityMixin(BaseSaveActivityData) {
   /** @inheritDoc */
   async rollDamage(config={}, dialog={}, message={}) {
     message = foundry.utils.mergeObject({
-      "data.flags.HunterLegacy.roll": {
+      "data.flags.dnd5e.roll": {
         damageOnSave: this.damage.onSave
       }
     }, message);

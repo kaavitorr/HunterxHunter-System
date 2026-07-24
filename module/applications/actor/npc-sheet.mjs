@@ -877,6 +877,11 @@ export default class NPCActorSheet extends BaseActorSheet {
     if ( action === "hatsu-req-add" )           return this._onHatsuReqAdd(target.dataset.itemId);
     if ( action === "hatsu-req-remove" )        return this._onHatsuReqRemove(target.dataset.itemId, parseInt(target.dataset.index));
     if ( action === "hatsu-toggle-ultimato" )   return this._onHatsuToggleUltimato();
+    if ( action === "hatsu-display-card" )      return this._onHatsuDisplayCard(target.dataset.itemId);
+    if ( action === "hatsu-change-image" )      return this._onHatsuChangeImage(target.dataset.itemId);
+    if ( action === "hatsu-toggle-mode" )       return this._onHatsuToggleMode(target.dataset.itemId, target.dataset.mode);
+    if ( action === "hatsu-save-template" )     return this._onHatsuSaveTemplate();
+    if ( action === "hatsu-import-json" )       return this._onHatsuImportJSON();
 
     return super._onClickAction(event, target);
   }
@@ -899,6 +904,12 @@ export default class NPCActorSheet extends BaseActorSheet {
   _calcHatsuTier(...args)                  { return CharacterActorSheet.prototype._calcHatsuTier.call(this, ...args); }
   _syncHatsuProficiencyEffect(...args)     { return CharacterActorSheet.prototype._syncHatsuProficiencyEffect.call(this, ...args); }
   _onHatsuDropSpell(...args)               { return CharacterActorSheet.prototype._onHatsuDropSpell.call(this, ...args); }
+  _onHatsuDisplayCard(...args)             { return CharacterActorSheet.prototype._onHatsuDisplayCard.call(this, ...args); }
+  _onHatsuChangeImage(...args)             { return CharacterActorSheet.prototype._onHatsuChangeImage.call(this, ...args); }
+  _onHatsuToggleMode(...args)              { return CharacterActorSheet.prototype._onHatsuToggleMode.call(this, ...args); }
+  _onHatsuSaveTemplate(...args)            { return CharacterActorSheet.prototype._onHatsuSaveTemplate.call(this, ...args); }
+  _onHatsuImportJSON(...args)              { return CharacterActorSheet.prototype._onHatsuImportJSON.call(this, ...args); }
+  _installHatsuItems(...args)              { return CharacterActorSheet.prototype._installHatsuItems.call(this, ...args); }
   _isHatsuItemBlocked(...args)             { return CharacterActorSheet.prototype._isHatsuItemBlocked.call(this, ...args); }
   _getPrimaryNenCategory(...args)          { return CharacterActorSheet.prototype._getPrimaryNenCategory.call(this, ...args); }
 
@@ -1058,8 +1069,8 @@ export default class NPCActorSheet extends BaseActorSheet {
             </label>
             <label style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0e0e1a; border:1px solid #2a2a40; border-radius:6px; cursor:pointer;">
               <input type="radio" name="jj-training-choice" value="cursePoints">
-              <div><strong style="color:#ffa060;">💀 Pontos de Nen +4</strong>
-                <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PN → ${cursePoints + 4} PN</div></div>
+              <div><strong style="color:#ffa060;">💀 Pontos de Nen +1</strong>
+                <div style="font-size:11px; color:#8080a0;">Atual: ${cursePoints} PN → ${cursePoints + 1} PN</div></div>
             </label>
           </div>
         </div>`,
@@ -1091,9 +1102,9 @@ export default class NPCActorSheet extends BaseActorSheet {
       chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>PA Gerada +1</strong>/turno (treino ${novo}/20).`;
     } else if ( choice === "cursePoints" ) {
       const cur = actor.system.curseResources?.cursePoints ?? 0;
-      updates["system.curseResources.cursePoints"] = cur + 4;
-      updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 4;
-      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+4 Pontos de Nen</strong> (total: ${cur + 4}).`;
+      updates["system.curseResources.cursePoints"] = cur + 1;
+      updates["system.energy.intensiveTraining.cursePoints"] = (it2.cursePoints ?? 0) + 1;
+      chatMsg = `🏋️ <strong>${actor.name}</strong> completou um Treinamento Intenso! <strong>+1 Ponto de Nen</strong> (total: ${cur + 1}).`;
     }
 
     await actor.update(updates);
@@ -1111,10 +1122,10 @@ export default class NPCActorSheet extends BaseActorSheet {
         undo: it => ({ "system.energy.intensiveTraining.maxEnergy": Math.max(0, (it.maxEnergy ?? 0) - 1) }) },
       generatedEnergy: { label: "PA Gerada", amount: 1,
         undo: it => ({ "system.energy.intensiveTraining.generatedEnergy": Math.max(0, (it.generatedEnergy ?? 0) - 1) }) },
-      cursePoints:     { label: "Pontos de Nen", amount: 4,
+      cursePoints:     { label: "Pontos de Nen", amount: 1,
         undo: it => ({
-          "system.curseResources.cursePoints": Math.max(0, (actor.system.curseResources?.cursePoints ?? 0) - 4),
-          "system.energy.intensiveTraining.cursePoints": Math.max(0, (it.cursePoints ?? 0) - 4)
+          "system.curseResources.cursePoints": Math.max(0, (actor.system.curseResources?.cursePoints ?? 0) - 1),
+          "system.energy.intensiveTraining.cursePoints": Math.max(0, (it.cursePoints ?? 0) - 1)
         }) }
     };
     const cfg = FIELDS[field];
@@ -1280,7 +1291,14 @@ export default class NPCActorSheet extends BaseActorSheet {
     // Bloqueia desfazer se outra habilidade desbloqueada depende desta (paridade c/ character-sheet)
     const unlockedIds = new Set(Object.entries(abilities).filter(([, v]) => v?.unlocked).map(([k]) => k));
     const bloqueadores = Object.entries(MANIPULATION_ABILITIES)
-      .filter(([abId, ab]) => unlockedIds.has(abId) && (ab.requires?.abilities ?? []).includes(abilityId))
+      .filter(([abId, ab]) => {
+        if ( !unlockedIds.has(abId) ) return false;
+        // grupo OU: desfazer só bloqueia se abilityId for o único satisfeito do grupo
+        return (ab.requires?.abilities ?? []).some(req => {
+          const group = Array.isArray(req) ? req : [req];
+          return group.includes(abilityId) && !group.some(r => r !== abilityId && unlockedIds.has(r));
+        });
+      })
       .map(([, ab]) => ab.label);
     if ( bloqueadores.length ) {
       ui.notifications.warn(`Não é possível desfazer "${def.label}" — desfaz primeiro: ${bloqueadores.map(b => `"${b}"`).join(", ")}.`);
